@@ -4,13 +4,16 @@ Created on Nov 19, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 '''
 
+import sys
+sys.path.append('..')
+sys.path.append('.')
 import logging as log
 import numpy as np
 
 log.basicConfig(level=log.DEBUG)
 
 from problems import Newcomb
-from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent, RLNewcombAgent
+from agents import RLNewcombAgent
 
 
 if __name__ == '__main__':

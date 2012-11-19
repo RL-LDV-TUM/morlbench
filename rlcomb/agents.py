@@ -36,6 +36,19 @@ class NewcombAgent(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
+    def interact(self, n=1):
+        '''
+        Interact n times with the problem and return
+        the array of payouts.
+        '''
+        log.info('Playing %i interactions ... ' % (n))
+        payouts = []
+        for t in xrange(n):
+            a = self._decide(t)
+            p = self.newcomb_problem.play(a)
+            payouts.append(p)
+        return np.array(payouts)
+
     def _decide(self, t):
         '''
         Decide which action to take in interaction

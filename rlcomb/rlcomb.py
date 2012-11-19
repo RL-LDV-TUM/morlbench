@@ -4,22 +4,26 @@ Created on Nov 19, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 '''
 
-import numpy as np
 import logging as log
+import numpy as np
 
+log.basicConfig(level=log.DEBUG)
 
-class Newcomb(object):
-    """
-    This class represents a Newcomb problem.
-    All the parameters should be set up on object
-    creation. Then the Newcomb problem can be played
-    either once or iteratively. By setting the values
-    for payouts specifically this can also be used
-    to model the Prisoner's Dilemma.
-    """
+from problems import Newcomb
+from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent
 
-    def __init__(self):
-        pass
 
 if __name__ == '__main__':
-    pass
+    problem = Newcomb(predictor_accuracy=0.99,
+                      payouts=np.array([[1000000, 0], [1001000, 1000]]))
+    agent = TwoBoxNewcombAgent(problem)
+
+    interactions = 100000
+
+    log.info('Playing ...')
+    log.info('%s' % (str(agent)))
+    log.info('%s' % (str(problem)))
+
+    payouts = agent.interact(interactions)
+
+    log.info('Average Payout: %f' % (payouts.mean(axis=0)))

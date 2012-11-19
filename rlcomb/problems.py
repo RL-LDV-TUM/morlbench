@@ -56,6 +56,15 @@ class Newcomb(SaveableObject):
  predictor_accuracy:\n%03f\n\
  payouts:\n%s' % (str(self.actions), self.predictor_accuracy, self.payouts)
 
+    def __invert_action(self, action):
+        '''
+        Invert the action, if the predictor will
+        predict wrong.
+        '''
+        if action == 0:
+            return 1
+        return 0
+
     def play(self, action):
         '''
         Play one round of the Newcomb problem. A iterated
@@ -76,13 +85,22 @@ class Newcomb(SaveableObject):
         # TODO: if the predictor is not correct does it
         #       predict a wrong answer or just a random one
 
-        def __invert_action(action):
-            if action == 0:
-                return 1
-            return 0
-
         predictor_action = action
         if random.random() > self.predictor_accuracy:
-            predictor_action = __invert_action(predictor_action)
+            predictor_action = self.__invert_action(predictor_action)
 
         return self.payouts[action, predictor_action]
+
+
+class RandomNewcomb(Newcomb):
+    '''
+    A newcomb problem which doesn't decide always the
+    opposite, but instead a random boxing.
+    '''
+
+    def __invert_action(self, action):
+        '''
+        Play random action instead of
+        the opposite of the optimal
+        '''
+        return random.randint(0, len(self.actions) - 1)

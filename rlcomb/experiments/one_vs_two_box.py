@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 log.basicConfig(level=log.DEBUG)
 
-from problems import Newcomb
+from problems import Newcomb, RandomNewcomb
 from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent
 
 
@@ -24,9 +24,9 @@ if __name__ == '__main__':
     avg_payouts2 = []
 
     for predictor_accuracy in np.linspace(0.01, 0.99, 100):
-        problem1 = Newcomb(predictor_accuracy=predictor_accuracy,
+        problem1 = RandomNewcomb(predictor_accuracy=predictor_accuracy,
                           payouts=np.array([[1000000, 0], [1001000, 1000]]))
-        problem2 = Newcomb(predictor_accuracy=predictor_accuracy,
+        problem2 = RandomNewcomb(predictor_accuracy=predictor_accuracy,
                           payouts=np.array([[1000000, 0], [1001000, 1000]]))
         agent1 = OneBoxNewcombAgent(problem1)
         agent2 = TwoBoxNewcombAgent(problem2)

@@ -20,10 +20,15 @@ from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent
 if __name__ == '__main__':
     interactions = 1000
 
+    linspace_from = 0.01
+    linspace_to = 0.99
+    linspace_steps = 1000
+
     avg_payouts1 = []
     avg_payouts2 = []
 
-    for predictor_accuracy in np.linspace(0.01, 0.99, 100):
+    for predictor_accuracy in np.linspace(linspace_from, linspace_to, 
+                                          linspace_steps):
         problem1 = RandomNewcomb(predictor_accuracy=predictor_accuracy,
                           payouts=np.array([[1000000, 0], [1001000, 1000]]))
         problem2 = RandomNewcomb(predictor_accuracy=predictor_accuracy,
@@ -52,6 +57,11 @@ if __name__ == '__main__':
     avg_payouts2 = np.array(avg_payouts2)
 
     fig = plt.figure()
-    plt.plot(avg_payouts1)
-    plt.plot(avg_payouts2)
-    plt.show()
+    plt.xlabel('prediction accuracy')
+    plt.ylabel('payout')
+    plt.plot(np.linspace(linspace_from, linspace_to,
+                         linspace_steps), avg_payouts1, label='OneBoxer')
+    plt.plot(np.linspace(linspace_from, linspace_to,
+                         linspace_steps), avg_payouts2, label='TwoBoxer')
+    plt.legend(loc='center right')
+    plt.savefig("one_vs_two_box.png")

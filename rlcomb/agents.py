@@ -10,7 +10,7 @@ import numpy as np
 import random
 import logging as log
 
-log.basicConfig(level=log.DEBUG)
+#log.basicConfig(level=log.DEBUG)
 
 
 class NewcombAgent(SaveableObject):
@@ -36,7 +36,16 @@ class NewcombAgent(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
-    def interact(self, n=1):
+    def interact(self):
+        '''
+        Interact once, the internal state
+        has to be maintained by the child class
+        itself.
+        '''
+
+        virtualFunction()
+
+    def interact_multiple(self, n=1):
         '''
         Interact n times with the problem and return
         the array of payouts.
@@ -119,27 +128,37 @@ class RLNewcombAgent(NewcombAgent):
         # we can only be in one state and choose from
         # two actions in the newcomb problem.
         self.Q = np.zeros(len(self.newcomb_problem.actions))
+        self.last_action = 0
+        self.last_payout = 0
 
-    def interact(self, n=1):
+    def interact_multiple(self, n=1):
         '''
         Interact n times with the problem and return
         the array of payouts.
         '''
         log.info('Playing %i interactions ... ' % (n))
         payouts = []
-        last_payout = 0
-        last_action = 0
+        self.last_payout = 0
+        self.last_action = 0
         for t in xrange(n):
-            action = self._decide(t)
-            payout = self.newcomb_problem.play(action)
-            self._learn_sarsa(t, last_action,
-                              last_payout, action, payout)
+            action, payout = self.interact(t)
             payouts.append(payout)
-            last_action = action
-            last_payout = payout
             log.debug(' step %05i: action: %i, payout: %i' % \
                       (t, action, payout))
         return np.array(payouts)
+
+    def interact(self, t):
+        '''
+        Interact only once with the given Newcomb problem.
+        Maintain last payouts and actions internally.
+        '''
+        action = self._decide(t)
+        payout = self.newcomb_problem.play(action)
+        self._learn_sarsa(t, self.last_action,
+                              self.last_payout, action, payout)
+        self.last_action = action
+        self.last_payout = payout
+        return action, payout
 
     def _learn_sarsa(self, t, last_action,
                      last_payout, action, payout):
@@ -149,5 +168,12 @@ class RLNewcombAgent(NewcombAgent):
 
     def _decide(self, t):
         if random.random() < self.epsilon:
-            return self.Q.argmax()
-        return random.randint(0, len(self.newcomb_problem.actions) - 1)
+            action = self.Q.argmax()
+            log.debug('  took greedy action %i' % (action))
+            return action
+        action = random.randint(0, len(self.newcomb_problem.actions) - 1)
+        log.debug('   took random action %i' % (action))
+        return action
+
+    def get_learned_action(self):
+        return self.Q.argmax()

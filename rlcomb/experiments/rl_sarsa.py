@@ -17,7 +17,7 @@ from agents import RLNewcombAgent
 
 
 if __name__ == '__main__':
-    problem = Newcomb(predictor_accuracy=0.99,
+    problem = Newcomb(predictor_accuracy=0.1,
                       payouts=np.array([[1000000, 0], [1001000, 1000]]))
     agent = RLNewcombAgent(problem, alpha=0.1, gamma=0.9, epsilon=0.9)
 
@@ -29,4 +29,5 @@ if __name__ == '__main__':
 
     payouts = agent.interact(interactions)
 
-    log.info('Average Payout: %f' % (payouts.mean(axis=0)))
+    log.info('Average Payout: %f, Learned Action: %i' % (payouts.mean(axis=0),
+                    agent.get_learned_action()))

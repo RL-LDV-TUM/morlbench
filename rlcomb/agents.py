@@ -97,6 +97,32 @@ class TwoBoxNewcombAgent(NewcombAgent):
     def _decide(self, t):
         return 1
 
+class EUNewcombAgent(NewcombAgent):
+    '''
+    A Newcomb Agent, that decides according to the
+    calcuated expected utility. We assume, that the
+    agent has access to the prediction accuracy of
+    the superhuman intelligence.
+    '''
+
+    def __init__(self, problem):
+        super(EUNewcombAgent, self).__init__(problem)
+
+    def _decide(self, t):
+        n_actions = len(self.newcomb_problem.actions)
+        accuracy = self.newcomb_problem.predictor_accuracy
+        payouts = self.newcomb_problem.payouts
+        utility = np.zeros(n_actions)
+        for a in xrange(n_actions):
+            # TODO; fix for more than 2 actions
+            utility[a] += accuracy * payouts[a][0] + (1.0 - accuracy) * \
+                payouts[a][1]
+        action = np.argmax(utility)
+        return action
+
+    def get_learned_action(self):
+        return self._decide(1)
+
 
 class RLNewcombAgent(NewcombAgent):
     '''

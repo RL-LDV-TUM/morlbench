@@ -177,3 +177,68 @@ class RLNewcombAgent(NewcombAgent):
 
     def get_learned_action(self):
         return self.Q.argmax()
+    
+
+class UCB1NewcombAgent(NewcombAgent):
+    '''
+    A Newcomb agent, that uses UCB1 to decide which
+    boxing to do next, as described in 
+    http://www.cs.mcgill.ca/~vkules/bandits.pdf
+    '''
+
+    def __init__(self, problem):
+        '''
+        Initialize the UCB1 Newcomb
+        Agent with the problem description.
+
+        Parameters
+        ----------
+        problem: A Newcomb problem
+        '''
+        super(UCB1NewcombAgent, self).__init__(problem)
+
+        # the mu function is only one dimensional, since
+        # we can only be in one state and choose from
+        # two actions in the newcomb problem.
+        # We will maintain the empirical means in the
+        # vector mu and the number of plays for each 
+        # arms in the vector n
+        self.mu = np.zeros(len(self.newcomb_problem.actions))
+        self.n = np.zeros(len(self.newcomb_problem.actions))
+        self.total_interactions = 0
+
+    def interact_multiple(self, n=1):
+        '''
+        Interact n times with the problem and return
+        the array of payouts.
+        '''
+        log.info('Playing %i interactions ... ' % (n))
+        payouts = []
+        self.last_payout = 0
+        self.last_action = 0
+        for t in xrange(n):
+            action, payout = self.interact(t)
+            payouts.append(payout)
+            log.debug(' step %05i: action: %i, payout: %i' % \
+                      (t, action, payout))
+        return np.array(payouts)
+
+    def interact(self, t):
+        '''
+        Interact only once with the given Newcomb problem.
+        Maintain last payouts and actions internally.
+        '''
+        action = self._decide(t)
+        payout = self.newcomb_problem.play(action)
+        self.total_interactions += 1
+        self.n[action] += 1
+        self.mu[action] += 1.0 / (self.n[action] + 1) * (payout - self.mu[action])
+        return action, payout
+
+    def _decide(self, t):
+        action = np.argmax(self.mu + np.sqrt((2 * 
+                        np.log(self.total_interactions)) / self.n))
+        return action
+
+    def get_learned_action(self):
+        return self._decide(1)

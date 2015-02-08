@@ -268,3 +268,94 @@ class UCB1NewcombAgent(NewcombAgent):
 
     def get_learned_action(self):
         return self._decide(1)
+
+
+class PrisonerAgent(SaveableObject):
+    '''
+    A agent that should interface with a Prisoner's dilemma problem.
+    '''
+
+    def __init__(self, pd):
+        '''
+        Initialize the Agent with the Prisoner's
+        dilemma, it will be faced with.
+
+        Parameters
+        ----------
+        newcomb_problem: The already initialized and
+            correctly parametrized problem.
+        '''
+
+        super(PrisonerAgent, self).__init__([])
+
+        self.pd = pd
+
+    def __str__(self):
+        return self.__class__.__name__
+
+    def interact(self):
+        '''
+        Interact once, the internal state
+        has to be maintained by the child class
+        itself.
+        '''
+
+        virtualFunction()
+
+    def interact_multiple(self, n=1):
+        '''
+        Interact n times with the problem and return
+        the array of payouts.
+        '''
+        virtualFunction()
+       
+    def _decide(self, t):
+        '''
+        Decide which action to take in interaction
+        cycle t.
+
+        Parameters
+        ----------
+        t: Interaction cycle we are currently in
+
+        Returns
+        -------
+        action: The action to do next
+        '''
+        virtualFunction()
+
+
+class ProbabilisticPrisonerAgent(PrisonerAgent):
+    '''
+    A PD agent, that is able to play the probabilistic
+    version of the PD.
+    '''
+
+    def interact_multiple(self, n=1):
+        log.info('Playing %i interactions ... ' % (n))
+        payouts = []
+        for t in xrange(n):
+            a = self._decide(t)
+            p = self.pd.play(a)
+            payouts.append(p)
+        return np.array(payouts)
+
+
+class DefectProbabilisticPrisonerAgent(ProbabilisticPrisonerAgent):
+    '''
+    A PD agent that always defects.
+    '''
+
+    def _decide(self, t):
+        return 1
+
+
+class CooperateProbabilisticPrisonerAgent(ProbabilisticPrisonerAgent):
+    '''
+    A PD agent that always cooperates.
+    '''
+
+    def _decide(self, t):
+        return 0
+
+

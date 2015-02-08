@@ -193,6 +193,9 @@ class ProbabilisticPrisonersDilemma(PrisonersDilemma):
 
         self.coop_p = coop_p
 
+    def __str__(self):
+        return "ProbabilisticPrisonersDilemma(coop_p=%f)" % (self.coop_p)
+
     def play(self, action):
         '''
         Play the probabilistic PD. 

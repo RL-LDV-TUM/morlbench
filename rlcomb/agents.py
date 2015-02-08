@@ -36,7 +36,7 @@ class NewcombAgent(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
-    def interact(self):
+    def interact(self, t):
         '''
         Interact once, the internal state
         has to be maintained by the child class
@@ -293,14 +293,15 @@ class PrisonerAgent(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
-    def interact(self):
+    def interact(self, t):
         '''
         Interact once, the internal state
         has to be maintained by the child class
         itself.
         '''
-
-        virtualFunction()
+        action = self._decide(t)
+        payout = self.pd.play(action)
+        return action, payout
 
     def interact_multiple(self, n=1):
         '''
@@ -331,13 +332,16 @@ class ProbabilisticPrisonerAgent(PrisonerAgent):
     version of the PD.
     '''
 
+    def interact(self, t):
+        pass
+
     def interact_multiple(self, n=1):
         log.info('Playing %i interactions ... ' % (n))
         payouts = []
         for t in xrange(n):
             a = self._decide(t)
             p = self.pd.play(a)
-            payouts.append(p)
+            payouts.append(p[0])
         return np.array(payouts)
 
 

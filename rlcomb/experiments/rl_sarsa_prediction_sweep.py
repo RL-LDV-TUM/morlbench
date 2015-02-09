@@ -4,10 +4,9 @@ Created on Nov 21, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 '''
 
-
 '''
 Experiment that sweeps over the prediction accuracy of the
-Newcomb problems predictor and does a RL learning over 
+Prisoner's Dilemma problems predictor and does a RL learning over
 10000 iterations with SARSA.
 '''
 

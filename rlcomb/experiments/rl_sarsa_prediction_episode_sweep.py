@@ -4,7 +4,6 @@ Created on Nov 21, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 '''
 
-
 '''
 Experiment that sweeps number of episodes
 of a RL (SARSA) Newcomb agent.

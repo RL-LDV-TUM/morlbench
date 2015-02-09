@@ -67,7 +67,7 @@ if __name__ == '__main__':
 
         return (np.array(avg_payouts_in_run), np.array(learned_actions_in_run))
 
-    results = Parallel(n_jobs=1)(delayed(onerun)(r) for r in
+    results = Parallel(n_jobs=-1)(delayed(onerun)(r) for r in
                                   xrange(independent_runs))
 
     for r in xrange(len(results)):

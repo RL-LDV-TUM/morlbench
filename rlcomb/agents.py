@@ -338,13 +338,18 @@ class ProbabilisticPrisonerAgent(PrisonerAgent):
     def interact(self, t):
         pass
 
-    def interact_multiple(self, n=1):
+    def interact_multiple(self, n=1, total_payout=False):
         log.info('Playing %i interactions ... ' % (n))
         payouts = []
+        total = []
         for t in xrange(n):
             a = self._decide(t)
             p = self.pd.play(a)
+            if total_payout:
+                total.append(p[0] + p[1])
             payouts.append(p[0])
+        if total_payout:
+            return np.array(payouts), np.array(total)
         return np.array(payouts)
 
 

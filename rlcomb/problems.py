@@ -115,7 +115,7 @@ class PrisonersDilemma(SaveableObject):
 
                           C     D
 
-    prisoner 1      C   (R,R) (S,T)        
+    prisoner 1      C   (R,R) (S,T)
                     D   (T,S) (P,P)
 
 

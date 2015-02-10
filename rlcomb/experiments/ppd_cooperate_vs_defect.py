@@ -9,9 +9,10 @@ sys.path.append('..')
 sys.path.append('.')
 import logging as log
 import numpy as np
-import matplotlib.pyplot as plt
 
 log.basicConfig(level=log.DEBUG)
+
+from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import ProbabilisticPrisonersDilemma
 from agents import DefectProbabilisticPrisonerAgent, \
@@ -19,14 +20,16 @@ from agents import DefectProbabilisticPrisonerAgent, \
 
 
 if __name__ == '__main__':
-    interactions = 1000
+    interactions = 10000
 
     linspace_from = 0.01
     linspace_to = 0.99
-    linspace_steps = 1000
+    linspace_steps = 100
 
     avg_payouts1 = []
+    std_payouts1 = []
     avg_payouts2 = []
+    std_payouts2 = []
     avg_total1 = []
     avg_total2 = []
 
@@ -49,12 +52,16 @@ if __name__ == '__main__':
         payouts2, total2 = agent2.interact_multiple(interactions,
                                                     total_payout=True)
         avg_payout1 = payouts1.mean(axis=0)
+        std_payout1 = payouts1.std(axis=0)
         avg_payout2 = payouts2.mean(axis=0)
+        std_payout2 = payouts2.std(axis=0)
         avg_totall1 = total1.mean(axis=0)
         avg_totall2 = total2.mean(axis=0)
 
         avg_payouts1.append(avg_payout1)
+        std_payouts1.append(std_payout1)
         avg_payouts2.append(avg_payout2)
+        std_payouts2.append(std_payout2)
         avg_total1.append(avg_totall1)
         avg_total2.append(avg_totall2)
 
@@ -62,26 +69,32 @@ if __name__ == '__main__':
                  (avg_payout1, avg_payout2, avg_totall1, avg_totall2))
 
     avg_payouts1 = np.array(avg_payouts1)
+    std_payouts1 = np.array(std_payouts1)
     avg_payouts2 = np.array(avg_payouts2)
+    std_payouts2 = np.array(std_payouts2)
     avg_total1 = np.array(avg_total1)
     avg_total2 = np.array(avg_total2)
 
-    fig = plt.figure()
-    plt.xlabel('cooperation prob.')
-    plt.ylabel('payout')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_payouts1, label='Defect')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_payouts2, label='Cooperate')
-    plt.legend(loc='upper left')
-    plt.savefig("defect_vs_cooperate.png")
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps),
+                             np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [avg_payouts1, avg_payouts2],
+                            ["Defect", "Cooperate"],
+                            "Cooperation Probability",
+                            (0, 1.1, 0.2),
+                            "Payout",
+                            (0, 6, 1),
+                            'defect_vs_cooperate.pdf')
 
-    fig = plt.figure()
-    plt.xlabel('cooperation prob.')
-    plt.ylabel('payout total')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_total1, label='Defect')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_total2, label='Cooperate')
-    plt.legend(loc='lower right')
-    plt.savefig("defect_vs_cooperate_total_payout.png")
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps),
+                             np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [avg_total1, avg_total2],
+                            ["Defect", "Cooperate"],
+                            "Cooperation Probability",
+                            (0, 1.1, 0.2),
+                            "Payout",
+                            (0, 7, 1),
+                            'defect_vs_cooperate_total_payout.pdf')

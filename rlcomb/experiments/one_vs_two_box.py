@@ -9,20 +9,21 @@ sys.path.append('..')
 sys.path.append('.')
 import logging as log
 import numpy as np
-import matplotlib.pyplot as plt
 
 log.basicConfig(level=log.DEBUG)
+
+from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import Newcomb, RandomNewcomb
 from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent
 
 
 if __name__ == '__main__':
-    interactions = 1000
+    interactions = 10000
 
     linspace_from = 0.01
     linspace_to = 0.99
-    linspace_steps = 1000
+    linspace_steps = 100
 
     avg_payouts1 = []
     avg_payouts2 = []
@@ -43,8 +44,8 @@ if __name__ == '__main__':
         log.info('%s' % (str(agent2)))
         log.info('%s' % (str(problem2)))
 
-        payouts1 = agent1.interact(interactions)
-        payouts2 = agent2.interact(interactions)
+        payouts1 = agent1.interact_multiple(interactions)
+        payouts2 = agent2.interact_multiple(interactions)
         avg_payout1 = payouts1.mean(axis=0)
         avg_payout2 = payouts2.mean(axis=0)
 
@@ -56,12 +57,14 @@ if __name__ == '__main__':
     avg_payouts1 = np.array(avg_payouts1)
     avg_payouts2 = np.array(avg_payouts2)
 
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('payout')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_payouts1, label='OneBoxer')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_payouts2, label='TwoBoxer')
-    plt.legend(loc='center right')
-    plt.savefig("one_vs_two_box.png")
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps),
+                             np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [avg_payouts1, avg_payouts2],
+                            ["TwoBoxer", "OneBoxer"],
+                            "Prediction Accuracy",
+                            (0, 1.1, 0.2),
+                            "Payout",
+                            (0, 1001001, 100000),
+                            'one_vs_two_box.pdf')

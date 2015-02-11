@@ -21,6 +21,8 @@ from joblib import Parallel, delayed
 
 log.basicConfig(level=log.INFO)
 
+from plotting_stuff import plot_that_pretty_rldm15
+
 from problems import Newcomb
 from agents import UCB1NewcombAgent
 
@@ -72,16 +74,36 @@ if __name__ == '__main__':
     avg_payouts = avg_payouts.mean(axis=0)
     learned_actions = learned_actions.mean(axis=0)
 
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('payout')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_payouts, label='UCB1Agent')
-    plt.legend(loc='upper center')
-    plt.savefig("ucb1_agent_payout.png")
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('learned action')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), learned_actions, label='UCB1Agent')
-    plt.savefig("ucb1_agent_learned_action.png")
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [avg_payouts],
+                            ["UCB1 Agent"],
+                            "Prediction Accuracy",
+                            (0, 1.1, 0.2),
+                            "Learned Action",
+                            (0, 1.1, 0.2),
+                            'ucb1_agent_payout.pdf')
+
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [learned_actions],
+                            ["UCB1 Agent"],
+                            "Prediction Accuracy",
+                            (0, 1.1, 0.2),
+                            "Learned Action",
+                            (0, 1.1, 0.2),
+                            'rl_agent_learned_action.pdf')
+
+#     fig = plt.figure()
+#     plt.xlabel('prediction accuracy')
+#     plt.ylabel('payout')
+#     plt.plot(np.linspace(linspace_from, linspace_to,
+#                          linspace_steps), avg_payouts, label='UCB1Agent')
+#     plt.legend(loc='upper center')
+#     plt.savefig("ucb1_agent_payout.png")
+#     fig = plt.figure()
+#     plt.xlabel('prediction accuracy')
+#     plt.ylabel('learned action')
+#     plt.plot(np.linspace(linspace_from, linspace_to,
+#                          linspace_steps), learned_actions, label='UCB1Agent')
+#     plt.savefig("ucb1_agent_learned_action.png")

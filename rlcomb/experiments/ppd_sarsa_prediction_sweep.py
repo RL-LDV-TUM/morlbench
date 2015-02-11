@@ -22,6 +22,8 @@ from joblib import Parallel, delayed
 
 log.basicConfig(level=log.INFO)
 
+from plotting_stuff import plot_that_pretty_rldm15
+
 from problems import ProbabilisticPrisonersDilemma
 from agents import SARSAPrisonerAgent
 
@@ -32,7 +34,7 @@ if __name__ == '__main__':
 
     linspace_from = 0.01
     linspace_to = 0.99
-    linspace_steps = 100
+    linspace_steps = 10
 
     avg_payouts = np.zeros((independent_runs, linspace_steps))
     learned_actions = np.zeros((independent_runs, linspace_steps))
@@ -77,18 +79,38 @@ if __name__ == '__main__':
     avg_payouts = avg_payouts.mean(axis=0)
     learned_actions = learned_actions.mean(axis=0)
 
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('payout')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_payouts,
-             label='SARSAPrisonerAgent')
-    plt.legend(loc='upper center')
-    plt.savefig("sarsa_pd_payout.png")
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('learned action')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), learned_actions,
-             label='SARSAPrisonerAgent')
-    plt.savefig("sarsa_pd_learned_action.png")
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [learned_actions],
+                            ["SARSA Agent"],
+                            "Prediction Accuracy",
+                            (0, 1.1, 0.2),
+                            "Learned Action",
+                            (0, 1.1, 0.2),
+                            'sarsa_pd_payout.pdf')
+
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [learned_actions],
+                            ["SARSA Agent"],
+                            "Prediction Accuracy",
+                            (0, 1.1, 0.2),
+                            "Learned Action",
+                            (0, 1.1, 0.2),
+                            'sarsa_pd_learned_action.pdf')
+
+#     fig = plt.figure()
+#     plt.xlabel('prediction accuracy')
+#     plt.ylabel('payout')
+#     plt.plot(np.linspace(linspace_from, linspace_to,
+#                          linspace_steps), avg_payouts,
+#              label='SARSAPrisonerAgent')
+#     plt.legend(loc='upper center')
+#     plt.savefig("sarsa_pd_payout.png")
+#     fig = plt.figure()
+#     plt.xlabel('prediction accuracy')
+#     plt.ylabel('learned action')
+#     plt.plot(np.linspace(linspace_from, linspace_to,
+#                          linspace_steps), learned_actions,
+#              label='SARSAPrisonerAgent')
+#     plt.savefig("sarsa_pd_learned_action.png")

@@ -15,26 +15,28 @@ sys.path.append('..')
 sys.path.append('.')
 import logging as log
 import numpy as np
-import matplotlib.pyplot as plt
+from joblib import Parallel, delayed
 
 log.basicConfig(level=log.INFO)
+
+from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import Newcomb
 from agents import RLNewcombAgent
 
 
 if __name__ == '__main__':
-    independent_runs = 20
+    independent_runs = 100
     interactions = 10000
 
     linspace_from = 0.01
     linspace_to = 0.99
-    linspace_steps = 1000
+    linspace_steps = 100
 
     avg_payouts = np.zeros((independent_runs, linspace_steps))
     learned_actions = np.zeros((independent_runs, linspace_steps))
 
-    for r in xrange(independent_runs):
+    def onerun(r):
         avg_payouts_in_run = []
         learned_actions_in_run = []
 
@@ -49,31 +51,56 @@ if __name__ == '__main__':
             log.info('%s' % (str(agent)))
             log.info('%s' % (str(problem)))
 
-            payouts = agent.interact(interactions)
+            payouts = agent.interact_multiple(interactions)
             avg_payout = payouts.mean(axis=0)
             avg_payouts_in_run.append(avg_payout)
 
-            log.info('Average Payout for predicion accuraccy %.3f: %.3f' % \
+            log.info('Average Payout for predicion accuraccy %.3f: %.3f' %
                      (prediction_accuracy, avg_payout))
 
             learned_actions_in_run.append(agent.get_learned_action())
+        return (np.array(avg_payouts_in_run), np.array(learned_actions_in_run))
 
-        avg_payouts[r, :] = np.array(avg_payouts_in_run)
-        learned_actions[r, :] = np.array(learned_actions_in_run)
+    results = Parallel(n_jobs=-1)(delayed(onerun)(r) for r in
+                                 xrange(independent_runs))
+
+    for r in xrange(len(results)):
+        avg_payouts[r, :] = results[r][0]
+        learned_actions[r, :] = results[r][1]
 
     avg_payouts = avg_payouts.mean(axis=0)
     learned_actions = learned_actions.mean(axis=0)
 
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('payout')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_payouts, label='RLAgent')
-    plt.legend(loc='upper center')
-    plt.savefig("rl_agent_payout.png")
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('learned action')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), learned_actions, label='RLAgent')
-    plt.savefig("rl_agent_learned_action.png")
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [avg_payouts],
+                            ["SARSA Agent"],
+                            "Prediction Accuracy",
+                            (0, 1.1, 0.2),
+                            "Payout",
+                            (0, 1001000, 100000),
+                            'rl_agent_payout.pdf')
+
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [learned_actions],
+                            ["SARSA Agent"],
+                            "Prediction Accuracy",
+                            (0, 1.1, 0.2),
+                            "Learned Action",
+                            (0, 1.1, 0.2),
+                            'rl_agent_learned_action.pdf')
+
+#     fig = plt.figure()
+#     plt.xlabel('prediction accuracy')
+#     plt.ylabel('payout')
+#     plt.plot(np.linspace(linspace_from, linspace_to,
+#                          linspace_steps), avg_payouts, label='RLAgent')
+#     plt.legend(loc='upper center')
+#     plt.savefig("rl_agent_payout.png")
+#     fig = plt.figure()
+#     plt.xlabel('prediction accuracy')
+#     plt.ylabel('learned action')
+#     plt.plot(np.linspace(linspace_from, linspace_to,
+#                          linspace_steps), learned_actions, label='RLAgent')
+#     plt.savefig("rl_agent_learned_action.png")

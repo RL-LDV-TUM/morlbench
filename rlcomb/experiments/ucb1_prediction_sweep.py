@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
         return (np.array(avg_payouts_in_run), np.array(learned_actions_in_run))
 
-    results = Parallel(n_jobs=7)(delayed(onerun)(r) for r in
+    results = Parallel(n_jobs=4)(delayed(onerun)(r) for r in
                                  xrange(independent_runs))
 
     for r in xrange(len(results)):
@@ -77,22 +77,22 @@ if __name__ == '__main__':
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps)],
                             [avg_payouts],
-                            ["UCB1 Agent"],
+                            ["UCB1"],
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
-                            "Learned Action",
-                            (0, 1.1, 0.2),
+                            "Payout",
+                            (0, 1001000, 100000),
                             'ucb1_agent_payout.pdf')
 
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps)],
                             [learned_actions],
-                            ["UCB1 Agent"],
+                            ["UCB1"],
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
                             "Learned Action",
                             (0, 1.1, 0.2),
-                            'rl_agent_learned_action.pdf')
+                            'ucb1_agent_learned_action.pdf')
 
 #     fig = plt.figure()
 #     plt.xlabel('prediction accuracy')

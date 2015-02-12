@@ -114,10 +114,12 @@ class EUNewcombAgent(NewcombAgent):
         accuracy = self.newcomb_problem.predictor_accuracy
         payouts = self.newcomb_problem.payouts
         utility = np.zeros(n_actions)
-        for a in xrange(n_actions):
-            # TODO; fix for more than 2 actions
-            utility[a] += accuracy * payouts[a][0] + (1.0 - accuracy) * \
-                payouts[a][1]
+#         for a in xrange(n_actions):
+#             # TODO; fix for more than 2 actions
+#             utility[a] += accuracy * payouts[a][0] + (1.0 - accuracy) * \
+#                 payouts[a][1]
+        utility[0] = accuracy * payouts[0][0] + (1.0 - accuracy) * payouts[0][1]
+        utility[1] = (1.0 - accuracy) * payouts[1][0] + accuracy * payouts[1][1]
         action = np.argmax(utility)
         return action
 
@@ -125,7 +127,7 @@ class EUNewcombAgent(NewcombAgent):
         return self._decide(1)
 
 
-class RLNewcombAgent(NewcombAgent):
+class SARSANewcombAgent(NewcombAgent):
     '''
     A Newcomb agent, that uses RL to decide which
     boxing to do next.
@@ -146,7 +148,7 @@ class RLNewcombAgent(NewcombAgent):
         epsilon: real, [0, 1] the epsilon factor for
             the epsilon greedy action selection strategy
         '''
-        super(RLNewcombAgent, self).__init__(problem)
+        super(SARSANewcombAgent, self).__init__(problem)
 
         self.alpha = alpha
         self.gamma = gamma
@@ -181,14 +183,13 @@ class RLNewcombAgent(NewcombAgent):
         '''
         action = self._decide(t)
         payout = self.newcomb_problem.play(action)
-        self._learn_sarsa(t, self.last_action,
-                          self.last_payout, action, payout)
+        self._learn(t, self.last_action,
+                    self.last_payout, action, payout)
         self.last_action = action
         self.last_payout = payout
         return action, payout
 
-    def _learn_sarsa(self, t, last_action,
-                     last_payout, action, payout):
+    def _learn(self, t, last_action, last_payout, action, payout):
         self.Q[last_action] += self.alpha * \
             (payout + self.gamma * self.Q[action] - self.Q[last_action])
         log.debug(' Q: %s' % (str(self.Q)))
@@ -204,6 +205,22 @@ class RLNewcombAgent(NewcombAgent):
 
     def get_learned_action(self):
         return self.Q.argmax()
+
+
+class AVGQNewcombAgent(SARSANewcombAgent):
+    '''
+    A Newcomb agent, that does not use the SARSA, but instead
+    the incremental average Q update rule.
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super(AVGQNewcombAgent, self).__init__(*args, **kwargs)
+
+        self.n_times = np.zeros_like(self.Q)
+
+    def _learn(self, t, last_action, last_payout, action, payout):
+        self.Q[action] += 1.0 / (self.n_times[action] + 1) * (payout - self.Q[action])
+        self.n_times[action] += 1
 
 
 class UCB1NewcombAgent(NewcombAgent):
@@ -401,6 +418,7 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
         # we can only be in one state and choose from
         # two actions in the newcomb problem.
         self.Q = np.zeros(len(self.pd.actions))
+        self.n_times = np.zeros_like(self.Q)
         self.last_action = 0
         self.last_payout = 0
 
@@ -453,25 +471,111 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
         payout: float
             Payout from the problem for this agent.
         '''
-        self._learn_sarsa(1, self.last_action, self.last_payout, action,
-                          payout)
+        self.Q[self.last_action] += self.alpha * \
+            (payout + self.gamma * self.Q[action] - self.Q[self.last_action])
+        log.debug(' Q: %s' % (str(self.Q)))
+#         print ' Q: %s' % (str(self.Q))
         self.last_action = action
         self.last_payout = payout
-
-    def _learn_sarsa(self, t, last_action,
-                     last_payout, action, payout):
-        self.Q[last_action] += self.alpha * \
-            (payout + self.gamma * self.Q[action] - self.Q[last_action])
-        log.debug(' Q: %s' % (str(self.Q)))
 
     def _decide(self, t):
         if random.random() < self.epsilon:
             action = self.Q.argmax()
             log.debug('  took greedy action %i' % (action))
             return action
-        action = random.randint(0, len(self.newcomb_problem.actions) - 1)
+        action = random.randint(0, len(self.pd.actions) - 1)
         log.debug('   took random action %i' % (action))
         return action
 
     def get_learned_action(self):
         return self.Q.argmax()
+
+
+class AVGQPrisonerAgent(SARSAPrisonerAgent):
+    '''
+    A PD agent, that decides according to a AVGQ
+    RL learning stragey.
+    '''
+
+    def __init__(self, *args, **kwargs):
+        '''
+        Initialize the AVGQ PD
+        '''
+        super(AVGQPrisonerAgent, self).__init__(*args, **kwargs)
+
+        self.n_times = np.zeros_like(self.Q)
+
+    def learn(self, action, payout):
+        '''
+        Learn from interaction.
+
+        Parameters
+        ----------
+        action: int
+            The action that lead to the payout.
+        payout: float
+            Payout from the problem for this agent.
+        '''
+        self.Q[action] += 1.0 / (self.n_times[action] + 1) * (payout -
+                                                              self.Q[action])
+        self.n_times[action] += 1
+        log.debug(' Q: %s' % (str(self.Q)))
+#         print ' Q: %s' % (str(self.Q))
+        self.last_action = action
+        self.last_payout = payout
+
+
+class EUPrisonerAgent(ProbabilisticPrisonerAgent):
+    '''
+    A PD agent, that decides according to expected utility
+    RL learning stragey.
+    '''
+
+    def __init__(self, pd):
+        '''
+        Initialize the EU PD
+        Agent with the probleme description and alpha,
+        the learning rate.
+
+        Parameters
+        ----------
+        pd: A PD problem
+        '''
+        super(EUPrisonerAgent, self).__init__(pd)
+
+    def decide(self, total_payout=False):
+        '''
+        Alternative interface to interact with multiple
+        PD agents. Use in conjunction with `learn'
+        '''
+        return self._decide(1, total_payout)
+
+    def learn(self, action, payout):
+        '''
+        Learn from interaction.
+
+        EU does not learn from interaction.
+        '''
+        pass
+
+    def _decide(self, t, total_payout):
+        n_actions = len(self.pd.actions)
+        accuracy = self.pd.coop_p
+        payouts = self.pd.payouts
+        utility = np.zeros(n_actions)
+        # TODO: make this general
+        if total_payout:
+            utility[0] = accuracy * (payouts[0][0][0] + payouts[0][0][1]) + \
+                (1.0 - accuracy) * (payouts[0][1][0] + payouts[0][1][1])
+            utility[1] = (1.0 - accuracy) * (payouts[1][1][0] + payouts[1][1][1]) + \
+                accuracy * (payouts[1][0][0] + payouts[1][0][1])
+        else:
+            utility[0] = accuracy * payouts[0][0][0] + (1.0 - accuracy) * payouts[0][1][0]
+            utility[1] = (1.0 - accuracy) * payouts[1][1][0] + accuracy * payouts[1][0][0]
+        action = np.argmax(utility)
+        return action
+        return action
+
+    def get_learned_action(self, total_payout=False):
+        return self._decide(1, total_payout)
+

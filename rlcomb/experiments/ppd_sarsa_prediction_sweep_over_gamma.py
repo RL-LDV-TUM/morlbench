@@ -29,7 +29,7 @@ from agents import SARSAPrisonerAgent, AVGQPrisonerAgent
 
 
 if __name__ == '__main__':
-    independent_runs = 50
+    independent_runs = 2
     interactions = 10000
 
     linspace_from = 0.01
@@ -42,10 +42,7 @@ if __name__ == '__main__':
     use_total_payout = True
     loadresults = False
 
-    avg_payouts = np.zeros((independent_runs, linspace_steps))
-    learned_actions = np.zeros((independent_runs, linspace_steps))
-
-    def onerun(r):
+    def onerun(r, gamma):
         avg_payouts_in_run = []
         learned_actions_in_run = []
 
@@ -55,7 +52,7 @@ if __name__ == '__main__':
                                                     P=1000.0, S=0.0,
                                                     coop_p=cooperation_ratio)
 #             problem = ProbabilisticPrisonersDilemma(coop_p=cooperation_ratio)
-            agent = SARSAPrisonerAgent(problem, alpha=0.1, gamma=0.2,
+            agent = SARSAPrisonerAgent(problem, alpha=0.1, gamma=gamma,
                                        epsilon=0.9)
 
             log.info('Playing %i interactions...' % (interactions))
@@ -86,23 +83,27 @@ if __name__ == '__main__':
 
         return (np.array(avg_payouts_in_run), np.array(learned_actions_in_run))
 
-    results = None
+    for gamma in np.linspace(0.1, 0.99, 4):
+        avg_payouts = np.zeros((independent_runs, linspace_steps))
+        learned_actions = np.zeros((independent_runs, linspace_steps))
 
-    if loadresults:
-        with open("ppd_sarsa_prediction_sweep.pickle", 'rb') as f:
-            results = pickle.load(f)
-    else:
-        results = Parallel(n_jobs=6)(delayed(onerun)(r) for r in
-                                     xrange(independent_runs))
-        with open("ppd_sarsa_prediction_sweep.pickle", 'wb') as f:
-            pickle.dump(results, f)
+        results = None
 
-    for r in xrange(len(results)):
-        avg_payouts[r, :] = results[r][0]
-        learned_actions[r, :] = results[r][1]
+        if loadresults:
+            with open("ppd_sarsa_prediction_sweep_over_gamma_%f.pickle" % (gamma), 'rb') as f:
+                results = pickle.load(f)
+        else:
+            results = Parallel(n_jobs=4)(delayed(onerun)(r, gamma) for r in
+                                         xrange(independent_runs))
+            with open("ppd_sarsa_prediction_sweep_over_gamma_%f.pickle" % (gamma), 'wb') as f:
+                pickle.dump(results, f)
 
-    avg_payouts = avg_payouts.mean(axis=0)
-    learned_actions = learned_actions.mean(axis=0)
+        for r in xrange(len(results)):
+            avg_payouts[r, :] = results[r][0]
+            learned_actions[r, :] = results[r][1]
+
+        avg_payouts = avg_payouts.mean(axis=0)
+        learned_actions = learned_actions.mean(axis=0)
 
 #     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
 #                                          linspace_steps)],
@@ -124,18 +125,18 @@ if __name__ == '__main__':
 #                             (0, 1.1, 0.2),
 #                             'sarsa_pd_learned_action.pdf')
 
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('payout')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), avg_payouts,
-             label='SARSAPrisonerAgent')
-    plt.legend(loc='upper center')
-    plt.savefig("sarsa_pd_payout.pdf")
-    fig = plt.figure()
-    plt.xlabel('prediction accuracy')
-    plt.ylabel('learned action')
-    plt.plot(np.linspace(linspace_from, linspace_to,
-                         linspace_steps), learned_actions,
-             label='SARSAPrisonerAgent')
-    plt.savefig("sarsa_pd_learned_action.pdf")
+        fig = plt.figure()
+        plt.xlabel('prediction accuracy')
+        plt.ylabel('payout')
+        plt.plot(np.linspace(linspace_from, linspace_to,
+                             linspace_steps), avg_payouts,
+                 label='SARSAPrisonerAgent')
+        plt.legend(loc='upper center')
+        plt.savefig("sarsa_pd_payout_over_gamma_%f.pdf" % (gamma))
+        fig = plt.figure()
+        plt.xlabel('prediction accuracy')
+        plt.ylabel('learned action')
+        plt.plot(np.linspace(linspace_from, linspace_to,
+                             linspace_steps), learned_actions,
+                 label='SARSAPrisonerAgent')
+        plt.savefig("sarsa_pd_learned_action_over_gamma_%f.pdf" % (gamma))

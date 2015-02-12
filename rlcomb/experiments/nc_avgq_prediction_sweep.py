@@ -6,8 +6,8 @@ Created on Nov 21, 2012
 
 '''
 Experiment that sweeps over the prediction accuracy of the
-Newcomb problems predictor and does a UCB1 learning over 
-10000 iterations.
+Prisoner's Dilemma problems predictor and does a RL learning over
+10000 iterations with AVGQ
 '''
 
 import sys
@@ -15,9 +15,7 @@ sys.path.append('..')
 sys.path.append('.')
 import logging as log
 import numpy as np
-import matplotlib.pyplot as plt
 import cPickle as pickle
-
 from joblib import Parallel, delayed
 
 log.basicConfig(level=log.INFO)
@@ -25,7 +23,7 @@ log.basicConfig(level=log.INFO)
 from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import Newcomb
-from agents import EUNewcombAgent
+from agents import AVGQNewcombAgent
 
 
 if __name__ == '__main__':
@@ -36,7 +34,7 @@ if __name__ == '__main__':
     linspace_to = 0.99
     linspace_steps = 100
 
-    loadresults = True
+    loadresults = False
 
     avg_payouts = np.zeros((independent_runs, linspace_steps))
     learned_actions = np.zeros((independent_runs, linspace_steps))
@@ -50,7 +48,7 @@ if __name__ == '__main__':
             problem = Newcomb(predictor_accuracy=prediction_accuracy,
                               payouts=np.array([[1000000, 0],
                                                 [1001000, 1000]]))
-            agent = EUNewcombAgent(problem)
+            agent = AVGQNewcombAgent(problem, alpha=0.1, gamma=0.9, epsilon=0.9)
 
             log.info('Playing ...')
             log.info('%s' % (str(agent)))
@@ -60,22 +58,19 @@ if __name__ == '__main__':
             avg_payout = payouts.mean(axis=0)
             avg_payouts_in_run.append(avg_payout)
 
-            log.info('Average Payout for predicion accuraccy %.3f: %.3f' % \
+            log.info('Average Payout for predicion accuraccy %.3f: %.3f' %
                      (prediction_accuracy, avg_payout))
 
             learned_actions_in_run.append(agent.get_learned_action())
-
         return (np.array(avg_payouts_in_run), np.array(learned_actions_in_run))
 
-    results = None
-
     if loadresults:
-        with open("eu_prediction_sweep.pickle", 'rb') as f:
+        with open("nc_avgq_prediction_sweep.pickle", 'rb') as f:
             results = pickle.load(f)
     else:
         results = Parallel(n_jobs=4)(delayed(onerun)(r) for r in
                                      xrange(independent_runs))
-        with open("eu_prediction_sweep.pickle", 'wb') as f:
+        with open("nc_avgq_prediction_sweep.pickle", 'wb') as f:
             pickle.dump(results, f)
 
     for r in xrange(len(results)):
@@ -88,33 +83,33 @@ if __name__ == '__main__':
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps)],
                             [avg_payouts],
-                            ["EU"],
+                            ["AVGQ"],
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
                             "Payout",
                             (0, 1001000, 100000),
-                            'eu_agent_payout.pdf')
+                            'avgq_newcomb_payout.pdf')
 
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps)],
                             [learned_actions],
-                            ["EU"],
+                            ["AVGQ"],
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
                             "Learned Action",
                             (0, 1.1, 0.2),
-                            'eu_agent_learned_action.pdf')
- 
+                            'avgq_newcomb_learned_action.pdf')
+
 #     fig = plt.figure()
 #     plt.xlabel('prediction accuracy')
 #     plt.ylabel('payout')
 #     plt.plot(np.linspace(linspace_from, linspace_to,
-#                          linspace_steps), avg_payouts, label='EUAgent')
+#                          linspace_steps), avg_payouts, label='RLAgent')
 #     plt.legend(loc='upper center')
-#     plt.savefig("eu_agent_payout.pdf")
+#     plt.savefig("rl_agent_payout.png")
 #     fig = plt.figure()
 #     plt.xlabel('prediction accuracy')
 #     plt.ylabel('learned action')
 #     plt.plot(np.linspace(linspace_from, linspace_to,
-#                          linspace_steps), learned_actions, label='EUAgent')
-#     plt.savefig("eu_agent_learned_action.pdf")
+#                          linspace_steps), learned_actions, label='RLAgent')
+#     plt.savefig("rl_agent_learned_action.png")

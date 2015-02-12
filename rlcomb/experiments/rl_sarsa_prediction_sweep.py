@@ -15,6 +15,7 @@ sys.path.append('..')
 sys.path.append('.')
 import logging as log
 import numpy as np
+import cPickle as pickle
 from joblib import Parallel, delayed
 
 log.basicConfig(level=log.INFO)
@@ -22,16 +23,18 @@ log.basicConfig(level=log.INFO)
 from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import Newcomb
-from agents import RLNewcombAgent
+from agents import SARSANewcombAgent
 
 
 if __name__ == '__main__':
-    independent_runs = 100
+    independent_runs = 50
     interactions = 10000
 
     linspace_from = 0.01
     linspace_to = 0.99
     linspace_steps = 100
+
+    loadresults = False
 
     avg_payouts = np.zeros((independent_runs, linspace_steps))
     learned_actions = np.zeros((independent_runs, linspace_steps))
@@ -45,7 +48,7 @@ if __name__ == '__main__':
             problem = Newcomb(predictor_accuracy=prediction_accuracy,
                               payouts=np.array([[1000000, 0],
                                                 [1001000, 1000]]))
-            agent = RLNewcombAgent(problem, alpha=0.1, gamma=0.9, epsilon=0.9)
+            agent = SARSANewcombAgent(problem, alpha=0.1, gamma=0.9, epsilon=0.9)
 
             log.info('Playing ...')
             log.info('%s' % (str(agent)))
@@ -61,8 +64,14 @@ if __name__ == '__main__':
             learned_actions_in_run.append(agent.get_learned_action())
         return (np.array(avg_payouts_in_run), np.array(learned_actions_in_run))
 
-    results = Parallel(n_jobs=-1)(delayed(onerun)(r) for r in
-                                 xrange(independent_runs))
+    if loadresults:
+        with open("rl_sarsa_predicion_sweep.pickle", 'rb') as f:
+            results = pickle.load(f)
+    else:
+        results = Parallel(n_jobs=4)(delayed(onerun)(r) for r in
+                                     xrange(independent_runs))
+        with open("rl_sarsa_predicion_sweep.pickle", 'wb') as f:
+            pickle.dump(results, f)
 
     for r in xrange(len(results)):
         avg_payouts[r, :] = results[r][0]
@@ -74,7 +83,7 @@ if __name__ == '__main__':
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps)],
                             [avg_payouts],
-                            ["SARSA Agent"],
+                            ["SARSA"],
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
                             "Payout",
@@ -84,7 +93,7 @@ if __name__ == '__main__':
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps)],
                             [learned_actions],
-                            ["SARSA Agent"],
+                            ["SARSA"],
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
                             "Learned Action",

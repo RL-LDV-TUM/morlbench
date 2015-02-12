@@ -25,16 +25,16 @@ log.basicConfig(level=log.INFO)
 from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import ProbabilisticPrisonersDilemma
-from agents import SARSAPrisonerAgent, AVGQPrisonerAgent
+from agents import EUPrisonerAgent
 
 
 if __name__ == '__main__':
-    independent_runs = 50
+    independent_runs = 1
     interactions = 10000
 
     linspace_from = 0.01
     linspace_to = 0.99
-    linspace_steps = 100
+    linspace_steps = 10
 #     linspace_from = 0.99
 #     linspace_to = 0.99
 #     linspace_steps = 1
@@ -51,12 +51,10 @@ if __name__ == '__main__':
 
         for cooperation_ratio in np.linspace(linspace_from, linspace_to,
                                              linspace_steps):
-            problem = ProbabilisticPrisonersDilemma(T=1001000.0, R=50000.0,
+            problem = ProbabilisticPrisonersDilemma(T=1001000.0, R=1000000.0,
                                                     P=1000.0, S=0.0,
                                                     coop_p=cooperation_ratio)
-#             problem = ProbabilisticPrisonersDilemma(coop_p=cooperation_ratio)
-            agent = SARSAPrisonerAgent(problem, alpha=0.1, gamma=0.2,
-                                       epsilon=0.9)
+            agent = EUPrisonerAgent(problem)
 
             log.info('Playing %i interactions...' % (interactions))
             log.info('%s' % (str(agent)))
@@ -64,7 +62,7 @@ if __name__ == '__main__':
 
             payouts = []
             for _ in xrange(interactions):
-                action = agent.decide()
+                action = agent.decide(use_total_payout)
                 payout = problem.play(action)
                 if use_total_payout:
                     payout = payout[0] + payout[1]
@@ -79,22 +77,19 @@ if __name__ == '__main__':
             log.info('Average Payout for cooperation ratio %.3f: %.3f' %
                      (cooperation_ratio, avg_payout))
 
-            print agent.Q
-            print agent.get_learned_action()
-
-            learned_actions_in_run.append(agent.get_learned_action())
+            learned_actions_in_run.append(agent.get_learned_action(use_total_payout))
 
         return (np.array(avg_payouts_in_run), np.array(learned_actions_in_run))
 
     results = None
 
     if loadresults:
-        with open("ppd_sarsa_prediction_sweep.pickle", 'rb') as f:
+        with open("ppd_eu_prediction_sweep.pickle", 'rb') as f:
             results = pickle.load(f)
     else:
-        results = Parallel(n_jobs=6)(delayed(onerun)(r) for r in
+        results = Parallel(n_jobs=1)(delayed(onerun)(r) for r in
                                      xrange(independent_runs))
-        with open("ppd_sarsa_prediction_sweep.pickle", 'wb') as f:
+        with open("ppd_eu_prediction_sweep.pickle", 'wb') as f:
             pickle.dump(results, f)
 
     for r in xrange(len(results)):
@@ -129,13 +124,13 @@ if __name__ == '__main__':
     plt.ylabel('payout')
     plt.plot(np.linspace(linspace_from, linspace_to,
                          linspace_steps), avg_payouts,
-             label='SARSAPrisonerAgent')
+             label='EUPrisonerAgent')
     plt.legend(loc='upper center')
-    plt.savefig("sarsa_pd_payout.pdf")
+    plt.savefig("eu_pd_payout.pdf")
     fig = plt.figure()
     plt.xlabel('prediction accuracy')
     plt.ylabel('learned action')
     plt.plot(np.linspace(linspace_from, linspace_to,
                          linspace_steps), learned_actions,
-             label='SARSAPrisonerAgent')
-    plt.savefig("sarsa_pd_learned_action.pdf")
+             label='EUPrisonerAgent')
+    plt.savefig("eu_pd_learned_action.pdf")

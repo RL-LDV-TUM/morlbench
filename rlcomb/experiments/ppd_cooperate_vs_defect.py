@@ -35,8 +35,12 @@ if __name__ == '__main__':
 
     for cooperation_prob in np.linspace(linspace_from, linspace_to,
                                         linspace_steps):
-        problem1 = ProbabilisticPrisonersDilemma(coop_p=cooperation_prob)
-        problem2 = ProbabilisticPrisonersDilemma(coop_p=cooperation_prob)
+#         problem1 = ProbabilisticPrisonersDilemma(coop_p=cooperation_prob)
+#         problem2 = ProbabilisticPrisonersDilemma(coop_p=cooperation_prob)
+        problem1 = ProbabilisticPrisonersDilemma(T=1001000.0, R=50000.0,
+                                                    P=1000.0, S=0.0, coop_p=cooperation_prob)
+        problem2 = ProbabilisticPrisonersDilemma(T=1001000.0, R=50000.0,
+                                                    P=1000.0, S=0.0, coop_p=cooperation_prob)
         agent1 = DefectProbabilisticPrisonerAgent(problem1)
         agent2 = CooperateProbabilisticPrisonerAgent(problem2)
 

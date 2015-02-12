@@ -25,19 +25,16 @@ log.basicConfig(level=log.INFO)
 from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import ProbabilisticPrisonersDilemma
-from agents import SARSAPrisonerAgent, AVGQPrisonerAgent
+from agents import AVGQPrisonerAgent
 
 
 if __name__ == '__main__':
-    independent_runs = 50
+    independent_runs = 10
     interactions = 10000
 
     linspace_from = 0.01
     linspace_to = 0.99
     linspace_steps = 100
-#     linspace_from = 0.99
-#     linspace_to = 0.99
-#     linspace_steps = 1
 
     use_total_payout = True
     loadresults = False
@@ -51,12 +48,14 @@ if __name__ == '__main__':
 
         for cooperation_ratio in np.linspace(linspace_from, linspace_to,
                                              linspace_steps):
-            problem = ProbabilisticPrisonersDilemma(T=1001000.0, R=50000.0,
-                                                    P=1000.0, S=0.0,
-                                                    coop_p=cooperation_ratio)
-#             problem = ProbabilisticPrisonersDilemma(coop_p=cooperation_ratio)
-            agent = SARSAPrisonerAgent(problem, alpha=0.1, gamma=0.2,
-                                       epsilon=0.9)
+#             problem = ProbabilisticPrisonersDilemma(T=1001000.0, R=50000.0,
+#                                                     P=1000.0, S=0.0,
+#                                                     coop_p=cooperation_ratio)
+            problem = ProbabilisticPrisonersDilemma(coop_p=cooperation_ratio)
+#             agent = SARSAPrisonerAgent(problem, alpha=0.1, gamma=0.9,
+#                                        epsilon=0.9)
+            agent = AVGQPrisonerAgent(problem, alpha=0.1, gamma=0.9,
+                                      epsilon=0.9)
 
             log.info('Playing %i interactions...' % (interactions))
             log.info('%s' % (str(agent)))
@@ -89,12 +88,12 @@ if __name__ == '__main__':
     results = None
 
     if loadresults:
-        with open("ppd_sarsa_prediction_sweep.pickle", 'rb') as f:
+        with open("ppd_avgq_prediction_sweep.pickle", 'rb') as f:
             results = pickle.load(f)
     else:
-        results = Parallel(n_jobs=6)(delayed(onerun)(r) for r in
+        results = Parallel(n_jobs=4)(delayed(onerun)(r) for r in
                                      xrange(independent_runs))
-        with open("ppd_sarsa_prediction_sweep.pickle", 'wb') as f:
+        with open("ppd_avgq_prediction_sweep.pickle", 'wb') as f:
             pickle.dump(results, f)
 
     for r in xrange(len(results)):
@@ -129,13 +128,13 @@ if __name__ == '__main__':
     plt.ylabel('payout')
     plt.plot(np.linspace(linspace_from, linspace_to,
                          linspace_steps), avg_payouts,
-             label='SARSAPrisonerAgent')
+             label='AVGQPrisonerAgent')
     plt.legend(loc='upper center')
-    plt.savefig("sarsa_pd_payout.pdf")
+    plt.savefig("avgq_pd_payout.pdf")
     fig = plt.figure()
     plt.xlabel('prediction accuracy')
     plt.ylabel('learned action')
     plt.plot(np.linspace(linspace_from, linspace_to,
                          linspace_steps), learned_actions,
-             label='SARSAPrisonerAgent')
-    plt.savefig("sarsa_pd_learned_action.pdf")
+             label='AVGQPrisonerAgent')
+    plt.savefig("avgq_pd_learned_action.pdf")

@@ -189,12 +189,13 @@ class ProbabilisticPrisonersDilemma(PrisonersDilemma):
         Other parameters, see superclass.
         '''
 
-        super(ProbabilisticPrisonersDilemma, self).__init__(T, R, P, S)
+        super(ProbabilisticPrisonersDilemma, self).__init__(T=T, R=R, P=P, S=S)
 
         self.coop_p = coop_p
 
     def __str__(self):
-        return "ProbabilisticPrisonersDilemma(coop_p=%f)" % (self.coop_p)
+        return "ProbabilisticPrisonersDilemma(T=%.2f, R=%.2f, P=%.2f, S=%.2f, \
+coop_p=%f)" % (self.T, self.R, self.P, self.S, self.coop_p)
 
     def play(self, action):
         '''

@@ -37,8 +37,8 @@ def plot_that_pretty_rldm15(xdata=[], ydata=[], labels=[],
 
         # Common sizes: (10, 7.5) and (12, 9)
         # figure(figsize=(12, 14))
-        # fig = plt.figure(figsize=(10, 7.5))
-        plt.figure(figsize=(12, 9))
+        plt.figure(figsize=(10, 7.5))
+        # plt.figure(figsize=(12, 9))
         ax = plt.subplot(111)
         ax.spines["top"].set_visible(False)
         #ax.spines["bottom"].set_visible(False)

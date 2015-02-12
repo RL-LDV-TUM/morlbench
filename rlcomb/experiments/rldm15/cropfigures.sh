@@ -1,0 +1,6 @@
+#!/bin/bash
+
+pdfcrop figure_1_a_one_vs_twoboxing.pdf
+
+pdfcrop figure_2_a_defect_vs_cooperate_payout.pdf
+pdfcrop figure_2_b_defect_vs_cooperate_total_payout.pdf

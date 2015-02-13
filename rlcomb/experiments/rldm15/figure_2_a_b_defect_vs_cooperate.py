@@ -81,6 +81,8 @@ if __name__ == '__main__':
     avg_total1 = np.array(avg_total1)
     avg_total2 = np.array(avg_total2)
 
+    y_range = (0, 7, 1)
+    y_range_print = (1, 7, 1)
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps),
                              np.linspace(linspace_from, linspace_to,
@@ -90,8 +92,13 @@ if __name__ == '__main__':
                             "Cooperation Probability",
                             (0, 1.1, 0.2),
                             "Payout",
-                            (0, 6, 1),
-                            'figure_2_a_defect_vs_cooperate_payout.pdf')
+                            y_range,
+                            'figure_2_a_defect_vs_cooperate_payout.pdf',
+                            custom_yticks=[""] + ["%i" % (int(x)) for x in
+                                                  np.arange(*y_range_print)],
+                            fontsize=25,
+                            label_fontsize=25,
+                            y_lim=(0, 6))
 
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps),
@@ -103,4 +110,9 @@ if __name__ == '__main__':
                             (0, 1.1, 0.2),
                             "Payout",
                             (0, 7, 1),
-                            'figure_2_b_defect_vs_cooperate_total_payout.pdf')
+                            'figure_2_b_defect_vs_cooperate_total_payout.pdf',
+                            custom_yticks=[""] + ["%i" % (int(x)) for x in
+                                                  np.arange(*y_range_print)],
+                            fontsize=25,
+                            label_fontsize=25,
+                            y_lim=(0, 6))

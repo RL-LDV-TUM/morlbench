@@ -10,7 +10,9 @@ import matplotlib.pyplot as plt
 
 def plot_that_pretty_rldm15(xdata=[], ydata=[], labels=[],
                             xlabel="", x_range=(), ylabel="", y_range=(),
-                            output_filename=""):
+                            output_filename="", custom_yticks=None,
+                            fontsize=16, label_fontsize=16,
+                            label_offsets=None, y_lim=None, x_lim=None):
         # from matplotlib import rc
         # rc('font',**{'family':'sans-serif','sans-serif':['Helvetica']})
         # for Palatino and other serif fonts use:
@@ -46,12 +48,22 @@ def plot_that_pretty_rldm15(xdata=[], ydata=[], labels=[],
         #ax.spines["left"].set_visible(False)
         ax.get_xaxis().tick_bottom()
         ax.get_yaxis().tick_left()
-        plt.yticks(np.arange(*y_range), ["%.1f" % (x) for x in
-                                         np.arange(*y_range)],
-                   fontsize=16)
+
+        if y_lim:
+            plt.ylim(y_lim)
+        if x_lim:
+            plt.xlim(x_lim)
+
+        if custom_yticks:
+            plt.yticks(np.arange(*y_range), custom_yticks,
+                       fontsize=fontsize)
+        else:
+            plt.yticks(np.arange(*y_range), ["%.1f" % (x) for x in
+                                             np.arange(*y_range)],
+                       fontsize=fontsize)
         plt.xticks(np.arange(*x_range), ["%.1f" % (x) for x in
                                          np.arange(*x_range)],
-                   fontsize=16)
+                   fontsize=fontsize)
 
         mod_y_range = (y_range[0] + y_range[2], y_range[1], y_range[2])
         for y in np.arange(*mod_y_range):
@@ -62,21 +74,33 @@ def plot_that_pretty_rldm15(xdata=[], ydata=[], labels=[],
                         labelbottom="on", left="off", right="off",
                         labelleft="on")
 
-        plt.xlabel(xlabel, fontsize=16, alpha=0.7)
-        plt.ylabel(ylabel, fontsize=16, alpha=0.7)
+        plt.xlabel(xlabel, fontsize=label_fontsize, alpha=0.7)
+        plt.ylabel(ylabel, fontsize=label_fontsize, alpha=0.7)
+
+        linelabels = []
+        if not label_offsets:
+            label_offsets = []
+            for _ in xdata:
+                label_offsets.append(0.0)
 
         for dp, _ in enumerate(xdata):
             plt.plot(xdata[dp], ydata[dp], label=labels[dp],
                      lw=2.5, color=tableau20[color_permutation[dp]])
 #             plt.fill_between(np.linspace(linspace_from, linspace_to,
 #                                          linspace_steps),
-#                              avg_payouts1 + std_payouts1, avg_payouts1 - std_payouts1, facecolor=tableau20[2], alpha=0.3)
+#                              avg_payouts1 + std_payouts1,
+#                              vg_payouts1 - std_payouts1,
+#                              facecolor=tableau20[2], alpha=0.3)
 
-            # Again, make sure that all labels are large enough to be easily 
+            # Again, make sure that all labels are large enough to be easily
             # read by the viewer.
             y_pos = ydata[dp][-1] - 0.5
-            plt.text(1.01, y_pos+.5, labels[dp], fontsize=16,
-                     color=tableau20[color_permutation[dp]])
+            tx = plt.text(1.01, y_pos+.5+label_offsets[dp], labels[dp],
+                          fontsize=fontsize,
+                          color=tableau20[color_permutation[dp]])
+            linelabels.append(tx)
 
         # plt.legend(loc='upper left')
-        plt.savefig(output_filename)
+        # plt.savefig(output_filename)
+        plt.savefig(output_filename, bbox_extra_artists=linelabels,
+                    bbox_inches='tight')

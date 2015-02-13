@@ -72,6 +72,7 @@ if __name__ == '__main__':
     avg_payout_avgq = avg_payout_avgq.mean(axis=0)
     learned_actions_avgq = learned_actions_avgq.mean(axis=0)
 
+    y_range = (300000, 1001000, 100000)
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps),
                              np.linspace(linspace_from, linspace_to,
@@ -83,9 +84,15 @@ if __name__ == '__main__':
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
                             "Payout",
-                            (0, 1001000, 100000),
-                            'figure_1_c_combined_newcomb_sarsa_avg_eu_payout.pdf')
+                            y_range,
+                            'figure_1_c_combined_newcomb_sarsa_avg_eu_payout.pdf',
+                            custom_yticks=["%iK" % (int(x/1000.0)) for x in
+                                           np.arange(*y_range)],
+                            fontsize=25,
+                            label_fontsize=25,
+                            label_offsets=[-30000, 0.0, 0])
 
+    y_range = (0, 1.1, 0.2)
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps),
                              np.linspace(linspace_from, linspace_to,
@@ -98,5 +105,9 @@ if __name__ == '__main__':
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
                             "Learned Action",
-                            (0, 1.1, 0.2),
-                            'figure_1_b_combined_newcomb_sarsa_avg_eu_learned_action.pdf')
+                            y_range,
+                            'figure_1_b_combined_newcomb_sarsa_avg_eu_learned_action.pdf',
+                            custom_yticks=["1Box", "0.2\%", "0.4\%", "0.6\%", "0.8\%", "2Box"],
+                            fontsize=25,
+                            label_fontsize=25,
+                            label_offsets=[0.2, 0.1, 0.0])

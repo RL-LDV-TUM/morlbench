@@ -59,6 +59,7 @@ if __name__ == '__main__':
     avg_payouts1 = np.array(avg_payouts1)
     avg_payouts2 = np.array(avg_payouts2)
 
+    y_range = (0, 1001000, 100000)
     plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
                                          linspace_steps),
                              np.linspace(linspace_from, linspace_to,
@@ -68,5 +69,9 @@ if __name__ == '__main__':
                             "Prediction Accuracy",
                             (0, 1.1, 0.2),
                             "Payout",
-                            (0, 1001001, 100000),
-                            'figure_1_a_one_vs_twoboxing.pdf')
+                            y_range,
+                            'figure_1_a_one_vs_twoboxing.pdf',
+                            custom_yticks=["%iK" % (int(x/1000.0)) for x in
+                                           np.arange(*y_range)],
+                            fontsize=25,
+                            label_fontsize=25)

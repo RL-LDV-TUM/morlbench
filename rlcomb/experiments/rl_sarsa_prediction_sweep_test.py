@@ -3,6 +3,7 @@ Created on Nov 21, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
 '''
+from experiments.experiment_helpers import interact_multiple
 
 
 '''
@@ -21,7 +22,7 @@ import matplotlib.pyplot as plt
 log.basicConfig(level=log.INFO)
 
 from problems import Newcomb
-from agents import RLNewcombAgent
+from agents import SARSANewcombAgent
 
 
 if __name__ == '__main__':
@@ -44,13 +45,13 @@ if __name__ == '__main__':
             problem = Newcomb(predictor_accuracy=prediction_accuracy,
                               payouts=np.array([[1000000, 0],
                                                 [1001000, 1000]]))
-            agent = RLNewcombAgent(problem, alpha=0.3, gamma=0.9, epsilon=0.8)
+            agent = SARSANewcombAgent(problem, alpha=0.3, gamma=0.9, epsilon=0.8)
 
             log.info('Playing ...')
             log.info('%s' % (str(agent)))
             log.info('%s' % (str(problem)))
 
-            payouts = agent.interact(interactions)
+            _, payouts = interact_multiple(agent, problem, interactions)
             avg_payout = payouts.mean(axis=0)
             avg_payouts_in_run.append(avg_payout)
 

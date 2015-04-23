@@ -19,7 +19,8 @@ import matplotlib.pyplot as plt
 log.basicConfig(level=log.INFO)
 
 from problems import Newcomb
-from agents import RLNewcombAgent
+from agents import SARSANewcombAgent
+from experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':
@@ -38,13 +39,14 @@ if __name__ == '__main__':
             problem = Newcomb(predictor_accuracy=prediction_accuracy,
                               payouts=np.array([[1000000, 0],
                                                 [1001000, 1000]]))
-            agent = RLNewcombAgent(problem, alpha=0.1, gamma=0.9, epsilon=0.9)
+            agent = SARSANewcombAgent(problem, alpha=0.1, gamma=0.9,
+                                      epsilon=0.9)
 
             log.info('Playing ...')
             log.info('%s' % (str(agent)))
             log.info('%s' % (str(problem)))
 
-            payouts = agent.interact(interactions)
+            _, payouts = interact_multiple(agent, problem, interactions)
             avg_payout = payouts.mean(axis=0)
             avg_payouts_in_run.append(avg_payout)
 

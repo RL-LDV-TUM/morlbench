@@ -42,7 +42,8 @@ class RunNewcombExperiment(PyExperimentSuite):
         log.debug(' for %i iterations' % (params['iterations']))
 
     def iterate(self, params, rep, n):
-        action, payout = self.agent.interact(None)
+        action = self.agent.decide()
+        payout = self.problem.play(action)
         learned_action = self.agent.get_learned_action()
 
         log.debug('Learned action %i in iteration %i (payout %.3f)' %

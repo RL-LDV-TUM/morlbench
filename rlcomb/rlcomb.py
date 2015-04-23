@@ -10,13 +10,14 @@ import numpy as np
 log.basicConfig(level=log.DEBUG)
 
 from problems import Newcomb
-from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent, RLNewcombAgent
+from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent, SARSANewcombAgent
+from experiments.experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':
     problem = Newcomb(predictor_accuracy=0.99,
                       payouts=np.array([[1000000, 0], [1001000, 1000]]))
-    agent = RLNewcombAgent(problem, alpha=0.1, gamma=0.9, epsilon=0.9)
+    agent = SARSANewcombAgent(problem, alpha=0.1, gamma=0.9, epsilon=0.9)
 
     interactions = 10000
 
@@ -24,6 +25,6 @@ if __name__ == '__main__':
     log.info('%s' % (str(agent)))
     log.info('%s' % (str(problem)))
 
-    payouts = agent.interact(interactions)
+    _, payouts = interact_multiple(agent, problem, interactions)
 
     log.info('Average Payout: %f' % (payouts.mean(axis=0)))

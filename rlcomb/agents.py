@@ -9,6 +9,7 @@ from helpers import virtualFunction, SaveableObject
 import numpy as np
 import random
 import logging as log
+from experiments.rldm15.figure_2_a_b_defect_vs_cooperate import payouts2
 
 # log.basicConfig(level=log.DEBUG)
 
@@ -36,29 +37,7 @@ class NewcombAgent(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
-    def interact(self, t):
-        '''
-        Interact once, the internal state
-        has to be maintained by the child class
-        itself.
-        '''
-
-        virtualFunction()
-
-    def interact_multiple(self, n=1):
-        '''
-        Interact n times with the problem and return
-        the array of payouts.
-        '''
-        log.info('Playing %i interactions ... ' % (n))
-        payouts = []
-        for t in xrange(n):
-            a = self._decide(t)
-            p = self.newcomb_problem.play(a)
-            payouts.append(p)
-        return np.array(payouts)
-
-    def _decide(self, t):
+    def decide(self, t):
         '''
         Decide which action to take in interaction
         cycle t.
@@ -73,6 +52,22 @@ class NewcombAgent(SaveableObject):
         '''
         virtualFunction()
 
+    def learn(self, t, action, payout):
+        '''
+        Learn from the last interaction, if we have
+        a dynamically learning agent.
+
+        Parameters
+        ----------
+        t: int
+            Interaction cycle.
+        action: int
+            Last action
+        payout: float
+            Last recevied payout.
+        '''
+        virtualFunction()
+
 
 class OneBoxNewcombAgent(NewcombAgent):
     '''
@@ -82,7 +77,7 @@ class OneBoxNewcombAgent(NewcombAgent):
     def __init__(self, problem):
         super(OneBoxNewcombAgent, self).__init__(problem)
 
-    def _decide(self, t):
+    def decide(self, t):
         return 0
 
 
@@ -94,7 +89,7 @@ class TwoBoxNewcombAgent(NewcombAgent):
     def __init__(self, problem):
         super(TwoBoxNewcombAgent, self).__init__(problem)
 
-    def _decide(self, t):
+    def decide(self, t):
         return 1
 
 
@@ -109,7 +104,7 @@ class EUNewcombAgent(NewcombAgent):
     def __init__(self, problem):
         super(EUNewcombAgent, self).__init__(problem)
 
-    def _decide(self, t):
+    def decide(self, t):
         n_actions = len(self.newcomb_problem.actions)
         accuracy = self.newcomb_problem.predictor_accuracy
         payouts = self.newcomb_problem.payouts
@@ -160,41 +155,46 @@ class SARSANewcombAgent(NewcombAgent):
         self.last_action = 0
         self.last_payout = 0
 
-    def interact_multiple(self, n=1):
-        '''
-        Interact n times with the problem and return
-        the array of payouts.
-        '''
-        log.info('Playing %i interactions ... ' % (n))
-        payouts = []
-        self.last_payout = 0
-        self.last_action = 0
-        for t in xrange(n):
-            action, payout = self.interact(t)
-            payouts.append(payout)
-            log.debug(' step %05i: action: %i, payout: %i' %
-                      (t, action, payout))
-        return np.array(payouts)
+#     def interact_multiple(self, n=1):
+#         '''
+#         Interact n times with the problem and return
+#         the array of payouts.
+#         '''
+#         log.info('Playing %i interactions ... ' % (n))
+#         payouts = []
+#         self.last_payout = 0
+#         self.last_action = 0
+#         for t in xrange(n):
+#             action, payout = self.interact(t)
+#             payouts.append(payout)
+#             log.debug(' step %05i: action: %i, payout: %i' %
+#                       (t, action, payout))
+#         return np.array(payouts)
+# 
+#     def interact(self, t):
+#         '''
+#         Interact only once with the given Newcomb problem.
+#         Maintain last payouts and actions internally.
+#         '''
+#         action = self._decide(t)
+#         payout = self.newcomb_problem.play(action)
 
-    def interact(self, t):
+    def learn(self, action, payout):
         '''
-        Interact only once with the given Newcomb problem.
-        Maintain last payouts and actions internally.
+        Learn on the last interaction specified by the
+        action and the payout received.
         '''
-        action = self._decide(t)
-        payout = self.newcomb_problem.play(action)
-        self._learn(t, self.last_action,
+        self._learn(0, self.last_action,
                     self.last_payout, action, payout)
         self.last_action = action
         self.last_payout = payout
-        return action, payout
 
     def _learn(self, t, last_action, last_payout, action, payout):
         self.Q[last_action] += self.alpha * \
             (payout + self.gamma * self.Q[action] - self.Q[last_action])
         log.debug(' Q: %s' % (str(self.Q)))
 
-    def _decide(self, t):
+    def decide(self, t):
         if random.random() < self.epsilon:
             action = self.Q.argmax()
             log.debug('  took greedy action %i' % (action))
@@ -251,36 +251,15 @@ class UCB1NewcombAgent(NewcombAgent):
         self.n = np.zeros(len(self.newcomb_problem.actions))
         self.total_interactions = 0
 
-    def interact_multiple(self, n=1):
-        '''
-        Interact n times with the problem and return
-        the array of payouts.
-        '''
-        log.info('Playing %i interactions ... ' % (n))
-        payouts = []
-        self.last_payout = 0
-        self.last_action = 0
-        for t in xrange(n):
-            action, payout = self.interact(t)
-            payouts.append(payout)
-            log.debug(' step %05i: action: %i, payout: %i' %
-                      (t, action, payout))
-        return np.array(payouts)
-
-    def interact(self, t):
-        '''
-        Interact only once with the given Newcomb problem.
-        Maintain last payouts and actions internally.
-        '''
-        action = self._decide(t)
-        payout = self.newcomb_problem.play(action)
+    def learn(self, t, action, payout):
         self.total_interactions += 1
         self.n[action] += 1
         self.mu[action] += 1.0 / (self.n[action] + 1) * (payout -
                                                          self.mu[action])
-        return action, payout
+        self.last_action = action
+        self.last_payout = payout
 
-    def _decide(self, t):
+    def decide(self, t):
         action = np.argmax(self.mu +
                            np.sqrt((2 * np.log(self.total_interactions)) /
                                    self.n))
@@ -422,37 +401,6 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
         self.last_action = 0
         self.last_payout = 0
 
-    def interact_multiple(self, n=1):
-        '''
-        Interact n times with the problem and return
-        the array of payouts.
-        '''
-#         log.info('Playing %i interactions ... ' % (n))
-#         payouts = []
-#         self.last_payout = 0
-#         self.last_action = 0
-#         for t in xrange(n):
-#             action, payout = self.interact(t)
-#             payouts.append(payout)
-#             log.debug(' step %05i: action: %i, payout: %i' %
-#                       (t, action, payout))
-#         return np.array(payouts)
-        virtualFunction()
-
-    def interact(self, t):
-        '''
-        Interact only once with the given Newcomb problem.
-        Maintain last payouts and actions internally.
-        '''
-#         action = self._decide(t)
-#         payout = self.pd.play(action)
-#         self._learn_sarsa(t, self.last_action,
-#                           self.last_payout, action, payout)
-#         self.last_action = action
-#         self.last_payout = payout
-#         return action, payout\
-        virtualFunction()
-
     def decide(self):
         '''
         Alternative interface to interact with multiple
@@ -460,7 +408,7 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
         '''
         return self._decide(1)
 
-    def learn(self, action, payout):
+    def learn(self, t, action, payout):
         '''
         Learn from interaction.
 
@@ -563,7 +511,7 @@ class EUPrisonerAgent(ProbabilisticPrisonerAgent):
         accuracy = self.pd.coop_p
         payouts = self.pd.payouts
         utility = np.zeros(n_actions)
-        # TODO: make this general
+        # TODO: make this work for general problems
         if total_payout:
             utility[0] = accuracy * (payouts[0][0][0] + payouts[0][0][1]) + \
                 (1.0 - accuracy) * (payouts[0][1][0] + payouts[0][1][1])

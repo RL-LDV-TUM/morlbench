@@ -3,6 +3,7 @@ Created on Nov 21, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
 '''
+from experiments.experiment_helpers import interact_multiple
 
 '''
 Experiment that sweeps over the prediction accuracy of the
@@ -28,6 +29,7 @@ from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import Newcomb
 from agents import EUNewcombAgent
+from experiments.experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':
@@ -58,7 +60,7 @@ if __name__ == '__main__':
             log.info('%s' % (str(agent)))
             log.info('%s' % (str(problem)))
 
-            payouts = agent.interact_multiple(interactions)
+            _, payouts = interact_multiple(agent, problem, interactions)
             avg_payout = payouts.mean(axis=0)
             avg_payouts_in_run.append(avg_payout)
 

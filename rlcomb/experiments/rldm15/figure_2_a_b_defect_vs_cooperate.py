@@ -19,6 +19,7 @@ from plotting_stuff import plot_that_pretty_rldm15
 from problems import ProbabilisticPrisonersDilemma
 from agents import DefectProbabilisticPrisonerAgent, \
                         CooperateProbabilisticPrisonerAgent
+from experiments.experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':
@@ -53,10 +54,13 @@ if __name__ == '__main__':
         log.info('%s' % (str(agent2)))
         log.info('%s' % (str(problem2)))
 
-        payouts1, total1 = agent1.interact_multiple(interactions,
-                                                    total_payout=True)
-        payouts2, total2 = agent2.interact_multiple(interactions,
-                                                    total_payout=True)
+        _, payouts1 = interact_multiple(agent1, problem1, interactions)
+        total1 = payouts1.sum(axis=1)
+        payouts1 = payouts1[:, 0]
+        _, payouts2 = interact_multiple(agent2, problem2, interactions)
+        total2 = payouts2.sum(axis=1)
+        payouts2 = payouts2[:, 0]
+
         avg_payout1 = payouts1.mean(axis=0)
         std_payout1 = payouts1.std(axis=0)
         avg_payout2 = payouts2.mean(axis=0)

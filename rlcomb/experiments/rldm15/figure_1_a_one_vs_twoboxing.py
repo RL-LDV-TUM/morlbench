@@ -18,6 +18,7 @@ from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import Newcomb, RandomNewcomb
 from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent
+from experiments.experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':
@@ -46,8 +47,8 @@ if __name__ == '__main__':
         log.info('%s' % (str(agent2)))
         log.info('%s' % (str(problem2)))
 
-        payouts1 = agent1.interact_multiple(interactions)
-        payouts2 = agent2.interact_multiple(interactions)
+        _, payouts1 = interact_multiple(agent1, problem1, interactions)
+        _, payouts2 = interact_multiple(agent2, problem2, interactions)
         avg_payout1 = payouts1.mean(axis=0)
         avg_payout2 = payouts2.mean(axis=0)
 

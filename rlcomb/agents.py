@@ -9,7 +9,6 @@ from helpers import virtualFunction, SaveableObject
 import numpy as np
 import random
 import logging as log
-from experiments.rldm15.figure_2_a_b_defect_vs_cooperate import payouts2
 
 # log.basicConfig(level=log.DEBUG)
 
@@ -292,24 +291,7 @@ class PrisonerAgent(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
-    def interact(self, t):
-        '''
-        Interact once, the internal state
-        has to be maintained by the child class
-        itself.
-        '''
-        action = self._decide(t)
-        payout = self.pd.play(action)
-        return action, payout
-
-    def interact_multiple(self, n=1):
-        '''
-        Interact n times with the problem and return
-        the array of payouts.
-        '''
-        virtualFunction()
-
-    def _decide(self, t):
+    def decide(self, t):
         '''
         Decide which action to take in interaction
         cycle t.
@@ -324,6 +306,46 @@ class PrisonerAgent(SaveableObject):
         '''
         virtualFunction()
 
+    def learn(self, t, action, payout):
+        '''
+        Learn from the last interaction, if we have
+        a dynamically learning agent.
+
+        Parameters
+        ----------
+        t: int
+            Interaction cycle.
+        action: int
+            Last action
+        payout: float
+            Last recevied payout.
+        '''
+        virtualFunction()
+
+
+class DefectPrisonerAgent(PrisonerAgent):
+    '''
+    A PD agent, that always defects.
+    '''
+
+    def decide(self, t):
+        return 1
+
+    def learn(self, t, action, payout):
+        pass
+
+
+class CooperatePrisonerAgent(PrisonerAgent):
+    '''
+    A PD agent that always cooperates.
+    '''
+
+    def decide(self, t):
+        return 0
+
+    def learn(self, t, action, payout):
+        pass
+
 
 class ProbabilisticPrisonerAgent(PrisonerAgent):
     '''
@@ -331,40 +353,25 @@ class ProbabilisticPrisonerAgent(PrisonerAgent):
     version of the PD.
     '''
 
-    def interact(self, t):
-        pass
-
-    def interact_multiple(self, n=1, total_payout=False):
-        log.info('Playing %i interactions ... ' % (n))
-        payouts = []
-        total = []
-        for t in xrange(n):
-            a = self._decide(t)
-            p = self.pd.play(a)
-            if total_payout:
-                total.append(p[0] + p[1])
-            payouts.append(p[0])
-        if total_payout:
-            return np.array(payouts), np.array(total)
-        return np.array(payouts)
+    pass
 
 
-class DefectProbabilisticPrisonerAgent(ProbabilisticPrisonerAgent):
+class DefectProbabilisticPrisonerAgent(ProbabilisticPrisonerAgent,
+                                       DefectPrisonerAgent):
     '''
     A PD agent that always defects.
     '''
 
-    def _decide(self, t):
-        return 1
+    pass
 
 
-class CooperateProbabilisticPrisonerAgent(ProbabilisticPrisonerAgent):
+class CooperateProbabilisticPrisonerAgent(ProbabilisticPrisonerAgent,
+                                          CooperatePrisonerAgent):
     '''
     A PD agent that always cooperates.
     '''
 
-    def _decide(self, t):
-        return 0
+    pass
 
 
 class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
@@ -401,12 +408,12 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
         self.last_action = 0
         self.last_payout = 0
 
-    def decide(self):
+    def decide(self, t):
         '''
         Alternative interface to interact with multiple
         PD agents. Use in conjunction with `learn'
         '''
-        return self._decide(1)
+        return self._decide(t)
 
     def learn(self, t, action, payout):
         '''
@@ -491,12 +498,12 @@ class EUPrisonerAgent(ProbabilisticPrisonerAgent):
         '''
         super(EUPrisonerAgent, self).__init__(pd)
 
-    def decide(self, total_payout=False):
+    def decide(self, t, total_payout=False):
         '''
         Alternative interface to interact with multiple
         PD agents. Use in conjunction with `learn'
         '''
-        return self._decide(1, total_payout)
+        return self._decide(t, total_payout)
 
     def learn(self, action, payout):
         '''
@@ -521,7 +528,6 @@ class EUPrisonerAgent(ProbabilisticPrisonerAgent):
             utility[0] = accuracy * payouts[0][0][0] + (1.0 - accuracy) * payouts[0][1][0]
             utility[1] = (1.0 - accuracy) * payouts[1][1][0] + accuracy * payouts[1][0][0]
         action = np.argmax(utility)
-        return action
         return action
 
     def get_learned_action(self, total_payout=False):

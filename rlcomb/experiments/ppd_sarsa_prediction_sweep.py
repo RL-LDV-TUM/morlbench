@@ -64,7 +64,7 @@ if __name__ == '__main__':
 
             payouts = []
             for _ in xrange(interactions):
-                action = agent.decide()
+                action = agent.decide(0)
                 payout = problem.play(action)
                 if use_total_payout:
                     payout = payout[0] + payout[1]

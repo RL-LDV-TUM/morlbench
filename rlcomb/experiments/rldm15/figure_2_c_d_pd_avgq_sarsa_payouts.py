@@ -38,14 +38,8 @@ if __name__ == '__main__':
               ("ppd_avgq_total_prediction_sweep_modified.pickle", 'meta')]
 
     # TODO: make this dependent on inputs
-    if not os.path.isfile("ppd_sarsa_local_prediction_sweep_normal.pickle") or \
-            not os.path.isfile("ppd_sarsa_total_prediction_sweep_normal.pickle") or \
-            not os.path.isfile("ppd_sarsa_local_prediction_sweep_modified.pickle") or \
-            not os.path.isfile("ppd_sarsa_total_prediction_sweep_modified.pickle") or \
-            not os.path.isfile("ppd_avgq_local_prediction_sweep_normal.pickle") or \
-            not os.path.isfile("ppd_avgq_total_prediction_sweep_normal.pickle") or \
-            not os.path.isfile("ppd_avgq_local_prediction_sweep_modified.pickle") or \
-            not os.path.isfile("ppd_avgq_total_prediction_sweep_modified.pickle"):
+    if reduce(lambda a, b: a or b, map(lambda n: not os.path.isfile(n[0]),
+                                       inputs)):
         print >>sys.stderr, "run ppd_avgq_prediction_sweep.py, ppd_sarsa_prediction_sweep\
             .py first to create the .pickle files"
         sys.exit(1)

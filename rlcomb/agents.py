@@ -408,6 +408,12 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
         self.last_action = 0
         self.last_payout = 0
 
+    def __str__(self):
+        return self.__class__.__name__ + \
+            "(alpha=%f, gamma=%f, epsilon=%f)" % (self.alpha,
+                                                  self.gamma,
+                                                  self.epsilon)
+
     def decide(self, t):
         '''
         Alternative interface to interact with multiple

@@ -149,7 +149,14 @@ class PrisonersDilemma(SaveableObject):
         self.P = P
         self.S = S
         self.actions = ['cooperate', 'defect']
-        self.payouts = [[(R,R), (S,T)], [(T,S), (P,P)]]
+        self.payouts = [[(R, R), (S, T)], [(T, S), (P, P)]]
+
+    def __str__(self):
+        return self.__class__.__name__ + \
+            "(T=%f, R=%f, P=%f, S=%f)" % (self.T,
+                                          self.R,
+                                          self.P,
+                                          self.S)
 
     def play(self, action1, action2):
         '''

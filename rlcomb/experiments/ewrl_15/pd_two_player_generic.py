@@ -22,6 +22,8 @@ from joblib import Parallel, delayed
 log.basicConfig(level=log.INFO)
 
 from experiment_helpers import interact_multiple_twoplayer
+import problems
+import agents
 
 
 def onerun(r, aparams1, aparams2, pparams, expparams):
@@ -44,26 +46,23 @@ def onerun(r, aparams1, aparams2, pparams, expparams):
         lpparams = pparams.copy()
 
         pclass = lpparams['_problem_class']
-        eval('from problems import ' + pclass)
         lpparams.pop('_problem_class', None)
-        problem = eval(pclass)(**lpparams)
+        problem = eval('problems.' + pclass)(**lpparams)
         if not expparams['paramspace_to_problem_parameter'] is None:
             lpparams[expparams['paramspace_to_problem_parameter']] = \
                 paramspace_val
         a1class = laparams1['_agent_class']
-        eval('from problems import ' + a1class)
         laparams1.pop('_agent_class')
         if not expparams['paramspace_to_agent1_parameter'] is None:
             laparams1[expparams['paramspace_to_agent1_parameter']] = \
                 paramspace_val
-        agent1 = eval(a1class)(problem, **laparams1)
+        agent1 = eval('agents.' + a1class)(problem, **laparams1)
         a2class = laparams2['_agent_class']
-        eval('from problems import ' + a2class)
         laparams2.pop('_agent_class')
         if not expparams['paramspace_to_agent2_parameter'] is None:
             laparams2[expparams['paramspace_to_agent2_parameter']] = \
                 paramspace_val
-        agent2 = eval(a2class)(problem, **laparams2)
+        agent2 = eval('agents.' + a2class)(problem, **laparams2)
 
         log.info('Playing ...')
         log.info('%s' % (str(agent1)))
@@ -112,7 +111,7 @@ if __name__ == '__main__':
         if sys.argv[1] == "--only-update-params":
             only_params = True
         else:
-            usage()
+            usage(sys.argv[0])
 
     from experiment_definitions import experiments
 
@@ -121,6 +120,7 @@ if __name__ == '__main__':
         aparams2 = e['aparams2']
         pparams = e['pparams']
         expparams = e['expparams']
+        plotparams = e['plotparams']
         picklefile = e['picklefile']
         results = None
 
@@ -133,15 +133,17 @@ if __name__ == '__main__':
             if os.path.exists(picklefile):
                 continue
 
-            results = Parallel(n_jobs=6)(delayed(onerun)(r, aparams1, aparams2,
-                                                         pparams,
-                                                         expparams) for r in
-                                         xrange(expparams['independent_runs']))
+            results = Parallel(n_jobs=-1)(delayed(onerun)(r, aparams1, aparams2,
+                                                          pparams,
+                                                          expparams) for r in
+                                          xrange(expparams['independent_runs']))
+
         resultstruct = {
             'results': results,
             'aparams1': aparams1,
             'aparams2': aparams2,
             'pparams': pparams,
-            'expparams': expparams}
+            'expparams': expparams,
+            'plotparams': plotparams}
         with open(picklefile, 'wb') as f:
             pickle.dump(resultstruct, f)

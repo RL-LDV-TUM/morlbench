@@ -452,6 +452,55 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
         return self.Q.argmax()
 
 
+class SARSALastActionsPrisonerAgent(SARSAPrisonerAgent):
+    '''
+    A PD agent, that decides according to a SARSA
+    RL learning stragey. It knows the last own action
+    and the last action of the opponent and takes this
+    as the state.
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super(SARSALastActionsPrisonerAgent, self).__init__(*args, **kwargs)
+
+        # the Q function is two dimensional,
+        # where the two dimensions are in
+        # the dimension of states
+        self.n_actions = len(self.pd.actions)
+        self.Q = np.zeros((self.n_actions, self.n_actions))
+        self.n_times = np.zeros_like(self.Q)
+        self.last_opponent_action = 0
+
+    def learn(self, t, action, payout):
+        # TODO: expand whole framework for flexibility with states
+        opponent_action = action
+        if payout >= 5.0:
+            opponent_action = 0
+        if payout <= 0.0:
+            opponent_action = 1
+
+        self.Q[self.last_action, self.last_opponent_action] += self.alpha * \
+            (payout + self.gamma * self.Q[action, opponent_action] -
+             self.Q[self.last_action, self.last_opponent_action])
+        log.debug(' Q: %s' % (str(self.Q)))
+        self.last_action = action
+        self.last_opponent_action = opponent_action
+        self.last_payout = payout
+
+    def decide(self, t):
+        if random.random() < self.epsilon:
+            action = self.Q[:, self.last_opponent_action].argmax()
+            log.debug('  took greedy action %i' % (action))
+            return action
+        action = random.randint(0, self.n_actions - 1)
+        log.debug('   took random action %i' % (action))
+        return action
+
+    def get_learned_action(self):
+        m = self.Q.argmax()
+        return (np.floor_divide(m, self.Q.shape[0])) + (m % self.Q.shape[0])
+
+
 class AVGQPrisonerAgent(SARSAPrisonerAgent):
     '''
     A PD agent, that decides according to a AVGQ

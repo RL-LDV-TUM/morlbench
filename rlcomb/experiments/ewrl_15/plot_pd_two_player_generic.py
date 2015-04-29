@@ -26,7 +26,7 @@ from plotting_stuff import plot_that_pretty_rldm15
 if __name__ == '__main__':
     from experiment_definitions import experiments
 
-    inputs = [lambda x: x['picklefile'] for e in experiments]
+    inputs = [e['picklefile'] for e in experiments]
 
     if reduce(lambda a, b: a or b, map(lambda n: not os.path.isfile(n),
                                        inputs)):
@@ -43,7 +43,7 @@ if __name__ == '__main__':
             pparams = resultstruct['pparams']
             expparams = resultstruct['expparams']
 
-            plotparams = expparams['plotparams']
+            plotparams = resultstruct['plotparams']
 
             for p in plotparams:
                 p['xdata'] = p['xdata'](results, e)

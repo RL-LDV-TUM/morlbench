@@ -3,7 +3,6 @@ Created on Nov 21, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
 '''
-from experiments.experiment_helpers import interact_multiple
 
 '''
 Experiment that sweeps over the prediction accuracy of the
@@ -27,7 +26,7 @@ from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import Newcomb
 from agents import AVGQNewcombAgent
-from experiments.experiment_helpers import interact_multiple
+from experiment_helpers import interact_multiple
 
 if __name__ == '__main__':
     independent_runs = 50

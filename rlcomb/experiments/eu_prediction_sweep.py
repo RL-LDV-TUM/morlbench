@@ -26,7 +26,7 @@ from plotting_stuff import plot_that_pretty_rldm15
 
 from problems import Newcomb
 from agents import EUNewcombAgent
-from experiments.experiment_helpers import interact_multiple
+from experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':

@@ -466,7 +466,7 @@ class AVGQPrisonerAgent(SARSAPrisonerAgent):
 
         self.n_times = np.zeros_like(self.Q)
 
-    def learn(self, action, payout):
+    def learn(self, t, action, payout):
         '''
         Learn from interaction.
 

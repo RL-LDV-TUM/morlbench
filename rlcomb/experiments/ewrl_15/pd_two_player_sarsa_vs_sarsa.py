@@ -19,16 +19,16 @@ log.basicConfig(level=log.INFO)
 
 from problems import PrisonersDilemma
 from agents import SARSAPrisonerAgent
-from experiments.experiment_helpers import interact_multiple_twoplayer
+from experiment_helpers import interact_multiple_twoplayer
 
 
 if __name__ == '__main__':
-    independent_runs = 1
+    independent_runs = 50
     interactions = 10000
 
-    linspace_from = 0.01
+    linspace_from = 0.5
     linspace_to = 0.99
-    linspace_steps = 2
+    linspace_steps = 10
 
     def onerun(r, pparams, use_total_payout):
         avg_payouts_in_run1 = []
@@ -39,13 +39,13 @@ if __name__ == '__main__':
         learned_actions_in_run2 = []
         total_payouts_in_run = []
 
-        for cooperation_ratio in np.linspace(linspace_from, linspace_to,
-                                             linspace_steps):
+        for epsilon in np.linspace(linspace_from, linspace_to,
+                                   linspace_steps):
             problem = PrisonersDilemma(**pparams)
             agent1 = SARSAPrisonerAgent(problem, alpha=0.1, gamma=0.2,
-                                        epsilon=0.9)
+                                        epsilon=epsilon)
             agent2 = SARSAPrisonerAgent(problem, alpha=0.1, gamma=0.2,
-                                        epsilon=0.9)
+                                        epsilon=epsilon)
 
             log.info('Playing ...')
             log.info('%s' % (str(agent1)))

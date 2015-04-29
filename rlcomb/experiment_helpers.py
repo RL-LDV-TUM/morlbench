@@ -30,7 +30,8 @@ def interact_multiple(agent, problem, interactions):
     return actions, payouts
 
 
-def interact_multiple_twoplayer(agent1, agent2, problem, interactions):
+def interact_multiple_twoplayer(agent1, agent2, problem, interactions,
+                                use_sum_of_payouts=False):
     '''
     Interact multiple times with the problem and then
     return arrays of actions chosen and payouts received
@@ -46,8 +47,13 @@ def interact_multiple_twoplayer(agent1, agent2, problem, interactions):
         action1 = agent1.decide(t)
         action2 = agent2.decide(t)
         payout1, payout2 = problem.play(action1, action2)
-        agent1.learn(t, action1, payout1)
-        agent2.learn(t, action2, payout2)
+        if use_sum_of_payouts:
+            payoutsum = payout1 + payout2
+            agent1.learn(t, action1, payoutsum)
+            agent2.learn(t, action2, payoutsum)
+        else:
+            agent1.learn(t, action1, payout1)
+            agent2.learn(t, action2, payout2)
         log.debug(' step %05i: action1: %i, payout1: %i, action2: %i, payout2: \
 %i' % (t, action1, payout1, action2, payout2))
         payouts1.append(payout1)

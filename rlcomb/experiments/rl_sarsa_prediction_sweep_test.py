@@ -3,8 +3,6 @@ Created on Nov 21, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
 '''
-from experiments.experiment_helpers import interact_multiple
-
 
 '''
 Experiment that sweeps over the prediction accuracy of the
@@ -23,6 +21,7 @@ log.basicConfig(level=log.INFO)
 
 from problems import Newcomb
 from agents import SARSANewcombAgent
+from experiments.experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':

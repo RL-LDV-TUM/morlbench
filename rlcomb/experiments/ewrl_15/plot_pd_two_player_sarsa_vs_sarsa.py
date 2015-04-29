@@ -24,9 +24,9 @@ from plotting_stuff import plot_that_pretty_rldm15
 
 
 if __name__ == '__main__':
-    linspace_from = 0.01
+    linspace_from = 0.5
     linspace_to = 0.99
-    linspace_steps = 2
+    linspace_steps = 10
 
     inputs = [("pd_sarsa_local_prediction_sweep_normal.pickle", 'meta'),
               ("pd_sarsa_local_prediction_sweep_modified.pickle", 'meta')]
@@ -64,7 +64,8 @@ if __name__ == '__main__':
         learned_action2 = learned_action2.mean(axis=0)
         avg_payouts1.append(avg_payout1)
         avg_payouts2.append(avg_payout2)
-        learned_actions2.append(learned_action1)
+        learned_actions1.append(learned_action1)
+        learned_actions2.append(learned_action2)
 
     # TODO: this indexing is awkward, man why do you introduce 'metadata'
     #       above if you don't use it.
@@ -76,7 +77,7 @@ if __name__ == '__main__':
                                          linspace_steps)],
                             [avg_payouts1[0], avg_payouts2[0]],
                             ["SARSA 1", "SARSA 2"],
-                            "Prediction Accuracy",
+                            r"$\epsilon$",
                             (0, 1.1, 0.2),
                             "Payout",
                             y_range,
@@ -95,7 +96,7 @@ if __name__ == '__main__':
                                          linspace_steps)],
                             [avg_payouts1[1], avg_payouts2[1]],
                             ["SARSA 1", "SARSA 2"],
-                            "Prediction Accuracy",
+                            r"$\epsilon$",
                             (0, 1.1, 0.2),
                             "Payout",
                             y_range,
@@ -106,3 +107,29 @@ if __name__ == '__main__':
                             label_fontsize=25,
                             # y_lim=(0, 6),
                             label_offsets=[-60000, -1000, 0, 60000])
+
+    # x_range = (0, 1.1, 0.2)
+    x_range = (linspace_from - 0.1, linspace_to + 0.1, 0.2)
+    y_range = (0, 1.1, 0.2)
+    plot_that_pretty_rldm15([np.linspace(linspace_from, linspace_to,
+                                         linspace_steps),
+                             np.linspace(linspace_from, linspace_to,
+                                         linspace_steps),
+                             np.linspace(linspace_from, linspace_to,
+                                         linspace_steps),
+                             np.linspace(linspace_from, linspace_to,
+                                         linspace_steps)],
+                            [learned_actions1[0], learned_actions2[0],
+                             learned_actions1[1], learned_actions2[1]],
+                            ["SARSA 1 (I)", "SARSA 2 (I)",
+                             "SARSA 1 (T)", "SARSA 2 (T)"],
+                            r"$\epsilon$",
+                            x_range,
+                            "Learned Action",
+                            y_range,
+                            'pd_sarsa_learned_action.pdf',
+                            custom_yticks=["Cooperate", "0.2\%", "0.4\%",
+                                           "0.6\%", "0.8\%", "Defect"],
+                            fontsize=25,
+                            label_fontsize=25,
+                            label_offsets=[0.2, 0.1, 0.0, -0.1])

@@ -11,7 +11,7 @@ log.basicConfig(level=log.DEBUG)
 
 from problems import Newcomb
 from agents import OneBoxNewcombAgent, TwoBoxNewcombAgent, SARSANewcombAgent
-from experiments.experiment_helpers import interact_multiple
+from experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':

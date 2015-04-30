@@ -18,7 +18,7 @@ class NewcombAgent(SaveableObject):
     A agent that should interface with a Newcomb problem.
     '''
 
-    def __init__(self, newcomb_problem):
+    def __init__(self, newcomb_problem, **kwargs):
         '''
         Initialize the Agent with the Newcomb
         problem, it will be faced with.
@@ -73,7 +73,7 @@ class OneBoxNewcombAgent(NewcombAgent):
     A Newcomb Agent, that always chooses one boxing.
     '''
 
-    def __init__(self, problem):
+    def __init__(self, problem, **kwargs):
         super(OneBoxNewcombAgent, self).__init__(problem)
 
     def decide(self, t):
@@ -85,7 +85,7 @@ class TwoBoxNewcombAgent(NewcombAgent):
     A Newcomb Agent, that always chooses two boxing.
     '''
 
-    def __init__(self, problem):
+    def __init__(self, problem, **kwargs):
         super(TwoBoxNewcombAgent, self).__init__(problem)
 
     def decide(self, t):
@@ -100,8 +100,8 @@ class EUNewcombAgent(NewcombAgent):
     the superhuman intelligence.
     '''
 
-    def __init__(self, problem):
-        super(EUNewcombAgent, self).__init__(problem)
+    def __init__(self, problem, **kwargs):
+        super(EUNewcombAgent, self).__init__(problem, **kwargs)
 
     def decide(self, t):
         n_actions = len(self.newcomb_problem.actions)
@@ -127,7 +127,7 @@ class SARSANewcombAgent(NewcombAgent):
     boxing to do next.
     '''
 
-    def __init__(self, problem, alpha=0.3, gamma=1.0, epsilon=1.0):
+    def __init__(self, problem, alpha=0.3, gamma=1.0, epsilon=1.0, **kwargs):
         '''
         Initialize the Reinforcement Learning Newcomb
         Agent with the probleme description and alpha,
@@ -142,7 +142,7 @@ class SARSANewcombAgent(NewcombAgent):
         epsilon: real, [0, 1] the epsilon factor for
             the epsilon greedy action selection strategy
         '''
-        super(SARSANewcombAgent, self).__init__(problem)
+        super(SARSANewcombAgent, self).__init__(problem, **kwargs)
 
         self.alpha = alpha
         self.gamma = gamma
@@ -229,7 +229,7 @@ class UCB1NewcombAgent(NewcombAgent):
     http://www.cs.mcgill.ca/~vkules/bandits.pdf
     '''
 
-    def __init__(self, problem):
+    def __init__(self, problem, **kwargs):
         '''
         Initialize the UCB1 Newcomb
         Agent with the problem description.
@@ -238,7 +238,7 @@ class UCB1NewcombAgent(NewcombAgent):
         ----------
         problem: A Newcomb problem
         '''
-        super(UCB1NewcombAgent, self).__init__(problem)
+        super(UCB1NewcombAgent, self).__init__(problem, **kwargs)
 
         # the mu function is only one dimensional, since
         # we can only be in one state and choose from
@@ -273,7 +273,7 @@ class PrisonerAgent(SaveableObject):
     A agent that should interface with a Prisoner's dilemma problem.
     '''
 
-    def __init__(self, pd):
+    def __init__(self, pd, **kwargs):
         '''
         Initialize the Agent with the Prisoner's
         dilemma, it will be faced with.
@@ -321,6 +321,9 @@ class PrisonerAgent(SaveableObject):
             Last recevied payout.
         '''
         virtualFunction()
+
+    def get_learned_action(self):
+        return self.decide(0)
 
 
 class DefectPrisonerAgent(PrisonerAgent):
@@ -380,7 +383,7 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
     RL learning stragey.
     '''
 
-    def __init__(self, pd, alpha=0.3, gamma=1.0, epsilon=1.0):
+    def __init__(self, pd, alpha=0.3, gamma=1.0, epsilon=1.0, **kwargs):
         '''
         Initialize the Reinforcement Learning PD
         Agent with the probleme description and alpha,
@@ -395,7 +398,7 @@ class SARSAPrisonerAgent(ProbabilisticPrisonerAgent):
         epsilon: real, [0, 1] the epsilon factor for
             the epsilon greedy action selection strategy
         '''
-        super(SARSAPrisonerAgent, self).__init__(pd)
+        super(SARSAPrisonerAgent, self).__init__(pd, **kwargs)
 
         self.alpha = alpha
         self.gamma = gamma
@@ -541,7 +544,7 @@ class EUPrisonerAgent(ProbabilisticPrisonerAgent):
     RL learning stragey.
     '''
 
-    def __init__(self, pd):
+    def __init__(self, pd, **kwargs):
         '''
         Initialize the EU PD
         Agent with the probleme description and alpha,
@@ -551,7 +554,7 @@ class EUPrisonerAgent(ProbabilisticPrisonerAgent):
         ----------
         pd: A PD problem
         '''
-        super(EUPrisonerAgent, self).__init__(pd)
+        super(EUPrisonerAgent, self).__init__(pd, **kwargs)
 
     def decide(self, t, total_payout=False):
         '''

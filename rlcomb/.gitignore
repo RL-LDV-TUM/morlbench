@@ -5,3 +5,5 @@
 *.pdf
 *.pickle
 .metadata/
+.idea
+

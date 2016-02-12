@@ -1,8 +1,8 @@
-'''
+"""
 Created on Nov 19, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
 from helpers import SaveableObject
 
@@ -10,6 +10,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 from math import cos
+import logging as log
 
 
 class Deepsea(SaveableObject):
@@ -20,7 +21,7 @@ class Deepsea(SaveableObject):
     iteratively by calling "action".
     """
 
-    def __init__(self, scene=[], actions=[], state=0):
+    def __init__(self, scene=None, actions=None, state=0):
         '''
         Initialize the Deepsea problem.
 
@@ -69,32 +70,53 @@ class Deepsea(SaveableObject):
 
         self._flat_map = np.ravel(self._scene, order='C') #flat map with Fortran-style order (column-first)
 
-        self._position = self.get_position(state)
+        self._position = self._get_position(state)
         self._last_position = self._position
+
+        self.n_states = self._scene.shape[0] * self._scene.shape[1]
 
         #self._predictor_accuracy = predictor_accuracy
         #self._payouts = payouts
         self._actions = actions
 
-    def get_index(self, position):
+    def __str__(self):
+        return self.__class__.__name__
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def actions(self):
+        return self._actions
+
+    @property
+    def n_actions(self):
+        return len(self._actions)
+
+    @property
+    def reward_dimension(self):
+        return 2
+
+    def _get_index(self, position):
         if self.in_map(position):
             #raise IndexError("Position out of bounds: {}".format(position))
             #print np.ravel_multi_index(position, self._scene.shape)
             return np.ravel_multi_index(position, self._scene.shape)
         else:
-            print('Error: Position out of map!')
+            log.debug('Error: Position out of map!')
             return -1
 
-
-    def get_position(self, index):
+    def _get_position(self, index):
         if (index < (self._scene.shape[0] * self._scene.shape[1])):
             return np.unravel_index(index, self._scene.shape)
         else:
-            print('Error: Index out of list!')
+            log.debug('Error: Index out of list!')
             return -1
 
     def in_map(self,position):
-        return not((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or (position[1] > self._scene.shape[1] - 1))
+        return not((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or
+                   (position[1] > self._scene.shape[1] - 1))
 
     def print_map(self):
         plt.imshow(self._scene, interpolation='none')
@@ -114,7 +136,7 @@ class Deepsea(SaveableObject):
     #     return 0
 
     def play(self, action):
-        '''
+        """
         Perform an action with the submarine
         and receive reward (or not).
 
@@ -126,7 +148,7 @@ class Deepsea(SaveableObject):
         Returns
         -------
         reward: reward of the current state.
-        '''
+        """
 
         # Define action mapping here
         map_actions = {
@@ -140,55 +162,54 @@ class Deepsea(SaveableObject):
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
-        print('Position before: ' + str(self._position) + ' moving ' + self._actions[action] + ' (last pos: ' + str(last_position) + ')')
+        log.debug('Position before: ' + str(self._position) + ' moving ' + self._actions[action] +
+                  ' (last pos: ' + str(last_position) + ')')
 
         if self.in_map(self._position + map_actions[self._actions[action]]):
             self._position += map_actions[self._actions[action]]
-            reward = self._flat_map[self.get_index(self._position)]
-            print 'moved by' + str(map_actions[self._actions[action]]) + '(last pos: ' + str(last_position) + ')'
+            reward = self._flat_map[self._get_index(self._position)]
+            log.debug('moved by' + str(map_actions[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
             if reward < 0:
                 self._position = last_position
-                print('Ground touched!')
+                log.debug('Ground touched!')
             else:
-                print 'I got a reward of ' + str(reward)
+                log.debug('I got a reward of ' + str(reward))
         else:
-            print('Move not allowed!')
+            log.debug('Move not allowed!')
             reward = 0
 
-        print 'New position: ' + str(self._position)
+        log.debug('New position: ' + str(self._position))
 
         self._last_position = np.copy(last_position)
         self._last_state = self._state
-        self._state = self.get_index(self._position)
+        self._state = self._get_index(self._position)
 
         # predictor_action = action
         # if random.random() > self.predictor_accuracy:
         #     predictor_action = self.__invert_action(predictor_action)
 
-        return reward
+        return np.array([reward, -self._time])
 
 
 class DeepseaEnergy(Deepsea):
-    def __init__(self, energy = 200, scene = [], actions = [], state = 0):
-        '''
+    def __init__(self, scene=None, actions=None, state=0, energy=200):
+        """
         energy: integer > 0, Amount of energy the
             the submarines battery is loaded.
-        '''
-
+        """
         self._energy = energy
 
         super(DeepseaEnergy, self).__init__(scene=scene, actions=actions, state=state)
         super(Deepsea, self).__init__(keys=['_time', '_actions', '_scene', '_energy'])
 
-
-    def __str__(self):
-        return self.__class__.__name__
+    @property
+    def reward_dimension(self):
+        return 3
 
     def play(self, action):
-        reward = super(DeepseaEnergy,self).play(action)
+        reward = super(DeepseaEnergy, self).play(action)
         self._energy =- 1
-        return reward
-
+        return np.array([reward, -self._time, self._energy])
 
 
 class MountainCar(SaveableObject):

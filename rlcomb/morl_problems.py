@@ -19,13 +19,13 @@ class Deepsea(SaveableObject):
     iteratively by calling "action".
     """
 
-    def __init__(self, map=[], actions=["up", "down", "right", "left"], state=0):
+    def __init__(self, scene=[], actions=[], state=0):
         '''
         Initialize the Deepsea problem.
 
         Parameters
         ----------
-        map: array, Map of the deepsea landscape. Entries represent
+        scene: array, Map of the deepsea landscape. Entries represent
             rewards. Invalid states get a value of "-100" (e.g. walls, ground).
             Positive values correspond to treasures.
         actions: The name of the actions: Here the directions the
@@ -33,34 +33,40 @@ class Deepsea(SaveableObject):
         '''
 
         super(Deepsea, self).__init__(
-            ['energy, time, actions, map'])
+            ['time, actions, scene'])
 
         self._time = 0
 
         self._state = state
         self._last_state = state
 
-        # Default Map as used in general MORL papers
-        self._map = np.zeros((11,10))
-        self._map[2:11,0] = -100
-        self._map[3:11,1] = -100
-        self._map[4:11,2] = -100
-        self._map[5:11,3:6] = -100
-        self._map[8:11,6:8] = -100
-        self._map[10,8] = -100
-        # Rewards of the default map
-        self._map[1,0] = 1
-        self._map[2,1] = 2
-        self._map[3,2] = 3
-        self._map[4,3] = 5
-        self._map[4,4] = 8
-        self._map[4,5] = 16
-        self._map[7,6] = 24
-        self._map[7,7] = 50
-        self._map[9,8] = 74
-        self._map[10,9] = 124
+        if not actions:
+            # Default actions
+            actions = ["up", "down", "right", "left"]
 
-        self._flat_map = np.ravel(self._map, order='C') #flat map with Fortran-style order (column-first)
+        if not scene:
+            # Default Map as used in general MORL papers
+            self._scene = np.zeros((11, 10))
+            self._scene[2:11, 0] = -100
+            self._scene[3:11, 1] = -100
+            self._scene[4:11, 2] = -100
+            self._scene[5:11, 3:6] = -100
+            self._scene[8:11, 6:8] = -100
+            self._scene[10, 8] = -100
+            # Rewards of the default map
+            self._scene[1, 0] = 1
+            self._scene[2, 1] = 2
+            self._scene[3, 2] = 3
+            self._scene[4, 3] = 5
+            self._scene[4, 4] = 8
+            self._scene[4, 5] = 16
+            self._scene[7, 6] = 24
+            self._scene[7, 7] = 50
+            self._scene[9, 8] = 74
+            self._scene[10, 9] = 124
+
+
+        self._flat_map = np.ravel(self._scene, order='C') #flat map with Fortran-style order (column-first)
 
         self._position = self.get_position(state)
         self._last_position = self._position
@@ -72,25 +78,25 @@ class Deepsea(SaveableObject):
     def get_index(self, position):
         if self.in_map(position):
             #raise IndexError("Position out of bounds: {}".format(position))
-            #print np.ravel_multi_index(position, self._map.shape)
-            return np.ravel_multi_index(position, self._map.shape)
+            #print np.ravel_multi_index(position, self._scene.shape)
+            return np.ravel_multi_index(position, self._scene.shape)
         else:
             print('Error: Position out of map!')
             return -1
 
 
     def get_position(self, index):
-        if (index < (self._map.shape[0] * self._map.shape[1])):
-            return np.unravel_index(index, self._map.shape)
+        if (index < (self._scene.shape[0] * self._scene.shape[1])):
+            return np.unravel_index(index, self._scene.shape)
         else:
             print('Error: Index out of list!')
             return -1
 
     def in_map(self,position):
-        return not((position[0] < 0) or (position[0] > self._map.shape[0]-1) or (position[1] < 0) or (position[1] > self._map.shape[1]-1))
+        return not((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or (position[1] > self._scene.shape[1] - 1))
 
     def print_map(self):
-        plt.imshow(self._map, interpolation='none')
+        plt.imshow(self._scene, interpolation='none')
 
  #    def __str__(self):
  #        return 'Newcomb problem with\n actions:\n%s\n\
@@ -121,6 +127,7 @@ class Deepsea(SaveableObject):
         reward: reward of the current state.
         '''
 
+        # Define action mapping here
         map_actions = {
             'up': np.array([-1, 0]),
             'down': np.array([1, 0]),
@@ -130,23 +137,26 @@ class Deepsea(SaveableObject):
 
         self._time += 1
 
-        self._last_position = self._position
-        print('Position before: ' + str(self._position) + ' moving ' + self._actions[action])
-        #self._position += map_actions[self._actions[action]] #try new position
+        last_position = self._position
+
+        print('Position before: ' + str(self._position) + ' moving ' + self._actions[action] + ' (last pos: ' + str(last_position) + ')')
+
         if self.in_map(self._position + map_actions[self._actions[action]]):
             self._position += map_actions[self._actions[action]]
-            if self._flat_map[self.get_index(self._position)] < 0:
-                self._position = self._last_position
-                reward = self._flat_map[self.get_index(self._position)]
+            reward = self._flat_map[self.get_index(self._position)]
+            print 'moved by' + str(map_actions[self._actions[action]]) + '(last pos: ' + str(last_position) + ')'
+            if reward < 0:
+                self._position = last_position
                 print('Ground touched!')
             else:
-                reward = self._flat_map[self.get_index(self._position)]
+                print 'I got a reward of ' + str(reward)
         else:
             print('Move not allowed!')
             reward = 0
 
-        print(self._position)
+        print 'New position: ' + str(self._position)
 
+        self._last_position = last_position
         self._last_state = self._state
         self._state = self.get_index(self._position)
 
@@ -158,17 +168,23 @@ class Deepsea(SaveableObject):
 
 
 class DeepseaEnergy(Deepsea):
-    def __init__(self, energy = 200):
+    def __init__(self, energy = 200, scene = [], actions = [], state = 0):
         '''
         energy: integer > 0, Amount of energy the
             the submarines battery is loaded.
         '''
 
+        self._energy = energy
+
+        super(DeepseaEnergy, self).__init__(scene=scene, actions=actions, state=state)
+
 
     def __str__(self):
         return self.__class__.__name__
 
-    def play(self):
-        pass
+    def play(self, action):
+        reward = super(DeepseaEnergy,self).play(action)
+        self._energy =- 1
+        return reward
 
 

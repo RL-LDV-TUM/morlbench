@@ -238,14 +238,7 @@ class MountainCar(SaveableObject):
             1: forward thrust
             -1: backward thrust
 
-        Returns
-        -------
-        reward: reward of the current state.
         '''
-
-        def minmax (val, lim1, lim2):
-            "Bounding item between lim1 and lim2"
-            return max(lim1, min(lim2, val))
 
         # Remember state before executing action
         previousState = self._state
@@ -265,6 +258,14 @@ class MountainCar(SaveableObject):
             print 'Warning: No matching action - Default action was selected!'
             factor = 0 # Default action
 
+        self.car_sim(factor)
+
+    def car_sim(self, factor):
+
+        def minmax (val, lim1, lim2):
+            "Bounding item between lim1 and lim2"
+            return max(lim1, min(lim2, val))
+
         # State update
         velocity_change = self._accelerationFactor * factor - 0.0025 * cos(3 * self._position)
 
@@ -280,4 +281,61 @@ class MountainCar(SaveableObject):
         #if self._position >= self._goalPosition and abs(self._velocity) > self._maxGoalVelocity:
         #    self._velocity = -self._velocity
 
+
+
+
+
+class MountainCarMulti(MountainCar):
+    def __init__(self,state = 0.5):
+        '''
+        Initialize the Multi Objective Mountain car problem.
+
+        Parameters
+        ----------
+        state: default state is -0.5
+        '''
+        self._nb_actions = 0
+
+        super(MountainCarMulti,self).__init__(state=state)
+
+    def play(self, action):
+        '''
+        Perform an action with the car in the
+        multi objective mountains and receive reward (or not).
+
+        Multi objectives: Minimize Time and accelerating Actions.
+
+        Parameters
+        ----------
+        action: integer, Which action will be chosen
+            0: no action -> coasting
+            1: forward thrust
+            -1: backward thrust
+
+        Returns
+        -------
+        reward: reward of the current state.
+        '''
+
+        # Remember state before executing action
+        previousState = self._state
+
+        self._time += 1
+
+        map_actions = {
+            'left': -1, # backward thrust
+            'right': 1, # forward thrust
+            'none': 0,  # coasting
+            }
+
+        # Determine acceleration factor
+        if action < len(self._actions):
+            factor = map_actions[self._actions[action]] # map action to thrust factor
+            if (self._actions[action] == 'right') or (self._actions[action] == 'left'):
+                self._nb_actions += 1
+        else:
+            print 'Warning: No matching action - Default action was selected!'
+            factor = 0 # Default action
+
+        self.car_sim(factor)
 

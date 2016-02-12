@@ -9,6 +9,7 @@ from helpers import SaveableObject
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+from math import cos
 
 
 class Deepsea(SaveableObject):
@@ -191,22 +192,92 @@ class DeepseaEnergy(Deepsea):
 
 
 class MountainCar(SaveableObject):
-    def __init__(self, state = 0):
+    def __init__(self, state = -0.5):
         '''
         Initialize the Mountain car problem.
 
         Parameters
         ----------
-        scene: array, Map of the deepsea landscape. Entries represent
-            rewards. Invalid states get a value of "-100" (e.g. walls, ground).
-            Positive values correspond to treasures.
-        actions: The name of the actions: Here the directions the
-            submarine can move - left, right, up, down.
+        state: default state is -0.5
         '''
 
         super(MountainCar, self).__init__(
             ['_state', '_time', '_actions', '_scene'])
 
+        self._actions = ('left','right','none')
 
+        self._minPosition = -1.2  # Minimum car position
+        self._maxPosition = 0.6   # Maximum car position (past goal)
+        self._maxVelocity = 0.07  # Maximum velocity of car
+        self._goalPosition = 0.5  # Goal position - how to tell we are done
+
+        self._accelerationFactor = 0.001
+        self._maxGoalVelocity = 0.07
+
+        self._velocity = 0
+        self._state = state
+        self._position = self.get_position(state)
 
         self._time = 0
+
+    def get_position(self, state):
+        return state
+
+    def get_state(self, position):
+        pass
+
+    def play(self, action):
+        '''
+        Perform an action with the car in the mountains
+        and receive reward (or not).
+
+        Parameters
+        ----------
+        action: integer, Which action will be chosen
+            0: no action -> coasting
+            1: forward thrust
+            -1: backward thrust
+
+        Returns
+        -------
+        reward: reward of the current state.
+        '''
+
+        def minmax (val, lim1, lim2):
+            "Bounding item between lim1 and lim2"
+            return max(lim1, min(lim2, val))
+
+        # Remember state before executing action
+        previousState = self._state
+
+        self._time += 1
+
+        map_actions = {
+            'none': 0,  # coasting
+            'right': 1, # forward thrust
+            'left': -1, # backward thrust
+            }
+
+        # Determine acceleration factor
+        if action < len(self._actions):
+            factor = map_actions[self._actions[action]] # map action to thrust factor
+        else:
+            print 'Warning: No matching action - Default action was selected!'
+            factor = 0 # Default action
+
+        # State update
+        velocity_change = self._accelerationFactor * factor - 0.0025 * cos(3 * self._position)
+
+        self._velocity = minmax(self._velocity + velocity_change, -self._maxVelocity, self._maxVelocity)
+
+        self._position += self._velocity
+
+        self._position = minmax(self._position, self._minPosition, self._maxPosition)
+
+        if (self._position <= self._minPosition): #and (self._velocity < 0)
+            self._velocity = 0.0
+
+        #if self._position >= self._goalPosition and abs(self._velocity) > self._maxGoalVelocity:
+        #    self._velocity = -self._velocity
+
+

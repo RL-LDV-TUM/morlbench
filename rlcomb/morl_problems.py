@@ -33,7 +33,7 @@ class Deepsea(SaveableObject):
         '''
 
         super(Deepsea, self).__init__(
-            ['time, actions, scene'])
+            ['_state', '_time', '_actions', '_scene'])
 
         self._time = 0
 
@@ -137,7 +137,7 @@ class Deepsea(SaveableObject):
 
         self._time += 1
 
-        last_position = self._position
+        last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
         print('Position before: ' + str(self._position) + ' moving ' + self._actions[action] + ' (last pos: ' + str(last_position) + ')')
 
@@ -156,7 +156,7 @@ class Deepsea(SaveableObject):
 
         print 'New position: ' + str(self._position)
 
-        self._last_position = last_position
+        self._last_position = np.copy(last_position)
         self._last_state = self._state
         self._state = self.get_index(self._position)
 
@@ -177,6 +177,7 @@ class DeepseaEnergy(Deepsea):
         self._energy = energy
 
         super(DeepseaEnergy, self).__init__(scene=scene, actions=actions, state=state)
+        super(Deepsea, self).__init__(keys=['_time', '_actions', '_scene', '_energy'])
 
 
     def __str__(self):
@@ -188,3 +189,24 @@ class DeepseaEnergy(Deepsea):
         return reward
 
 
+
+class MountainCar(SaveableObject):
+    def __init__(self, state = 0):
+        '''
+        Initialize the Mountain car problem.
+
+        Parameters
+        ----------
+        scene: array, Map of the deepsea landscape. Entries represent
+            rewards. Invalid states get a value of "-100" (e.g. walls, ground).
+            Positive values correspond to treasures.
+        actions: The name of the actions: Here the directions the
+            submarine can move - left, right, up, down.
+        '''
+
+        super(MountainCar, self).__init__(
+            ['_state', '_time', '_actions', '_scene'])
+
+
+
+        self._time = 0

@@ -171,9 +171,11 @@ class Deepsea(SaveableObject):
             log.debug('moved by' + str(map_actions[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
             if reward < 0:
                 self._position = last_position
+                self._terminal_state = 1
                 log.debug('Ground touched!')
             else:
                 log.debug('I got a reward of ' + str(reward))
+                self._terminal_state = 1
         else:
             log.debug('Move not allowed!')
             reward = 0

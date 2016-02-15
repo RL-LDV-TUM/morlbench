@@ -32,9 +32,9 @@ def interact_multiple(agent, problem, interactions):
 
 def morl_interact_multiple(agent, problem, interactions):
     """
-    Interact multiple times with the problem and then
-    return arrays of actions chosen and payouts received
-    in each stage.
+    Interact multiple times with the multi objective RL
+    problem and then return arrays of actions chosen and
+    payouts received in each stage.
     """
     rewards = []
     actions = []
@@ -44,7 +44,7 @@ def morl_interact_multiple(agent, problem, interactions):
         action = agent.decide(t, state)
         reward = problem.play(action)
         agent.learn(t, action, reward, state)
-        log.debug(' step %05i: action: %i, payout: %s' %
+        log.info(' step %05i: action: %i, payout: %s' %
                   (t, action, str(reward)))
         rewards.append(reward)
         actions.append(action)

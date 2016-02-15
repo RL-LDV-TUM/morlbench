@@ -30,27 +30,37 @@ def interact_multiple(agent, problem, interactions):
     return actions, payouts
 
 
-def morl_interact_multiple(agent, problem, interactions):
+def morl_interact_multiple(agent, problem, interactions, trials=100):
     """
     Interact multiple times with the multi objective RL
     problem and then return arrays of actions chosen and
     payouts received in each stage.
     """
-    rewards = []
-    actions = []
-    log.info('Playing %i interactions ... ' % (interactions))
-    state = problem.state
-    for t in xrange(interactions):
-        action = agent.decide(t, state)
-        reward = problem.play(action)
-        agent.learn(t, action, reward, state)
-        log.info(' step %05i: action: %i, payout: %s' %
-                  (t, action, str(reward)))
-        rewards.append(reward)
-        actions.append(action)
-    rewards = np.array(rewards)
-    actions = np.array(actions)
-    return actions, rewards
+
+    final_rewards = []
+
+    for i in xrange(interactions):
+        log.info('Playing %i interactions ... ' % i)
+        rewards = []
+        actions = []
+        state = problem.state
+        for t in xrange(trials):
+            action = agent.decide(t, state)
+            reward = problem.play(action)
+            agent.learn(t, action, reward, state)
+            log.info(' step %05i: action: %i, payout: %s' %
+                      (t, action, str(reward)))
+            rewards.append(reward)
+            actions.append(action)
+            if problem.terminal_state:
+                problem.reset()
+                final_rewards.append(reward)
+                break
+        #rewards = np.array(rewards)
+        #actions = np.array(actions)
+    #return actions, rewards
+    return np.array(final_rewards)
+
 
 
 def interact_multiple_twoplayer(agent1, agent2, problem, interactions,

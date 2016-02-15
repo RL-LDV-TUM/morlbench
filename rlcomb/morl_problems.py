@@ -41,6 +41,7 @@ class Deepsea(SaveableObject):
 
         self._state = state
         self._last_state = state
+        self._terminal_state = False
 
         if not actions:
             # Default actions
@@ -79,8 +80,21 @@ class Deepsea(SaveableObject):
         #self._payouts = payouts
         self._actions = actions
 
+    def reset(self):
+        self._state = 0
+        self._terminal_state = False
+        self._time = 0
+        self._last_state = self._state
+        self._position = self._get_position(self._state)
+        self._last_position = self._position
+
+
     def __str__(self):
         return self.__class__.__name__
+
+    @property
+    def terminal_state(self):
+        return self._terminal_state
 
     @property
     def state(self):
@@ -160,6 +174,8 @@ class Deepsea(SaveableObject):
 
         self._time += 1
 
+        self._terminal_state = False
+
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
         log.debug('Position before: ' + str(self._position) + ' moving ' + self._actions[action] +
@@ -171,11 +187,13 @@ class Deepsea(SaveableObject):
             log.debug('moved by' + str(map_actions[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
             if reward < 0:
                 self._position = last_position
-                self._terminal_state = 1
+                reward = 0
                 log.debug('Ground touched!')
+            elif reward > 0:
+                log.debug('Treasure found! - I got a reward of ' + str(reward))
+                self._terminal_state = True
             else:
                 log.debug('I got a reward of ' + str(reward))
-                self._terminal_state = 1
         else:
             log.debug('Move not allowed!')
             reward = 0
@@ -201,8 +219,14 @@ class DeepseaEnergy(Deepsea):
         """
         self._energy = energy
 
+        self._init_energy = energy
+
         super(DeepseaEnergy, self).__init__(scene=scene, actions=actions, state=state)
         super(Deepsea, self).__init__(keys=['_time', '_actions', '_scene', '_energy'])
+
+    def reset(self):
+        super(DeepseaEnergy, self).reset()
+        self._energy = self._init_energy
 
     @property
     def reward_dimension(self):

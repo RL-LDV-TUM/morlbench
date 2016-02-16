@@ -4,7 +4,8 @@ Created on Nov 19, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 """
 
-from helpers import SaveableObject, assureProbabilityMatrix, loadMatrixIfExists
+from helpers import SaveableObject, loadMatrixIfExists
+from probability_helpers import assureProbabilityMatrix
 
 import numpy as np
 import matplotlib.pyplot as plt

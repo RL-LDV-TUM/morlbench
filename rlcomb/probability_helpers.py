@@ -22,7 +22,7 @@ def assureProbabilityMatrix(P):
     """
     if P.shape[0] != P.shape[1]:
         raise RuntimeError("Probability matrix check failed: Matrix is not square.")
-    psum = P.sum(axis=1)
+    psum = P.sum(axis=0)
     if np.abs(psum - 1.0).any() > np.finfo(P.dtype).eps:
         raise RuntimeError("Probability matrix check failed: Columns don't add up to one.")
 
@@ -36,7 +36,7 @@ def assurePolicyMatrix(pi):
 
     :param pi: Policy matrix
     """
-    psum = pi.sum(axis=0)
+    psum = pi.sum(axis=1)
     if np.abs(psum - 1.0).any() > np.finfo(pi.dtype).eps:
         raise RuntimeError("Policy matrix check failed: Rows don't add up to one.")
 

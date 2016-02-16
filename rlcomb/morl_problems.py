@@ -101,6 +101,10 @@ class Deepsea(SaveableObject):
         return self._state
 
     @property
+    def last_state(self):
+        return self._last_state
+
+    @property
     def actions(self):
         return self._actions
 

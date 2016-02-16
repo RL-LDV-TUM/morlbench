@@ -38,28 +38,34 @@ def morl_interact_multiple(agent, problem, interactions, trials=100):
     """
 
     final_rewards = []
+    moves = []
+    states = []
 
     for i in xrange(interactions):
         log.info('Playing %i interactions ... ' % i)
         rewards = []
         actions = []
-        state = problem.state
+        tmp_states = []
         for t in xrange(trials):
-            action = agent.decide(t, state)
+            action = agent.decide(t, problem.state)
             reward = problem.play(action)
-            agent.learn(t, action, reward, state)
-            log.info(' step %05i: action: %i, payout: %s' %
-                      (t, action, str(reward)))
+            agent.learn(t, action, reward, problem.state)
+
+            log.info('step %04i: state before %i - action %i - payout %s - state %i' %
+                      (t, problem.last_state, action, str(reward), problem.state))
+
+            # Preserve reward, action and state
             rewards.append(reward)
             actions.append(action)
+            tmp_states.append(problem.state)
+            # Decide if terminal state
             if problem.terminal_state:
                 problem.reset()
+                moves.append(actions)
+                states.append(tmp_states)
                 final_rewards.append(reward)
                 break
-        #rewards = np.array(rewards)
-        #actions = np.array(actions)
-    #return actions, rewards
-    return np.array(final_rewards)
+    return np.array(final_rewards), np.array(moves), np.array(states)
 
 
 

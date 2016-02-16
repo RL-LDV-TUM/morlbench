@@ -116,6 +116,14 @@ class Deepsea(SaveableObject):
     def reward_dimension(self):
         return 2
 
+    @property
+    def scene_x_dim(self):
+        return self._scene.shape[1]
+
+    @property
+    def scene_y_dim(self):
+        return self._scene.shape[0]
+
     def _get_index(self, position):
         if self.in_map(position):
             #raise IndexError("Position out of bounds: {}".format(position))

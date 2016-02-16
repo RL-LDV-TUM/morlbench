@@ -12,7 +12,6 @@ import plotly.graph_objs as go
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-from matplotlib import colors
 
 import numpy as np
 
@@ -38,6 +37,59 @@ def heatmap_matplot():
             return 'x=%1.4f, y=%1.4f' % (x, y)
 
     ax.format_coord = format_coord
+
+
+    # X, Y = np.meshgrid(np.arange(0, -10, -1), np.arange(0, 9, 1))
+    # U = np.cos(X)
+    # V = np.sin(Y)
+    # Q = plt.quiver(U, V)
+
+    plt.show()
+
+def transition_map():
+    plot_map = np.zeros((3*problem.scene_y_dim, 3*problem.scene_x_dim))
+
+    for i in xrange(non_zero_states.size):
+        coords = problem._get_position(non_zero_states[i])
+
+        plot_map[coords[0]*3][(coords[1]*3)+1] = transition_probabilities[0][i][0] # first action (up)
+        plot_map[(coords[0]*3)+2][(coords[1]*3)+1] = transition_probabilities[0][i][1] # second action (down)
+        plot_map[(coords[0]*3)+1][(coords[1]*3)] = transition_probabilities[0][i][2] # first action (right)
+        plot_map[(coords[0]*3)+1][(coords[1]*3)+2] = transition_probabilities[0][i][3] # first action (left)
+
+    trans_map_masked = np.repeat(problem._scene, 3, axis=1)
+    trans_map_masked = np.repeat(trans_map_masked, 3, axis=0)
+    trans_map_masked = np.ma.masked_where(trans_map_masked == -100, trans_map_masked)
+
+    trans_map_masked[trans_map_masked >= 0] = plot_map[trans_map_masked >= 0]
+
+    fig, ax = plt.subplots()
+    colormap = cm.jet # color map
+    colormap.set_bad(color='grey') # set color for mask (ground)
+    ax.imshow(trans_map_masked, colormap, interpolation='nearest')
+    numrows, numcols = trans_map_masked.shape
+
+
+    plt.xticks( np.arange(1,30,3), ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9') )
+    plt.yticks( np.arange(1,33,3), ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9','10') )
+
+    for i in xrange(len(y)):
+        ax.axhline(3*i, linestyle='--', color='k')
+
+    for i in xrange(len(x)):
+        ax.axvline(3*i, linestyle='--', color='k')
+
+    # Move ticks to the middle of each field
+    # def format_coord(x, y):
+    #     col = int(x + 1.5)
+    #     row = int(y + 1.5)
+    #     if col >= 0 and col < numcols and row >= 0 and row < numrows:
+    #         z = trans_map_masked[row, col]
+    #         return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
+    #     else:
+    #         return 'x=%1.4f, y=%1.4f' % (x, y)
+
+    # ax.format_coord = format_coord
     plt.show()
 
 def heatmap_plotly():
@@ -73,15 +125,20 @@ def heatmap_plotly():
 
 if __name__ == '__main__':
     problem = Deepsea()
-    payouts, moves, states = pickle.load(open("results.p"))
+    payouts, moves, states = pickle.load(open("results_10000.p"))
 
     heatmap = np.zeros(problem.n_states)
 
+    policy = np.zeros((problem.n_states,problem.n_actions))
 
     for i in xrange(states.size):
         z = np.bincount(states[i])
-
         heatmap[:len(z)] += z
+        for j in xrange(len(states[i])):
+            policy[states[i][j]][moves[i][j]] += 1
+
+    non_zero_states = np.where(heatmap > 0)[0]
+    transition_probabilities = policy[np.nonzero(heatmap)] / heatmap[np.nonzero(heatmap), None]
 
     heatmap = heatmap.reshape(problem._scene.shape)
 
@@ -91,7 +148,8 @@ if __name__ == '__main__':
     x = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     y = ['-0', '-1', '-2', '-3', '-4', '-5', '-6', '-7', '-8', '-9', '-10']
 
-    heatmap_matplot()
+    transition_map()
+    #heatmap_matplot()
     #heatmap_plotly()
 
 

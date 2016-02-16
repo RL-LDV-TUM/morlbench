@@ -24,9 +24,9 @@ if __name__ == '__main__':
     scalarization_weights[0] = 0.5
     scalarization_weights[1] = 0.5
     agent = SARSAMorlAgent(problem, scalarization_weights=scalarization_weights,
-                           alpha=0.1, gamma=0.9, epsilon=0.5)
+                           alpha=0.1, gamma=0.9, epsilon=0.8)
 
-    interactions = 1000
+    interactions = 100
 
     log.info('Playing ...')
     log.info('%s' % (str(agent)))

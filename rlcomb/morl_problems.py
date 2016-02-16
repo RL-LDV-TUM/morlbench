@@ -36,6 +36,7 @@ class Deepsea(SaveableObject):
         :param actions: The name of the actions: Here the directions the
             submarine can move - left, right, up, down.
         """
+        # TODO: "features" meaning reward vector access ... and vectorial reward.
 
         super(Deepsea, self).__init__(
             ['_state', '_time', '_actions', '_scene'])
@@ -120,6 +121,7 @@ class Deepsea(SaveableObject):
         assureProbabilityMatrix(self.P)
 
     def _construct_r(self):
+        # TODO: what happens with the multi-objective reward
         self.R = np.zeros(self.n_states)
         for i in xrange(self.n_states):
             self.R[i] = self._scene[self._get_position(i)]

@@ -39,3 +39,29 @@ def assurePolicyMatrix(pi):
     psum = pi.sum(axis=0)
     if np.abs(psum - 1.0).any() > np.finfo(pi.dtype).eps:
         raise RuntimeError("Policy matrix check failed: Rows don't add up to one.")
+
+
+def sampleFromDiscreteDistribution(n, pi):
+    """
+    Sample n integers according to a discrete probability
+    distribution given in the array pi.
+
+    :param n: Number of integers to draw
+    :param pi: Discrete distribution 1D array.
+    :return: Array of integers.
+    """
+    if len(pi.shape) < 2:
+        pi.shape = (1, pi.shape[0])
+    p_accum = np.add.accumulate(p, axis=1)
+    n_v, n_c = p_accum.shape
+    rnd = np.random.rand(n, n_v, 1)
+    m = rnd < p_accum.reshape(1, n_v, n_c)
+
+    m2 = np.zeros(m.shape, dtype='bool')
+    m2[:, :, 1:] = m[:, :, :-1]
+    m = np.logical_xor(m, m2)
+    ind_mat = np.arange(n_c, dtype='uint8').reshape(1, 1, n_c)
+    mask = np.multiply(ind_mat, m)
+    s = np.add.reduce(mask, 2, dtype='uint8').squeeze()
+
+    return s

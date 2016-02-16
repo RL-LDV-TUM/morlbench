@@ -33,6 +33,20 @@ def assureProbabilityMatrix(P):
         raise RuntimeError("Probability matrix check failed: Columns don't add up to one.")
 
 
+def assurePolicyMatrix(pi):
+    """
+    Checks if the matrix P is a valid policy distribution matrix.
+    This means it has to contain the probability to choose action a
+    under the condition, that the system is in state i in the
+    element (a, i) (a-th row, i-th column).
+
+    :param pi: Policy matrix
+    """
+    psum = pi.sum(axis=0)
+    if np.abs(psum - 1.0).any() > np.finfo(pi.dtype).eps:
+        raise RuntimeError("Policy matrix check failed: Rows don't add up to one.")
+
+
 def loadMatrixIfExists(filename):
     """
     Load a default matrix if the file exists.
@@ -110,4 +124,4 @@ class SaveableObject(object):
             raise RuntimeError('could not open %s' % (filename))
         state = pickle.load(f)
         f.close()
-        self.__dict__.update(state)\
+        self.__dict__.update(state)

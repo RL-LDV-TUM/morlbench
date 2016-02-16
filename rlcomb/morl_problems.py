@@ -4,13 +4,13 @@ Created on Nov 19, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 """
 
-from helpers import SaveableObject
+from helpers import SaveableObject, assureProbabilityMatrix, loadMatrixIfExists
 
 import numpy as np
 import matplotlib.pyplot as plt
-import random
 from math import cos
 import logging as log
+import os
 
 
 class Deepsea(SaveableObject):
@@ -22,17 +22,17 @@ class Deepsea(SaveableObject):
     """
 
     def __init__(self, scene=None, actions=None, state=0):
-        '''
+        """
         Initialize the Deepsea problem.
 
         Parameters
         ----------
-        scene: array, Map of the deepsea landscape. Entries represent
+        :param scene: array, Map of the deepsea landscape. Entries represent
             rewards. Invalid states get a value of "-100" (e.g. walls, ground).
             Positive values correspond to treasures.
-        actions: The name of the actions: Here the directions the
+        :param actions: The name of the actions: Here the directions the
             submarine can move - left, right, up, down.
-        '''
+        """
 
         super(Deepsea, self).__init__(
             ['_state', '_time', '_actions', '_scene'])
@@ -41,12 +41,13 @@ class Deepsea(SaveableObject):
 
         self._state = state
         self._last_state = state
+        self.P = None
 
-        if not actions:
+        if actions is None:
             # Default actions
             actions = ["up", "down", "right", "left"]
 
-        if not scene:
+        if scene is None:
             # Default Map as used in general MORL papers
             self._scene = np.zeros((11, 10))
             self._scene[2:11, 0] = -100
@@ -66,21 +67,48 @@ class Deepsea(SaveableObject):
             self._scene[7, 7] = 50
             self._scene[9, 8] = 74
             self._scene[10, 9] = 124
+            self.P = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_P.pickle'))
 
-
-        self._flat_map = np.ravel(self._scene, order='C') #flat map with Fortran-style order (column-first)
+        self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
+        # Define action mapping here
+        self._actions_map = {
+            'up': np.array([-1, 0]),
+            'down': np.array([1, 0]),
+            'right': np.array([0, 1]),
+            'left': np.array([0, -1]),
+            }
 
         self._position = self._get_position(state)
         self._last_position = self._position
+        self._terminal_state = 0
 
         self.n_states = self._scene.shape[0] * self._scene.shape[1]
 
-        #self._predictor_accuracy = predictor_accuracy
-        #self._payouts = payouts
         self._actions = actions
+
+        # build state transition matrix P_{ss'} where (i, j) is the transition probability
+        # from state i to j
+        if self.P is None:
+            self._construct_p()
 
     def __str__(self):
         return self.__class__.__name__
+
+    def _construct_p(self):
+        self.P = np.zeros((self.n_states, self.n_states))
+        for i in xrange(self._scene.shape[0]):
+            for j in xrange(self._scene.shape[1]):
+                pos = (i, j)
+                valid_n_pos = []
+                for a in xrange(self.n_actions):
+                    n_pos = pos + self._actions_map[self._actions[a]]
+                    if self._in_map(n_pos):
+                        valid_n_pos.append(n_pos)
+                if len(valid_n_pos) > 0:
+                    prob = 1.0 / len(valid_n_pos)
+                    for n_pos in valid_n_pos:
+                        self.P[self._get_index(pos), self._get_index(n_pos)] = prob
+        assureProbabilityMatrix(self.P)
 
     @property
     def state(self):
@@ -99,23 +127,21 @@ class Deepsea(SaveableObject):
         return 2
 
     def _get_index(self, position):
-        if self.in_map(position):
-            #raise IndexError("Position out of bounds: {}".format(position))
-            #print np.ravel_multi_index(position, self._scene.shape)
+        if self._in_map(position):
             return np.ravel_multi_index(position, self._scene.shape)
         else:
             log.debug('Error: Position out of map!')
             return -1
 
     def _get_position(self, index):
-        if (index < (self._scene.shape[0] * self._scene.shape[1])):
+        if index < (self._scene.shape[0] * self._scene.shape[1]):
             return np.unravel_index(index, self._scene.shape)
         else:
             log.debug('Error: Index out of list!')
             return -1
 
-    def in_map(self,position):
-        return not((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or
+    def _in_map(self, position):
+        return not ((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or
                    (position[1] > self._scene.shape[1] - 1))
 
     def print_map(self):
@@ -150,14 +176,6 @@ class Deepsea(SaveableObject):
         reward: reward of the current state.
         """
 
-        # Define action mapping here
-        map_actions = {
-            'up': np.array([-1, 0]),
-            'down': np.array([1, 0]),
-            'right': np.array([0, 1]),
-            'left': np.array([0, -1]),
-            }
-
         self._time += 1
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
@@ -165,10 +183,10 @@ class Deepsea(SaveableObject):
         log.debug('Position before: ' + str(self._position) + ' moving ' + self._actions[action] +
                   ' (last pos: ' + str(last_position) + ')')
 
-        if self.in_map(self._position + map_actions[self._actions[action]]):
-            self._position += map_actions[self._actions[action]]
+        if self._in_map(self._position + _actions_map[self._actions[action]]):
+            self._position += _actions_map[self._actions[action]]
             reward = self._flat_map[self._get_index(self._position)]
-            log.debug('moved by' + str(map_actions[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
+            log.debug('moved by' + str(_actions_map[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
             if reward < 0:
                 self._position = last_position
                 self._terminal_state = 1

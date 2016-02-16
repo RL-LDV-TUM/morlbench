@@ -32,6 +32,22 @@ def assureProbabilityMatrix(P):
     if np.abs(psum - 1.0).any() > np.finfo(P.dtype).eps:
         raise RuntimeError("Probability matrix check failed: Columns don't add up to one.")
 
+
+def loadMatrixIfExists(filename):
+    """
+    Load a default matrix if the file exists.
+
+    :param filename: Filename were to load from
+    :return: Unpickled object
+    """
+    try:
+        with open(filename, 'r') as f:
+            ret = pickle.load(f)
+    except:
+        return None
+    return ret
+
+
 class SaveableObject(object):
     """
     This should be a generic class for custom object

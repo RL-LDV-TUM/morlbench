@@ -24,7 +24,7 @@ class Deepsea(SaveableObject):
     iteratively by calling "action".
     """
 
-    def __init__(self, scene=None, actions=None, state=0):
+    def __init__(self, scene=None, actions=None, state=0, gamma=0.9):
         """
         Initialize the Deepsea problem.
 
@@ -35,6 +35,7 @@ class Deepsea(SaveableObject):
             Positive values correspond to treasures.
         :param actions: The name of the actions: Here the directions the
             submarine can move - left, right, up, down.
+        :param gamma: The discount factor of the problem.
         """
         # TODO: "features" meaning reward vector access ... and vectorial reward.
 
@@ -47,6 +48,7 @@ class Deepsea(SaveableObject):
         self._last_state = state
         self.P = None
         self.R = None
+        self._gamma = gamma
 
         if actions is None:
             # Default actions
@@ -125,6 +127,10 @@ class Deepsea(SaveableObject):
         self.R = np.zeros(self.n_states)
         for i in xrange(self.n_states):
             self.R[i] = self._scene[self._get_position(i)]
+
+    @property
+    def gamma(self):
+        return self._gamma
 
     @property
     def state(self):

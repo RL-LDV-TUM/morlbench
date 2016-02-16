@@ -5,7 +5,3 @@ Created on Feb 16, 2016
 
 @author: Dominik Meyer <meyerd@mytum.de>
 """
-
-import numpy as np
-import logging as log
-

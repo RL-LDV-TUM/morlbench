@@ -1,13 +1,15 @@
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
 Created on Nov 21, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
-'''
+"""
 Experiment that sweeps number of episodes
 of a RL (SARSA) Newcomb agent.
-'''
+"""
 
 import sys
 sys.path.append('..')

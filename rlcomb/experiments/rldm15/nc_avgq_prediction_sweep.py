@@ -1,14 +1,16 @@
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
 Created on Nov 21, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
-'''
+"""
 Experiment that sweeps over the prediction accuracy of the
 Prisoner's Dilemma problems predictor and does a RL learning over
 10000 iterations with AVGQ
-'''
+"""
 
 import sys
 import os

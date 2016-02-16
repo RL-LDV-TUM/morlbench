@@ -1,8 +1,10 @@
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
 Created on Nov 19, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
 from helpers import SaveableObject
 
@@ -21,7 +23,7 @@ class Newcomb(SaveableObject):
     def __init__(self, predictor_accuracy=0.99,
                  payouts=np.array([[1000000, 0], [1001000, 1000]]),
                  actions=["one box", "two box"]):
-        '''
+        """
         Initialize the Newcomb problem.
 
         Parameters
@@ -42,7 +44,7 @@ class Newcomb(SaveableObject):
         actions: The name of the two actions (one/two
             boxing, used for debugging output purposes
             only.
-        '''
+        """
 
         super(Newcomb, self).__init__(
             ['predictor_accuracy, payouts, actions'])
@@ -57,16 +59,16 @@ class Newcomb(SaveableObject):
  payouts:\n%s' % (str(self.actions), self.predictor_accuracy, self.payouts)
 
     def __invert_action(self, action):
-        '''
+        """
         Invert the action, if the predictor will
         predict wrong.
-        '''
+        """
         if action == 0:
             return 1
         return 0
 
     def play(self, action):
-        '''
+        """
         Play one round of the Newcomb problem. A iterated
         Newcomb problem can be obtained by simply iteratively
         playing the same problem over and over again.
@@ -79,7 +81,7 @@ class Newcomb(SaveableObject):
         Returns
         -------
         payout: payout of the current round.
-        '''
+        """
         # decide whether the predictor is correct this
         # round
         # TODO: if the predictor is not correct does it
@@ -93,21 +95,21 @@ class Newcomb(SaveableObject):
 
 
 class RandomNewcomb(Newcomb):
-    '''
+    """
     A newcomb problem which doesn't decide always the
     opposite, but instead a random boxing.
-    '''
+    """
 
     def __invert_action(self, action):
-        '''
+        """
         Play random action instead of
         the opposite of the optimal
-        '''
+        """
         return random.randint(0, len(self.actions) - 1)
 
 
 class PrisonersDilemma(SaveableObject):
-    '''
+    """
     The classical prisoners dilemma (PD) with a default
     payout matrix of
 
@@ -120,10 +122,10 @@ class PrisonersDilemma(SaveableObject):
 
 
         with T > P > R > S and R > (T + S) / 2.
-    '''
+    """
 
     def __init__(self, T=5.0, R=3.0, P=1.0, S=0.0):
-        '''
+        """
         Initialize the Prisoner's Dilemma.
 
         Parameters
@@ -139,7 +141,7 @@ class PrisonersDilemma(SaveableObject):
 
         default values:
             T = 5, R = 3, P = 1, S = 0
-        '''
+        """
 
         super(PrisonersDilemma, self).__init__(
                 ['T', 'R', 'P', 'S', 'payouts', 'actions'])
@@ -159,7 +161,7 @@ class PrisonersDilemma(SaveableObject):
                                           self.S)
 
     def play(self, action1, action2):
-        '''
+        """
         Play the PD.
 
         Parameters
@@ -173,19 +175,19 @@ class PrisonersDilemma(SaveableObject):
         -------
         (payout1, payout2): float 2-tuple
             Containing the payouts for prisoner 1 and 2 respectively.
-        '''
+        """
         return self.payouts[action1][action2]
 
 
 class ProbabilisticPrisonersDilemma(PrisonersDilemma):
-    '''
+    """
     A modification of the Prisoner's Dilemma, where the action
     of the second player is not chosen by input, but randomly
     according to some cooperation probability.
-    '''
+    """
 
     def __init__(self, T=5.0, R=3.0, P=1.0, S=0.0, coop_p=0.5):
-        '''
+        """
         Initialize the probabilistic PD.
 
         Parameters
@@ -194,7 +196,7 @@ class ProbabilisticPrisonersDilemma(PrisonersDilemma):
             Set the cooperation probability.
 
         Other parameters, see superclass.
-        '''
+        """
 
         super(ProbabilisticPrisonersDilemma, self).__init__(T=T, R=R, P=P, S=S)
 
@@ -205,7 +207,7 @@ class ProbabilisticPrisonersDilemma(PrisonersDilemma):
 coop_p=%f)" % (self.T, self.R, self.P, self.S, self.coop_p)
 
     def play(self, action):
-        '''
+        """
         Play the probabilistic PD. 
 
         Parameters
@@ -217,7 +219,7 @@ coop_p=%f)" % (self.T, self.R, self.P, self.S, self.coop_p)
         -------
         (payout1, payout2): float 2-tuple
             Containing the payouts for prisoner 1 and 2 respectively.
-        '''
+        """
         p2action = 1
         if random.random() <= self.coop_p:
             p2action = 0

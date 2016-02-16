@@ -45,6 +45,7 @@ class Deepsea(SaveableObject):
         self._state = state
         self._last_state = state
         self.P = None
+        self.R = None
 
         if actions is None:
             # Default actions
@@ -71,6 +72,7 @@ class Deepsea(SaveableObject):
             self._scene[9, 8] = 74
             self._scene[10, 9] = 124
             self.P = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_P.pickle'))
+            self.R = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_R.pickle'))
 
         self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
         # Define action mapping here
@@ -94,6 +96,10 @@ class Deepsea(SaveableObject):
         if self.P is None:
             self._construct_p()
 
+        # build reward vector R(s)
+        if self.R is None:
+            self._construct_r()
+
     def __str__(self):
         return self.__class__.__name__
 
@@ -112,6 +118,11 @@ class Deepsea(SaveableObject):
                     for n_pos in valid_n_pos:
                         self.P[self._get_index(pos), self._get_index(n_pos)] = prob
         assureProbabilityMatrix(self.P)
+
+    def _construct_r(self):
+        self.R = np.zeros(self.n_states)
+        for i in xrange(self.n_states):
+            self.R[i] = self._scene[self._get_position(i)]
 
     @property
     def state(self):

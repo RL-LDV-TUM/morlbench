@@ -48,6 +48,7 @@ def morl_interact_multiple(agent, problem, interactions, trials=100):
         rewards = []
         actions = []
         tmp_states = []
+        problem.reset()
         for t in xrange(trials):
             action = agent.decide(t, problem.state)
             reward = problem.play(action)

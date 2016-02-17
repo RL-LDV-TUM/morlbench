@@ -1,8 +1,8 @@
-'''
+"""
 Created on Feb 10, 2015
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt

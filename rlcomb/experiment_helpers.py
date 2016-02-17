@@ -1,19 +1,21 @@
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
 Created on Apr 23, 2015
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
 import numpy as np
 import logging as log
 
 
 def interact_multiple(agent, problem, interactions):
-    '''
+    """
     Interact multiple times with the problem and then
     return arrays of actions chosen and payouts received
     in each stage.
-    '''
+    """
     payouts = []
     actions = []
     log.info('Playing %i interactions ... ' % (interactions))
@@ -71,11 +73,11 @@ def morl_interact_multiple(agent, problem, interactions, trials=100):
 
 def interact_multiple_twoplayer(agent1, agent2, problem, interactions,
                                 use_sum_of_payouts=False):
-    '''
+    """
     Interact multiple times with the problem and then
     return arrays of actions chosen and payouts received
     in each stage.
-    '''
+    """
     #TODO: Make this more flexible instead of tedious code duplication.
     payouts1 = []
     actions1 = []

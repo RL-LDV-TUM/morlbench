@@ -1,14 +1,16 @@
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
 Created on Feb, 2015
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
-'''
+"""
 Experiment that sweeps over the prediction accuracy of the
 Prisoner's Dilemma predictor and does learning over
 10000 iterations.
-'''
+"""
 
 import sys
 sys.path.append('..')

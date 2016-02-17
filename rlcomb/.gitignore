@@ -6,3 +6,4 @@
 *.pickle
 .metadata/
 .idea/
+.ipynb_checkpoints/

@@ -107,7 +107,7 @@ class Deepsea(SaveableObject):
         return self.__class__.__name__
 
     def _construct_p(self):
-        self.P = np.zeros((self.n_states, self.n_states))
+        self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self._scene.shape[0]):
             for j in xrange(self._scene.shape[1]):
                 pos = (i, j)
@@ -115,11 +115,11 @@ class Deepsea(SaveableObject):
                 for a in xrange(self.n_actions):
                     n_pos = pos + self._actions_map[self._actions[a]]
                     if self._in_map(n_pos):
-                        valid_n_pos.append(n_pos)
+                        valid_n_pos.append((n_pos, a))
                 if len(valid_n_pos) > 0:
                     prob = 1.0 / len(valid_n_pos)
-                    for n_pos in valid_n_pos:
-                        self.P[self._get_index(pos), self._get_index(n_pos)] = prob
+                    for n_pos, a in valid_n_pos:
+                        self.P[self._get_index(pos), a, self._get_index(n_pos)] = prob
         assureProbabilityMatrix(self.P)
 
     def _construct_r(self):

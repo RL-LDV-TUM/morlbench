@@ -18,15 +18,15 @@ def assureProbabilityMatrix(P):
     """
     Checks if the matrix P is a valid probability transition matrix.
     This means it has to contain transitions from state i to state j
-    in the (i, j)-th entry (i-th column, j-th row).
+    taking action a in the (i, a, j)-th entry.
 
     :param P: Probability transition matrix
     """
-    if P.shape[0] != P.shape[1]:
+    if P.shape[0] != P.shape[2]:
         raise RuntimeError("Probability matrix check failed: Matrix is not square.")
-    psum = P.sum(axis=0)
+    psum = P.sum(axis=-1).sum(axis=-1)
     if np.abs(psum - 1.0).any() > np.finfo(P.dtype).eps:
-        raise RuntimeError("Probability matrix check failed: Columns don't add up to one.")
+        raise RuntimeError("Probability matrix check failed: Probabilities don't add up to one.")
 
 
 def assurePolicyMatrix(pi):

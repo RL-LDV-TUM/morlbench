@@ -29,7 +29,7 @@ if __name__ == '__main__':
     agent = SARSAMorlAgent(problem, scalarization_weights=scalarization_weights,
                            alpha=0.1, gamma=0.9, epsilon=0.9)
 
-    interactions = 10000
+    interactions = 100
 
     log.info('Playing ...')
     log.info('%s' % (str(agent)))

@@ -233,10 +233,10 @@ class Deepsea(SaveableObject):
         log.debug('Position before: ' + str(self._position) + ' moving ' + self._actions[action] +
                   ' (last pos: ' + str(last_position) + ')')
 
-        if self._in_map(self._position + _actions_map[self._actions[action]]):
-            self._position += _actions_map[self._actions[action]]
+        if self._in_map(self._position + self._actions_map[self._actions[action]]):
+            self._position += self._actions_map[self._actions[action]]
             reward = self._flat_map[self._get_index(self._position)]
-            log.debug('moved by' + str(_actions_map[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
+            log.debug('moved by' + str(self._actions_map[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
             if reward < 0:
                 self._position = last_position
                 reward = 0

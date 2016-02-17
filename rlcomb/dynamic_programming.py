@@ -81,7 +81,7 @@ class DynamicProgrammingValueIteration(DynamicProgramming):
         V = np.zeros(n_states)
         for i in xrange(max_iterations):
             V_n = R + gamma * np.dot(P_pi, V)
-            if npla.norm(V - V_n) < 1e-20:
+            if npla.norm(V - V_n) < 1e-22:
                 V = V_n
                 log.debug("Value iteration converged after %i iterations" % (i))
                 break

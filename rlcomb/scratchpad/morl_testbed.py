@@ -12,7 +12,7 @@ import numpy as np
 import cPickle as pickle
 
 #log.basicConfig(level=log.DEBUG)
-log.basicConfig(level=log.INFO)
+#log.basicConfig(level=log.INFO)
 
 from morl_problems import Deepsea
 from morl_agents import SARSAMorlAgent

@@ -82,7 +82,7 @@ def transition_map(problem, states, moves):
     policy = np.zeros((problem.n_states, problem.n_actions))
 
     # Count states per episode and sum them up
-    for i in xrange(states.size):
+    for i in xrange(states.shape[0]):
         z = np.bincount(states[i])
         heatmap[:len(z)] += z
         # Count actions per state for all episodes

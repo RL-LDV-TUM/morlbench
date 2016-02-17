@@ -57,7 +57,7 @@ def morl_interact_multiple(agent, problem, interactions, trials=100):
             # Preserve reward, action and state
             rewards.append(reward)
             actions.append(action)
-            tmp_states.append(problem.state)
+            tmp_states.append(problem.last_state)
             # Decide if terminal state
             if problem.terminal_state:
                 problem.reset()

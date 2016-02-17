@@ -7,15 +7,36 @@ Created on Feb 16, 2016
 import cPickle as pickle
 from morl_problems import Deepsea
 
-import plotly.plotly as py
-import plotly.graph_objs as go
+# import plotly.plotly as py
+# import plotly.graph_objs as go
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 
 import numpy as np
 
-def heatmap_matplot():
+def heatmap_matplot(problem,states):
+    """
+    Plots a simple heatmap of visited states for a given problem (e.g. Deepsea)
+     and an array of recorded states.
+    :param problem: problem object (e.g. Deepsea)
+    :param states: array of states per episode
+    :return: shows a plot
+    """
+    # Initialization of empty arrays
+    heatmap = np.zeros(problem.n_states)
+
+    # Count states per episode and sum them up
+    for i in xrange(states.size):
+        z = np.bincount(states[i])
+        heatmap[:len(z)] += z
+
+    # Shape the linearized heatmap according to the problem geometry
+    heatmap = heatmap.reshape(problem._scene.shape)
+
+    # Generate masked heatmap (ground is masked for plotting)
+    heatmap_mask = np.ma.masked_where(problem._scene == -100, heatmap)
+
     fig, ax = plt.subplots()
 
     colormap = cm.jet # color map
@@ -26,7 +47,10 @@ def heatmap_matplot():
 
     numrows, numcols = heatmap.shape
 
-    # Move ticks to the middle of each field
+    # x = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    # y = ['-0', '-1', '-2', '-3', '-4', '-5', '-6', '-7', '-8', '-9', '-10']
+
+    # Set z-value to the heatmap value -> so it can be read in the plot
     def format_coord(x, y):
         col = int(x + 0.5)
         row = int(y + 0.5)
@@ -38,58 +62,84 @@ def heatmap_matplot():
 
     ax.format_coord = format_coord
 
-
-    # X, Y = np.meshgrid(np.arange(0, -10, -1), np.arange(0, 9, 1))
-    # U = np.cos(X)
-    # V = np.sin(Y)
-    # Q = plt.quiver(U, V)
-
     plt.show()
 
-def transition_map():
-    plot_map = np.zeros((3*problem.scene_y_dim, 3*problem.scene_x_dim))
+def transition_map(problem,states,moves):
+    """
+    Plots transition probabilities for a given problem and the
+    recorded states and moves.
+    The function is only tested with the Deepsea environment
+    :param problem: problem object (e.g. Deepsea)
+    :param states: array of states per episode
+    :param moves: array of actions performed in each state for each episode
+    :return: nothing - a plot is shown
+    """
+    # Initialization of empty arrays
+    plot_map = np.zeros((3*problem.scene_y_dim, 3*problem.scene_x_dim))  # plot array with 3x3 pixel for each state
+    heatmap = np.zeros(problem.n_states)
+    policy = np.zeros((problem.n_states,problem.n_actions))
 
+    # Count states per episode and sum them up
+    for i in xrange(states.size):
+        z = np.bincount(states[i])
+        heatmap[:len(z)] += z
+        # Count actions per state for all episodes
+        for j in xrange(len(states[i])):
+            policy[states[i][j]][moves[i][j]] += 1
+
+    # Find non visited states
+    non_zero_states = np.where(heatmap > 0)[0]
+
+    # Calculate probabilities for all non zero states
+    transition_probabilities = policy[np.nonzero(heatmap)] / heatmap[np.nonzero(heatmap), None]
+
+    # Place subpixel in each 3x3 state pixel
     for i in xrange(non_zero_states.size):
         coords = problem._get_position(non_zero_states[i])
-
         plot_map[coords[0]*3][(coords[1]*3)+1] = transition_probabilities[0][i][0] # first action (up)
         plot_map[(coords[0]*3)+2][(coords[1]*3)+1] = transition_probabilities[0][i][1] # second action (down)
-        plot_map[(coords[0]*3)+1][(coords[1]*3)] = transition_probabilities[0][i][2] # first action (right)
-        plot_map[(coords[0]*3)+1][(coords[1]*3)+2] = transition_probabilities[0][i][3] # first action (left)
+        plot_map[(coords[0]*3)+1][(coords[1]*3)+2] = transition_probabilities[0][i][2] # first action (right)
+        plot_map[(coords[0]*3)+1][(coords[1]*3)] = transition_probabilities[0][i][3] # first action (left)
 
+    # repeat ground mask three times and map the values to the expanded mask
     trans_map_masked = np.repeat(problem._scene, 3, axis=1)
     trans_map_masked = np.repeat(trans_map_masked, 3, axis=0)
     trans_map_masked = np.ma.masked_where(trans_map_masked == -100, trans_map_masked)
 
+    # Copy all values of plot_map to the masked map containing the ground profile
     trans_map_masked[trans_map_masked >= 0] = plot_map[trans_map_masked >= 0]
 
+    # Generate the heatmap plot
     fig, ax = plt.subplots()
     colormap = cm.jet # color map
     colormap.set_bad(color='grey') # set color for mask (ground)
     ax.imshow(trans_map_masked, colormap, interpolation='nearest')
     numrows, numcols = trans_map_masked.shape
 
+    xticks_labels = tuple(map(str, range(problem.scene_x_dim)))
+    yticks_labels = tuple(map(str, range(problem.scene_y_dim)))
 
-    plt.xticks( np.arange(1,30,3), ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9') )
-    plt.yticks( np.arange(1,33,3), ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9','10') )
+    plt.xticks( np.arange(1,30,3), xticks_labels)
+    plt.yticks( np.arange(1,33,3), yticks_labels)
 
-    for i in xrange(len(y)):
-        ax.axhline(3*i, linestyle='--', color='k')
+    for i in xrange(1,len(yticks_labels)):
+        ax.axhline((3*i)-0.5, linestyle='--', color='k')
 
-    for i in xrange(len(x)):
-        ax.axvline(3*i, linestyle='--', color='k')
+    for i in xrange(len(xticks_labels)):
+        ax.axvline((3*i)-0.5, linestyle='--', color='k')
 
-    # Move ticks to the middle of each field
-    # def format_coord(x, y):
-    #     col = int(x + 1.5)
-    #     row = int(y + 1.5)
-    #     if col >= 0 and col < numcols and row >= 0 and row < numrows:
-    #         z = trans_map_masked[row, col]
-    #         return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
-    #     else:
-    #         return 'x=%1.4f, y=%1.4f' % (x, y)
+    # Set z-value to the heatmap value -> so it can be read in the plot
+    def format_coord(x, y):
+        col = int(x + 0.5)
+        row = int(y + 0.5)
+        if col >= 0 and col < numcols and row >= 0 and row < numrows:
+            z = trans_map_masked[row, col]
+            return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
+        else:
+            return 'x=%1.4f, y=%1.4f' % (x, y)
 
-    # ax.format_coord = format_coord
+    ax.format_coord = format_coord
+
     plt.show()
 
 def heatmap_plotly():
@@ -127,28 +177,7 @@ if __name__ == '__main__':
     problem = Deepsea()
     payouts, moves, states = pickle.load(open("results_10000.p"))
 
-    heatmap = np.zeros(problem.n_states)
-
-    policy = np.zeros((problem.n_states,problem.n_actions))
-
-    for i in xrange(states.size):
-        z = np.bincount(states[i])
-        heatmap[:len(z)] += z
-        for j in xrange(len(states[i])):
-            policy[states[i][j]][moves[i][j]] += 1
-
-    non_zero_states = np.where(heatmap > 0)[0]
-    transition_probabilities = policy[np.nonzero(heatmap)] / heatmap[np.nonzero(heatmap), None]
-
-    heatmap = heatmap.reshape(problem._scene.shape)
-
-    # Generate masked heatmap (ground is masked for plotting)
-    heatmap_mask = np.ma.masked_where(problem._scene == -100, heatmap)
-
-    x = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    y = ['-0', '-1', '-2', '-3', '-4', '-5', '-6', '-7', '-8', '-9', '-10']
-
-    transition_map()
+    transition_map(problem=problem, states=states, moves=moves)
     #heatmap_matplot()
     #heatmap_plotly()
 

@@ -1,12 +1,14 @@
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
 Created on March, 27 2015
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
-'''
+"""
 Plot results from Agent vs. Agent in Prisoners Dilemma
-'''
+"""
 
 import sys
 import os

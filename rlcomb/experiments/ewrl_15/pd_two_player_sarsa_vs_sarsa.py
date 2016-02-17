@@ -1,8 +1,10 @@
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
 Created on Apr 23, 2015
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
 import sys
 import os

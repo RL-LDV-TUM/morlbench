@@ -1,16 +1,19 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
 Created on Nov 19, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
 """
 
-from helpers import SaveableObject
+from helpers import SaveableObject, loadMatrixIfExists
+from probability_helpers import assureProbabilityMatrix
 
 import numpy as np
 import matplotlib.pyplot as plt
-import random
 from math import cos
 import logging as log
+import os
 
 
 class Deepsea(SaveableObject):
@@ -21,18 +24,20 @@ class Deepsea(SaveableObject):
     iteratively by calling "action".
     """
 
-    def __init__(self, scene=None, actions=None, state=0):
-        '''
+    def __init__(self, scene=None, actions=None, state=0, gamma=0.9):
+        """
         Initialize the Deepsea problem.
 
         Parameters
         ----------
-        scene: array, Map of the deepsea landscape. Entries represent
+        :param scene: array, Map of the deepsea landscape. Entries represent
             rewards. Invalid states get a value of "-100" (e.g. walls, ground).
             Positive values correspond to treasures.
-        actions: The name of the actions: Here the directions the
+        :param actions: The name of the actions: Here the directions the
             submarine can move - left, right, up, down.
-        '''
+        :param gamma: The discount factor of the problem.
+        """
+        # TODO: "features" meaning reward vector access ... and vectorial reward.
 
         super(Deepsea, self).__init__(
             ['_state', '_time', '_actions', '_scene'])
@@ -41,13 +46,16 @@ class Deepsea(SaveableObject):
 
         self._state = state
         self._last_state = state
+        self.P = None
+        self.R = None
+        self._gamma = gamma
         self._terminal_state = False
 
-        if not actions:
+        if actions is None:
             # Default actions
             actions = ["up", "down", "right", "left"]
 
-        if not scene:
+        if scene is None:
             # Default Map as used in general MORL papers
             self._scene = np.zeros((11, 10))
             self._scene[2:11, 0] = -100
@@ -67,9 +75,17 @@ class Deepsea(SaveableObject):
             self._scene[7, 7] = 50
             self._scene[9, 8] = 74
             self._scene[10, 9] = 124
+            self.P = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_P.pickle'))
+            self.R = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_R.pickle'))
 
-
-        self._flat_map = np.ravel(self._scene, order='C') #flat map with Fortran-style order (column-first)
+        self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
+        # Define action mapping here
+        self._actions_map = {
+            'up': np.array([-1, 0]),
+            'down': np.array([1, 0]),
+            'right': np.array([0, 1]),
+            'left': np.array([0, -1]),
+            }
 
         self._position = self._get_position(state)
         self._last_position = self._position
@@ -80,6 +96,37 @@ class Deepsea(SaveableObject):
         #self._payouts = payouts
         self._actions = actions
 
+        # build state transition matrix P_{ss'} where (i, j) is the transition probability
+        # from state i to j
+        if self.P is None:
+            self._construct_p()
+
+        # build reward vector R(s)
+        if self.R is None:
+            self._construct_r()
+
+    def _construct_p(self):
+        self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
+        for i in xrange(self._scene.shape[0]):
+            for j in xrange(self._scene.shape[1]):
+                pos = (i, j)
+                valid_n_pos = []
+                for a in xrange(self.n_actions):
+                    n_pos = pos + self._actions_map[self._actions[a]]
+                    if self._in_map(n_pos):
+                        valid_n_pos.append((n_pos, a))
+                if len(valid_n_pos) > 0:
+                    prob = 1.0 / len(valid_n_pos)
+                    for n_pos, a in valid_n_pos:
+                        self.P[self._get_index(pos), a, self._get_index(n_pos)] = prob
+        assureProbabilityMatrix(self.P)
+
+    def _construct_r(self):
+        # TODO: what happens with the multi-objective reward
+        self.R = np.zeros(self.n_states)
+        for i in xrange(self.n_states):
+            self.R[i] = self._scene[self._get_position(i)]
+
     def reset(self):
         self._state = 0
         self._terminal_state = False
@@ -88,9 +135,12 @@ class Deepsea(SaveableObject):
         self._position = self._get_position(self._state)
         self._last_position = self._position
 
-
     def __str__(self):
         return self.__class__.__name__
+
+    @property
+    def gamma(self):
+        return self._gamma
 
     @property
     def terminal_state(self):
@@ -125,23 +175,21 @@ class Deepsea(SaveableObject):
         return self._scene.shape[0]
 
     def _get_index(self, position):
-        if self.in_map(position):
-            #raise IndexError("Position out of bounds: {}".format(position))
-            #print np.ravel_multi_index(position, self._scene.shape)
+        if self._in_map(position):
             return np.ravel_multi_index(position, self._scene.shape)
         else:
             log.debug('Error: Position out of map!')
             return -1
 
     def _get_position(self, index):
-        if (index < (self._scene.shape[0] * self._scene.shape[1])):
+        if index < (self._scene.shape[0] * self._scene.shape[1]):
             return np.unravel_index(index, self._scene.shape)
         else:
             log.debug('Error: Index out of list!')
             return -1
 
-    def in_map(self,position):
-        return not((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or
+    def _in_map(self, position):
+        return not ((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or
                    (position[1] > self._scene.shape[1] - 1))
 
     def print_map(self):
@@ -176,14 +224,6 @@ class Deepsea(SaveableObject):
         reward: reward of the current state.
         """
 
-        # Define action mapping here
-        map_actions = {
-            'up': np.array([-1, 0]),
-            'down': np.array([1, 0]),
-            'right': np.array([0, 1]),
-            'left': np.array([0, -1]),
-            }
-
         self._time += 1
 
         self._terminal_state = False
@@ -193,10 +233,10 @@ class Deepsea(SaveableObject):
         log.debug('Position before: ' + str(self._position) + ' moving ' + self._actions[action] +
                   ' (last pos: ' + str(last_position) + ')')
 
-        if self.in_map(self._position + map_actions[self._actions[action]]):
-            self._position += map_actions[self._actions[action]]
+        if self._in_map(self._position + _actions_map[self._actions[action]]):
+            self._position += _actions_map[self._actions[action]]
             reward = self._flat_map[self._get_index(self._position)]
-            log.debug('moved by' + str(map_actions[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
+            log.debug('moved by' + str(_actions_map[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
             if reward < 0:
                 self._position = last_position
                 reward = 0
@@ -341,9 +381,6 @@ class MountainCar(SaveableObject):
         #    self._velocity = -self._velocity
 
 
-
-
-
 class MountainCarMulti(MountainCar):
     def __init__(self,state = 0.5):
         '''
@@ -397,4 +434,3 @@ class MountainCarMulti(MountainCar):
             factor = 0 # Default action
 
         self.car_sim(factor)
-

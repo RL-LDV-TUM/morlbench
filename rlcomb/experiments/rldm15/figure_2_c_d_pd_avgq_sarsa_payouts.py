@@ -1,12 +1,14 @@
-'''
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
 Created on Feb, 2015
 
 @author: Dominik Meyer <meyerd@mytum.de>
-'''
+"""
 
-'''
+"""
 Plot results from SARSA, AVGQ Prisoner's Dilemma agent experiments.
-'''
+"""
 
 import sys
 import os

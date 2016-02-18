@@ -54,7 +54,7 @@ def morl_interact_multiple(agent, problem, interactions, trials=100):
             reward = problem.play(action)
             agent.learn(t, action, reward, problem.state)
 
-            log.info('step %04i: state before %i - action %i - payout %s - state %i' %
+            log.debug('step %04i: state before %i - action %i - payout %s - state %i' %
                       (t, problem.last_state, action, str(reward), problem.state))
 
             # Preserve reward, action and state

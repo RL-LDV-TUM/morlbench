@@ -134,7 +134,8 @@ class SARSAMorlAgent(MorlAgent):
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
-            action = self._Q[state, :].argmax()
+            action = random.choice(np.where(self._Q[state, :] == max(self._Q[state, :]))[0])
+            #action = self._Q[state, :].argmax()
             log.debug('  took greedy action %i' % (action))
             return action
         action = random.randint(0, self._morl_problem.n_actions - 1)
@@ -161,7 +162,7 @@ class QMorlAgent(MorlAgent):
         :param problem: A MORL problem
         :param scalarization_weights: a weight vector to scalarize the morl reward.
         :param alpha: real, the learning rate in each
-            SARSA update step
+            Q update step
         :param gamma: real, [0, 1) RL discount factor
         :param epsilon: real, [0, 1] the epsilon factor for
             the epsilon greedy action selection strategy
@@ -177,6 +178,8 @@ class QMorlAgent(MorlAgent):
         # two actions in the newcomb problem.
         self._Q = np.zeros(
                 (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
+        # self._Q = np.ones(
+        #         (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
         self._last_state = 0
         self._last_action = 0
         self._last_reward = np.zeros_like(self._scalarization_weights)
@@ -212,7 +215,8 @@ class QMorlAgent(MorlAgent):
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
-            action = np.dot(self._Q[state, :], self._scalarization_weights).argmax()
+            weighted_Q = np.dot(self._Q[state, :], self._scalarization_weights)
+            action = random.choice(np.where(weighted_Q == max(weighted_Q))[0])
 
             log.debug('  took greedy action %i' % (action))
             return action

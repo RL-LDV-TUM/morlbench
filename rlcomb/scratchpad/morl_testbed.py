@@ -18,6 +18,7 @@ from morl_problems import Deepsea
 from morl_agents import SARSAMorlAgent
 from morl_agents import QMorlAgent
 from morl_agents import DeterministicAgent
+from morl_agents import NFQAgent
 from experiment_helpers import morl_interact_multiple
 from plot_heatmap import transition_map,heatmap_matplot
 
@@ -28,11 +29,12 @@ if __name__ == '__main__':
     scalarization_weights = np.zeros(reward_dimension)
     scalarization_weights[0] = 0.8
     scalarization_weights[1] = 0.2
-    agent = SARSAMorlAgent(problem, scalarization_weights=scalarization_weights,
-                           alpha=0.1, gamma=0.9, epsilon=0.9)
+    # agent = SARSAMorlAgent(problem, scalarization_weights=scalarization_weights,
+    #                        alpha=0.1, gamma=0.9, epsilon=0.9)
     # agent = QMorlAgent(problem, scalarization_weights=scalarization_weights,
     #                        alpha=0.1, gamma=0.90, epsilon=0.7)
     # agent = DeterministicAgent(problem)
+    agent = NFQAgent(problem)
 
     interactions = 500
 

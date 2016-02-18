@@ -115,7 +115,7 @@ class SARSAMorlAgent(MorlAgent):
         # two actions in the newcomb problem.
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
         self._last_state = 0
-        self._last_action = 0
+        self._last_action = random.randint(0,problem.n_actions-1)
         self._last_reward = np.zeros_like(self._scalarization_weights)
 
     def learn(self, t, action, reward, state):
@@ -181,7 +181,7 @@ class QMorlAgent(MorlAgent):
         # self._Q = np.ones(
         #         (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
         self._last_state = 0
-        self._last_action = 0
+        self._last_action = random.randint(0,problem.n_actions-1)
         self._last_reward = np.zeros_like(self._scalarization_weights)
 
     def learn(self, t, action, reward, state):
@@ -215,13 +215,13 @@ class QMorlAgent(MorlAgent):
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
-            weighted_Q = np.dot(self._Q[state, :], self._scalarization_weights)
-            action = random.choice(np.where(weighted_Q == max(weighted_Q))[0])
+            weighted_q = np.dot(self._Q[state, :], self._scalarization_weights)
+            action = random.choice(np.where(weighted_q == max(weighted_q))[0])
 
-            log.debug('  took greedy action %i' % (action))
+            log.debug('  took greedy action %i' % action)
             return action
         action = random.randint(0, self._morl_problem.n_actions - 1)
-        log.debug('   took random action %i' % (action))
+        log.debug('   took random action %i' % action)
         return action
 
     def get_learned_action(self, state):
@@ -234,19 +234,19 @@ class DeterministicAgent(MorlAgent):
         super(DeterministicAgent, self).__init__(morl_problem, **kwargs)
 
         self._transition_dict = {0:   2,
-                           1:   1,
-                           11:  2,
-                           12:  1,
-                           22:  2,
-                           23:  1,
-                           33:  2,
-                           34:  2,
-                           35:  2,
-                           36:  1,
-                           46:  1,
-                           56:  1,
-                           66:  1
-                           }
+                                 1:   1,
+                                 11:  2,
+                                 12:  1,
+                                 22:  2,
+                                 23:  1,
+                                 33:  2,
+                                 34:  2,
+                                 35:  2,
+                                 36:  1,
+                                 46:  1,
+                                 56:  1,
+                                 66:  1
+                                 }
 
     def decide(self, t, state):
         if state in self._transition_dict:
@@ -257,3 +257,19 @@ class DeterministicAgent(MorlAgent):
     def learn(self, t, action, reward, state):
         pass
 
+class NFQAgent(MorlAgent):
+
+    def __init__(self, morl_problem, **kwargs):
+        super(NFQAgent, self).__init__(morl_problem, **kwargs)
+
+        self._transistion_history = []
+        self._last_state = random.randint(0,morl_problem.n_actions-1)
+
+    def learn(self, t, action, reward, state):
+        # Generate training set
+        self._transistion_history.append([state, action, self._last_state])
+
+        pass
+
+    def decide(self, t, state):
+        return 1

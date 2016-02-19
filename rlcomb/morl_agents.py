@@ -84,12 +84,51 @@ class MorlAgent(SaveableObject):
         virtualFunction()
 
 
+class TDMorlAgent(MorlAgent):
+    """
+    A MORL agent, that uses TD for Policy Evaluation.
+    """
+
+    def __init__(self, problem, scalarization_weights, alpha=0.3, **kwargs):
+        """
+        Initialize the TD Policy Evaluation learner for MORL.
+        Scalarization weights have to be given.
+
+        :param problem: MORL problem.
+        :param scalarization_weights: Reward scalarization weights.
+        :param alpha: Learning rate.
+        """
+        super(TDMorlAgent, self).__init__(problem, **kwargs)
+
+        self._scalarization_weights = scalarization_weights
+        self._alpha = alpha
+        self._gamma = self._morl_problem.gamma
+
+        self._V = np.zeros(self._morl_problem.n_states)
+        self._last_state = 0
+        self._last_action = random.randint(0,problem.n_actions-1)
+        self._last_reward =  np.zeros_like(self._scalarization_weights)
+
+    def learn(self, t, action, reward, state):
+        self._learn(0, self._last_state, self._last_action,
+                    self._last_reward, action, reward, state)
+        self._last_action = action
+        self._last_reward = reward
+        self._last_state = state
+
+    def _learn(self, t, last_state, last_action, last_reward, action, reward, state):
+        scalar_reward = np.dot(self._scalarization_weights.T, reward)
+        self._V[last_state]  += self._alpha * (scalar_reward + self._gamma * self._V[state] - self._V[last_state])
+
+        log.debug(' V: %s' % (str(self._V)))
+
+
 class SARSAMorlAgent(MorlAgent):
     """
     A MORL agent, that uses RL.
     """
 
-    def __init__(self, problem, scalarization_weights, alpha=0.3, gamma=1.0, epsilon=1.0, **kwargs):
+    def __init__(self, problem, scalarization_weights, alpha=0.3, epsilon=1.0, **kwargs):
         """
         Initialize the Reinforcement Learning MORL
         Agent with the problem description and alpha,
@@ -101,7 +140,6 @@ class SARSAMorlAgent(MorlAgent):
         :param scalarization_weights: a weight vector to scalarize the morl reward.
         :param alpha: real, the learning rate in each
             SARSA update step
-        :param gamma: real, [0, 1) RL discount factor
         :param epsilon: real, [0, 1] the epsilon factor for
             the epsilon greedy action selection strategy
         """
@@ -109,7 +147,7 @@ class SARSAMorlAgent(MorlAgent):
 
         self._scalarization_weights = scalarization_weights
         self._alpha = alpha
-        self._gamma = gamma
+        self._gamma = self._morl_problem.gamma
         self._epsilon = epsilon
         # the Q function is only one dimensional, since
         # we can only be in one state and choose from
@@ -130,7 +168,7 @@ class SARSAMorlAgent(MorlAgent):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
         self._Q[last_state, last_action] += self._alpha * \
                                             (scalar_reward + self._gamma * self._Q[state, action] - self._Q[
-                                                state, last_action])
+                                                last_state, last_action])
         log.debug(' Q: %s' % (str(self._Q)))
 
     def decide(self, t, state):
@@ -152,7 +190,7 @@ class QMorlAgent(MorlAgent):
     A MORL agent, that uses Q learning.
     """
 
-    def __init__(self, problem, scalarization_weights, alpha=0.3, gamma=1.0, epsilon=1.0, **kwargs):
+    def __init__(self, problem, scalarization_weights, alpha=0.3, epsilon=1.0, **kwargs):
         """
         Initialize the Reinforcement Learning MORL
         Agent with the problem description and alpha,
@@ -164,7 +202,6 @@ class QMorlAgent(MorlAgent):
         :param scalarization_weights: a weight vector to scalarize the morl reward.
         :param alpha: real, the learning rate in each
             Q update step
-        :param gamma: real, [0, 1) RL discount factor
         :param epsilon: real, [0, 1] the epsilon factor for
             the epsilon greedy action selection strategy
         """
@@ -172,7 +209,7 @@ class QMorlAgent(MorlAgent):
 
         self._scalarization_weights = scalarization_weights
         self._alpha = alpha
-        self._gamma = gamma
+        self._gamma = self._morl_problem.gamma
         self._epsilon = epsilon
         # the Q function is only one dimensional, since
         # we can only be in one state and choose from

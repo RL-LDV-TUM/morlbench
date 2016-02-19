@@ -122,10 +122,17 @@ class Deepsea(SaveableObject):
         assureProbabilityMatrix(self.P)
 
     def _construct_r(self):
-        # TODO: what happens with the multi-objective reward
-        self.R = np.zeros(self.n_states)
+        # Multi objective reward has to be stationary for the batch IRL algorithms
+        # That means a reward that grows with the number of steps is difficult to
+        # handle.
+
+        # implicitely we assume for this problem reward dimension of 2
+        self.R = np.zeros((self.n_states, 2))
+        # first the reward from the scene
         for i in xrange(self.n_states):
-            self.R[i] = self._scene[self._get_position(i)]
+            self.R[i, 0] = self._scene[self._get_position(i)]
+        # second the "time" reward for taking steps
+        self.R[:, 1] = -1
 
     def reset(self):
         self._state = 0
@@ -264,7 +271,8 @@ class Deepsea(SaveableObject):
         # if random.random() > self.predictor_accuracy:
         #     predictor_action = self.__invert_action(predictor_action)
 
-        return np.array([reward, -self._time])
+        # return np.array([reward, -self._time])
+        return np.array([reward, -1])
 
 
 class DeepseaEnergy(Deepsea):
@@ -290,8 +298,9 @@ class DeepseaEnergy(Deepsea):
 
     def play(self, action):
         reward = super(DeepseaEnergy, self).play(action)
-        self._energy =- 1
-        return np.array([reward, -self._time, self._energy])
+        self._energy -= 1
+        # return np.array([reward, -self._time, self._energy])
+        return np.array([reward, -1, self._energy])
 
 
 class MountainCar(SaveableObject):

@@ -110,16 +110,24 @@ class Deepsea(SaveableObject):
         for i in xrange(self._scene.shape[0]):
             for j in xrange(self._scene.shape[1]):
                 pos = (i, j)
+                pos_index = self._get_index(pos)
                 valid_n_pos = []
                 for a in xrange(self.n_actions):
                     n_pos = pos + self._actions_map[self._actions[a]]
-                    if self._in_map(n_pos):
-                        valid_n_pos.append((n_pos, a))
+                    n_pos_index = self._get_index(n_pos)
+                    if self._in_map(n_pos) and self._flat_map[n_pos_index] > -100:
+                        valid_n_pos.append((n_pos_index, a))
                 if len(valid_n_pos) > 0:
-                    prob = 1.0 / len(valid_n_pos)
-                    for n_pos, a in valid_n_pos:
-                        self.P[self._get_index(pos), a, self._get_index(n_pos)] = prob
-        assureProbabilityMatrix(self.P)
+                    # prob = 1.0 / len(valid_n_pos)
+                    for n_pos_index, a in valid_n_pos:
+                        self.P[pos_index, a, n_pos_index] = 1.0
+                else:
+                    self.P[pos_index, a, pos_index] = 1.0
+        normalizer = self.P.sum(axis=2)[:, :, np.newaxis]
+        self.P /= normalizer
+        self.P[np.isnan(self.P)] = 0
+        # TODO: fix this checkup of probability matrices
+        # assureProbabilityMatrix(self.P)
 
     def _construct_r(self):
         # Multi objective reward has to be stationary for the batch IRL algorithms
@@ -131,6 +139,7 @@ class Deepsea(SaveableObject):
         # first the reward from the scene
         for i in xrange(self.n_states):
             self.R[i, 0] = self._scene[self._get_position(i)]
+        self.R[self.R[:, 0] <= -100, 0] = 0
         # second the "time" reward for taking steps
         self.R[:, 1] = -1
 

@@ -8,6 +8,7 @@ Created on Feb 19, 2016
 
 import logging as log
 import numpy as np
+import sys
 
 import cPickle as pickle
 
@@ -40,7 +41,7 @@ if __name__ == '__main__':
     scalarized_inverseV = np.dot(inverseV, scalarization_weights)
     scalarized_peV = np.dot(peV, scalarization_weights)
 
-    interactions = 100
+    interactions = 1000
     trials = 1000
 
     log.info('Playing ...')

@@ -11,8 +11,13 @@ from helpers import virtualFunction, SaveableObject
 import numpy as np
 import random
 import logging as log
-import neurolab as nl
 
+try:
+    # import neurolab only if it exists in case it is not used and not installed
+    # such that the other agents still work
+    import neurolab as nl
+except ImportError, e:
+    log.warn("Neurolab not installed: %s" % (str(e)))
 
 # log.basicConfig(level=log.DEBUG)
 
@@ -89,17 +94,19 @@ class TDMorlAgent(MorlAgent):
     A MORL agent, that uses TD for Policy Evaluation.
     """
 
-    def __init__(self, problem, scalarization_weights, alpha=0.3, **kwargs):
+    def __init__(self, problem, scalarization_weights, policy, alpha=0.3, **kwargs):
         """
         Initialize the TD Policy Evaluation learner for MORL.
         Scalarization weights have to be given.
 
         :param problem: MORL problem.
         :param scalarization_weights: Reward scalarization weights.
+        :param policy: A static policy, that will be evaluated.
         :param alpha: Learning rate.
         """
         super(TDMorlAgent, self).__init__(problem, **kwargs)
 
+        self._policy = policy
         self._scalarization_weights = scalarization_weights
         self._alpha = alpha
         self._gamma = self._morl_problem.gamma
@@ -121,6 +128,9 @@ class TDMorlAgent(MorlAgent):
         self._V[last_state]  += self._alpha * (scalar_reward + self._gamma * self._V[state] - self._V[last_state])
 
         log.debug(' V: %s' % (str(self._V)))
+
+    def decide(self, t, state):
+        return self._policy.decide(state)
 
 
 class SARSAMorlAgent(MorlAgent):

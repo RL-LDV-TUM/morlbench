@@ -54,7 +54,7 @@ def sampleFromDiscreteDistribution(n, pi):
     """
     if len(pi.shape) < 2:
         pi.shape = (1, pi.shape[0])
-    p_accum = np.add.accumulate(p, axis=1)
+    p_accum = np.add.accumulate(pi, axis=1)
     n_v, n_c = p_accum.shape
     rnd = np.random.rand(n, n_v, 1)
     m = rnd < p_accum.reshape(1, n_v, n_c)

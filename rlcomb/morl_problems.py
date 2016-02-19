@@ -253,7 +253,7 @@ class Deepsea(SaveableObject):
                 reward = 0
                 log.debug('Ground touched!')
             elif reward > 0:
-                log.info('Treasure found! - I got a reward of ' + str(reward))
+                log.debug('Treasure found! - I got a reward of ' + str(reward))
                 self._terminal_state = True
             else:
                 log.debug('I got a reward of ' + str(reward))

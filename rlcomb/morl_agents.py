@@ -255,9 +255,9 @@ class QMorlAgent(MorlAgent):
 
         # scalar_reward = np.dot(self._scalarization_weights.T, reward)
 
-        self._Q[state, action] += self._alpha * \
+        self._Q[last_state, last_action] += self._alpha * \
                                   (reward + self._gamma * np.amax(self._Q[state, :], axis=0) - self._Q[
-                                      state, last_action])
+                                      last_state, last_action])
 
         log.debug(' Q: %s' % (str(self._Q[state, :, :])))
 

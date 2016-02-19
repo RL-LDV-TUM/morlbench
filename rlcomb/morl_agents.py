@@ -258,8 +258,8 @@ class DeterministicAgent(MorlAgent):
     def learn(self, t, action, reward, state):
         pass
 
-class NFQAgent(MorlAgent):
 
+class NFQAgent(MorlAgent):
     def __init__(self, morl_problem, scalarization_weights, gamma, epsilon, **kwargs):
         super(NFQAgent, self).__init__(morl_problem, **kwargs)
 
@@ -270,28 +270,41 @@ class NFQAgent(MorlAgent):
         self._transistion_history = []  # full transition history (s,a,a')
         self._train_history = []  # input history for NN (s,a)
         self._goal_hist = []  # goal history
-        self._last_state = random.randint(0,morl_problem.n_actions-1)
+        self._last_state = 0
+        self._last_action = random.randint(0, morl_problem.n_actions-1)
+        self._last_reward = np.zeros_like(self._scalarization_weights)
 
         # Create network with 2 layers and random initialized
         self._net = nl.net.newff([[0, self._morl_problem.n_states], [0, 3]], [20, 20, 1])
 
     def learn(self, t, action, reward, state):
-        # Generate training set
-        self._transistion_history.append([state, action, self._last_state])
-        self._train_history.append([state, action])
+        self._learn(0, self._last_state, self._last_action,
+                    self._last_reward, action, reward, state)
+        self._last_action = action
+        self._last_reward = reward
+        self._last_state = state
 
-        Q_vals = []
-        for i in xrange(self._morl_problem.n_actions - 1):
-            # Simulate network
-            Q_vals.append(self._net.sim(np.asarray([[state, i]])))
+    def _learn(self, t, last_state, last_action, last_reward, action, reward, state):
+        # Generate training set
+        self._transistion_history.append([last_state, action, state])
+        self._train_history.append([self._last_state, action])
 
         # cost function (minimum time controller)
         if self._morl_problem.terminal_state:
             costs = 0
-            self._goal_hist.append(costs + self._gamma * 1/reward[0])
+            costs -= self._gamma * 1/reward[0]
+            self._goal_hist.append(costs)
+            log.debug('Terminal costs in state %i are %f', action, costs)
         else:
+            Q_vals = []
+            for i in xrange(self._morl_problem.n_actions - 1):
+                # Simulate network
+                Q_vals.append(self._net.sim(np.asarray([[state, i]])))
+
             costs = -1
-            self._goal_hist.append(costs + self._gamma * np.array(Q_vals).min())
+            costs += self._gamma * np.array(Q_vals).min()
+            self._goal_hist.append(costs)
+            log.debug('State costs in state %i are %f', action, costs)
 
         inp = np.asarray(self._train_history)
         tar = np.asarray(self._goal_hist)
@@ -301,24 +314,22 @@ class NFQAgent(MorlAgent):
         # error = self._net.train.train_rprop(input, target, epochs=500, show=100, goal=0.02)
         nl.train.train_rprop(self._net, inp, tar, epochs=500, show=100, goal=0.02)
 
+        # Reset histories after termination of one episode
+        if self._morl_problem.terminal_state:
+            self._train_history = []  # input history for NN (s,a)
+            self._goal_hist = []  # goal history
+
 
     def decide(self, t, state):
-        Q_vals = []
-        for i in xrange(self._morl_problem.n_actions):
-            # Simulate network
-            Q_vals.append(self._net.sim(np.asarray([[state, i]])))
-
-        action = random.choice(np.where(np.array(Q_vals) == min(np.array(Q_vals)))[0])
-
-        # if random.random() < self._epsilon:
-        #     weighted_q = np.dot(self._Q[state, :], self._scalarization_weights)
-        #     action = random.choice(np.where(weighted_q == max(weighted_q))[0])
-        #
-        #     log.debug('  took greedy action %i' % action)
-        #     return action
-        action = random.randint(0, self._morl_problem.n_actions - 1)
-        log.debug('   took random action %i' % action)
-        return action
+        # epsilon greedy
+        if random.random() < self._epsilon:
+            Q_vals = []
+            for i in xrange(self._morl_problem.n_actions):
+                # Simulate network
+                Q_vals.append(self._net.sim(np.asarray([[state, i]])))
+            action = random.choice(np.where(np.array(Q_vals) == min(np.array(Q_vals)))[0])
+        else:
+            action = random.randint(0, self._morl_problem.n_actions - 1)
 
         log.debug('Decided for action %i in state %i.', action, state)
 

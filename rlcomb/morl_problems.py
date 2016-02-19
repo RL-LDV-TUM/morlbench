@@ -90,7 +90,7 @@ class Deepsea(SaveableObject):
         self._position = self._get_position(state)
         self._last_position = self._position
 
-        self.n_states = self._scene.shape[0] * self._scene.shape[1]
+        self._n_states = self._scene.shape[0] * self._scene.shape[1]
 
         #self._predictor_accuracy = predictor_accuracy
         #self._payouts = payouts
@@ -161,6 +161,10 @@ class Deepsea(SaveableObject):
     @property
     def n_actions(self):
         return len(self._actions)
+
+    @property
+    def n_states(self):
+        return self._n_states
 
     @property
     def reward_dimension(self):

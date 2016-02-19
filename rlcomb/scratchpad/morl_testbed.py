@@ -34,7 +34,7 @@ if __name__ == '__main__':
     # agent = QMorlAgent(problem, scalarization_weights=scalarization_weights,
     #                        alpha=0.1, gamma=0.90, epsilon=0.7)
     # agent = DeterministicAgent(problem)
-    agent = NFQAgent(problem)
+    agent = NFQAgent(problem, scalarization_weights, gamma=0.9, epsilon=0.9)
 
     interactions = 500
 

@@ -130,7 +130,7 @@ class SARSAMorlAgent(MorlAgent):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
         self._Q[last_state, last_action] += self._alpha * \
                                             (scalar_reward + self._gamma * self._Q[state, action] - self._Q[
-                                                state, last_action])
+                                                last_state, last_action])
         log.debug(' Q: %s' % (str(self._Q)))
 
     def decide(self, t, state):

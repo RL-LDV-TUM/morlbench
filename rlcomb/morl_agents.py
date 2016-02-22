@@ -260,6 +260,9 @@ class DeterministicAgent(MorlAgent):
 
 
 class NFQAgent(MorlAgent):
+    """
+    Implements neural fitted-Q iteration for the deepsea treasure environment.
+    """
     def __init__(self, morl_problem, scalarization_weights, gamma, epsilon, **kwargs):
         super(NFQAgent, self).__init__(morl_problem, **kwargs)
 
@@ -275,39 +278,48 @@ class NFQAgent(MorlAgent):
         self._last_reward = np.zeros_like(self._scalarization_weights)
 
         # Create network with 2 layers and random initialized
-        self._net = nl.net.newff([[0, self._morl_problem.n_states], [0, 3]], [20, 20, 1])
+        # self._net = nl.net.newff([[0, self._morl_problem.n_states], [0, 3]], [20, 20, 1])
+        self._net = nl.net.newff([[0, self._morl_problem.scene_y_dim],
+                                  [0, self._morl_problem.scene_x_dim],
+                                  [0, self._morl_problem.n_actions]],
+                                 [20, 20, 1])
 
     def learn(self, t, action, reward, state):
         self._learn(0, self._last_state, self._last_action,
                     self._last_reward, action, reward, state)
+        # state transition and update
+        self._last_state = state
         self._last_action = action
         self._last_reward = reward
-        self._last_state = state
 
     def _learn(self, t, last_state, last_action, last_reward, action, reward, state):
-        # Generate training set
         self._transistion_history.append([last_state, action, state])
-        self._train_history.append([self._last_state, action])
+
+        # Generate training set
+        #self._train_history.append([last_state, last_action])
+        self._train_history.append(np.hstack([np.array(self._morl_problem._get_position(last_state)), last_action]))
 
         # cost function (minimum time controller)
         if self._morl_problem.terminal_state:
-            costs = 0
-            costs -= self._gamma * 1/reward[0]
+            costs = 1 - (1/reward[0])
+            # costs -= self._gamma * 1/reward[0]
             self._goal_hist.append(costs)
-            log.debug('Terminal costs in state %i are %f', action, costs)
+            log.debug('Terminal value in state %i is %f', state, costs)
         else:
             Q_vals = []
-            for i in xrange(self._morl_problem.n_actions - 1):
+            for i in xrange(self._morl_problem.n_actions):
                 # Simulate network
-                Q_vals.append(self._net.sim(np.asarray([[state, i]])))
+                # Q_vals.append(self._net.sim(np.asarray([[state, i]])))
+                tmp = np.hstack([np.array(self._morl_problem._get_position(state)), i])
+                Q_vals.append(self._net.sim(np.array([tmp])))
 
-            costs = -1
-            costs += self._gamma * np.array(Q_vals).min()
+            costs = -0.01
+            costs += self._gamma * np.array(Q_vals).max()
             self._goal_hist.append(costs)
-            log.debug('State costs in state %i are %f', action, costs)
+            log.debug('State value in state %i is %f', state, costs)
 
-        inp = np.asarray(self._train_history)
-        tar = np.asarray(self._goal_hist)
+        inp = np.array(self._train_history)
+        tar = np.array(self._goal_hist)
         tar = tar.reshape(len(tar), 1)
 
         # Train network
@@ -326,8 +338,10 @@ class NFQAgent(MorlAgent):
             Q_vals = []
             for i in xrange(self._morl_problem.n_actions):
                 # Simulate network
-                Q_vals.append(self._net.sim(np.asarray([[state, i]])))
-            action = random.choice(np.where(np.array(Q_vals) == min(np.array(Q_vals)))[0])
+                # Q_vals.append(self._net.sim(np.asarray([[state, i]])))
+                tmp = np.hstack([np.array(self._morl_problem._get_position(state)), i])
+                Q_vals.append(self._net.sim(np.array([tmp])))
+            action = random.choice(np.where(np.array(Q_vals) == max(np.array(Q_vals)))[0])
         else:
             action = random.randint(0, self._morl_problem.n_actions - 1)
 

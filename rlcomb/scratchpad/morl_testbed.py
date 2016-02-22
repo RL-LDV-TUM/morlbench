@@ -27,23 +27,23 @@ if __name__ == '__main__':
     problem = Deepsea()
     reward_dimension = problem.reward_dimension
     scalarization_weights = np.zeros(reward_dimension)
-    scalarization_weights[0] = 0.8
-    scalarization_weights[1] = 0.2
+    scalarization_weights[0] = 0.0
+    scalarization_weights[1] = 1.0
     # agent = SARSAMorlAgent(problem, scalarization_weights=scalarization_weights,
     #                        alpha=0.1, gamma=0.9, epsilon=0.9)
     # agent = QMorlAgent(problem, scalarization_weights=scalarization_weights,
-    #                        alpha=0.1, gamma=0.90, epsilon=0.7)
+    #                        alpha=0.1, gamma=0.90, epsilon=0.6)
     # agent = DeterministicAgent(problem)
     agent = NFQAgent(problem, scalarization_weights, gamma=0.9, epsilon=0.8)
 
-    interactions = 500
+    interactions = 200
 
     log.info('Playing ...')
     log.info('%s' % (str(agent)))
     log.info('%s' % (str(problem)))
 
     #_, payouts = morl_interact_multiple(agent, problem, interactions)
-    payouts, moves, states = morl_interact_multiple(agent, problem, interactions, trials=1000)
+    payouts, moves, states = morl_interact_multiple(agent, problem, interactions, trials=100)
 
     # Save payouts, moves, states to pickle file
     pickle.dump((payouts, moves, states), open("results.p", "wb"))
@@ -52,6 +52,6 @@ if __name__ == '__main__':
 
     # Plot transition map and pause program during display
     transition_map(problem=problem, states=states, moves=moves)
-    #heatmap_matplot(problem, states)
+    heatmap_matplot(problem, states)
 
 

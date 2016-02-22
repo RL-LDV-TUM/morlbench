@@ -46,6 +46,7 @@ class Deepsea(SaveableObject):
 
         self._state = state
         self._last_state = state
+        self._start_state = state
         self.P = None
         self.R = None
         self._gamma = gamma
@@ -112,11 +113,18 @@ class Deepsea(SaveableObject):
                 pos = (i, j)
                 pos_index = self._get_index(pos)
                 valid_n_pos = []
-                for a in xrange(self.n_actions):
-                    n_pos = pos + self._actions_map[self._actions[a]]
-                    n_pos_index = self._get_index(n_pos)
-                    if self._in_map(n_pos) and self._flat_map[n_pos_index] > -100:
-                        valid_n_pos.append((n_pos_index, a))
+                # if we are in a terminal transition (treasure found)
+                # beam back to start_state
+                if self._flat_map[pos_index] > 0:
+                    for a in xrange(self.n_actions):
+                        valid_n_pos.append((self._start_state, a))
+                else:
+                    # nonterminal transitions
+                    for a in xrange(self.n_actions):
+                        n_pos = pos + self._actions_map[self._actions[a]]
+                        n_pos_index = self._get_index(n_pos)
+                        if self._in_map(n_pos) and not self._flat_map[n_pos_index] > -100:
+                            valid_n_pos.append((n_pos_index, a))
                 if len(valid_n_pos) > 0:
                     # prob = 1.0 / len(valid_n_pos)
                     for n_pos_index, a in valid_n_pos:
@@ -139,9 +147,11 @@ class Deepsea(SaveableObject):
         # first the reward from the scene
         for i in xrange(self.n_states):
             self.R[i, 0] = self._scene[self._get_position(i)]
-        self.R[self.R[:, 0] <= -100, 0] = 0
         # second the "time" reward for taking steps
         self.R[:, 1] = -1
+        # zero out all position in the ground
+        groundpos = self.R[:, 0] <= -100
+        self.R[groundpos, :] = 0
 
     def reset(self):
         self._state = 0

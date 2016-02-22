@@ -114,10 +114,10 @@ class TDMorlAgent(MorlAgent):
         self._V = np.zeros(self._morl_problem.n_states)
         self._last_state = 0
         self._last_action = random.randint(0,problem.n_actions-1)
-        self._last_reward =  np.zeros_like(self._scalarization_weights)
+        self._last_reward = np.zeros_like(self._scalarization_weights)
 
     def learn(self, t, action, reward, state):
-        self._learn(0, self._last_state, self._last_action,
+        self._learn(t, self._last_state, self._last_action,
                     self._last_reward, action, reward, state)
         self._last_action = action
         self._last_reward = reward
@@ -125,7 +125,7 @@ class TDMorlAgent(MorlAgent):
 
     def _learn(self, t, last_state, last_action, last_reward, action, reward, state):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
-        self._V[last_state]  += self._alpha * (scalar_reward + self._gamma * self._V[state] - self._V[last_state])
+        self._V[last_state] += self._alpha * (scalar_reward + self._gamma * self._V[state] - self._V[last_state])
 
         log.debug(' V: %s' % (str(self._V)))
 

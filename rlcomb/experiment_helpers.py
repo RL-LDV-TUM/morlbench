@@ -9,6 +9,8 @@ Created on Apr 23, 2015
 import numpy as np
 import logging as log
 
+import progressbar as pgbar
+
 
 def interact_multiple(agent, problem, interactions):
     """
@@ -32,7 +34,7 @@ def interact_multiple(agent, problem, interactions):
     return actions, payouts
 
 
-def morl_interact_multiple(agent, problem, interactions, trials=100):
+def morl_interact_multiple(agent, problem, interactions, max_episode_length=100):
     """
     Interact multiple times with the multi objective RL
     problem and then return arrays of actions chosen and
@@ -43,18 +45,21 @@ def morl_interact_multiple(agent, problem, interactions, trials=100):
     moves = []
     states = []
 
+    log.info('Playing %i interactions ... ' % interactions)
+    pbar = pgbar.ProgressBar(widgets=['Interactions ', pgbar.SimpleProgress('/'), ' (', pgbar.Percentage(), ') ',
+                                      pgbar.Bar(), ' ', pgbar.ETA()], maxval=interactions)
+    pbar.start()
     for i in xrange(interactions):
-        log.info('Playing %i interactions ... ' % i)
         rewards = []
         actions = []
         tmp_states = []
         problem.reset()
-        for t in xrange(trials):
+        for t in xrange(max_episode_length):
             action = agent.decide(t, problem.state)
             reward = problem.play(action)
             agent.learn(t, action, reward, problem.state)
 
-            log.debug('step %04i: state before %i - action %i - payout %s - state %i' %
+            log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
                       (t, problem.last_state, action, str(reward), problem.state))
 
             # Preserve reward, action and state
@@ -68,8 +73,10 @@ def morl_interact_multiple(agent, problem, interactions, trials=100):
                 states.append(tmp_states)
                 final_rewards.append(reward)
                 break
+        pbar.update(i)
+    # newline to fix output of pgbar
+    print ""
     return np.array(final_rewards), np.array(moves), np.array(states)
-
 
 
 def interact_multiple_twoplayer(agent1, agent2, problem, interactions,

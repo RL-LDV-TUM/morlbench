@@ -61,7 +61,7 @@ class PolicyDeepsea(SaveableObject):
         :param state: Deepsea state tuple.
         :return: int action.
         """
-        return sampleFromDiscreteDistribution(1, self._pi[state, :])[0]
+        return sampleFromDiscreteDistribution(1, self._pi[state, :])
 
 
 class PolicyDeepseaRandom(PolicyDeepsea):

@@ -55,6 +55,20 @@ class DynamicProgramming(SaveableObject):
 
 
 class DynamicProgrammingInverse(DynamicProgramming):
+    def _scalar_reward_solve(self, n_states, gamma, P, R, pi, P_pi):
+        """
+        Solve the MDP for scalar reward (also used by the MORL classes)
+
+        :param n_states: Number of states in the MPD.
+        :param gamma: Discount factor.
+        :param P: State transition probabilities.
+        :param R: Reward vector.
+        :param pi: Policy probability matrix.
+        :param P_pi: State transition probability under policy pi.
+        :return: Value function as a vector with length n_states.
+        """
+        return np.dot(npla.inv((np.eye(n_states, n_states) - gamma * P_pi)), R)
+
     def solve(self):
         """
         Solve the MDP and return the value function, using
@@ -64,20 +78,24 @@ class DynamicProgrammingInverse(DynamicProgramming):
         """
         n_states, gamma, P, R, pi, P_pi = self._prepare_variables()
 
-        V = np.dot(npla.inv((np.eye(n_states, n_states) - gamma * P_pi)), R)
+        V = self._scalar_reward_solve(n_states, gamma, P, R, pi, P_pi)
         return V
 
 
-class DynamicProgrammingValueIteration(DynamicProgramming):
-    def solve(self, max_iterations=10000):
+class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
+    def _scalar_reward_solve(self, n_states, gamma, P, R, pi, P_pi, max_iterations=10000):
         """
-        Solve the MDP using the policy evaluation method.
+        Solve the MDP for scalar reward (also used by the MORL classes)
 
-        :param max_iterations: Max. number of PE iterations (default: 10000)
-        :return: Value function as an array.
+        :param n_states: Number of states in the MPD.
+        :param gamma: Discount factor.
+        :param P: State transition probabilities.
+        :param R: Reward vector.
+        :param pi: Policy probability matrix.
+        :param P_pi: State transition probability under policy pi.
+        :param max_iterations: Maximum number of PE iterations
+        :return: Value function as a vector with length n_states.
         """
-        n_states, gamma, P, R, pi, P_pi = self._prepare_variables()
-
         V = np.zeros(n_states)
         for i in xrange(max_iterations):
             V_n = R + gamma * np.dot(P_pi, V)
@@ -87,3 +105,53 @@ class DynamicProgrammingValueIteration(DynamicProgramming):
                 break
             V = V_n
         return V
+
+
+    def solve(self, max_iterations=10000):
+        """
+        Solve the MDP using the policy evaluation method.
+
+        :param max_iterations: Max. number of PE iterations (default: 10000)
+        :return: Value function as an array.
+        """
+        n_states, gamma, P, R, pi, P_pi = self._prepare_variables()
+
+        V = self._scalar_reward_solve(n_states, gamma, P, R, pi, P_pi, max_iterations)
+        return V
+
+
+class MORLDynamicProgrammingAbstractSolver(DynamicProgramming):
+    def _morl_solve(self, *args, **kwargs):
+        """
+        Solve the MORL MDP which has a vectorial reward. That
+        means the reward matrix R is expected to be in
+        (n_states x reward_dimension)
+
+        :return: "value matrix" all the value funcions for the
+            individual reward dimensions horizontally stacked
+            together.
+        """
+        n_states, gamma, P, R, pi, P_pi = self._prepare_variables()
+
+        reward_dimensions = R.shape[1]
+        V = np.zeros((n_states, reward_dimensions))
+
+        for i in xrange(reward_dimensions):
+            V[:, i] = self._scalar_reward_solve(n_states, gamma, P, R[:, i], pi, P_pi, *args, **kwargs)
+        return V
+
+
+class MORLDynamicProgrammingInverse(DynamicProgrammingInverse, MORLDynamicProgrammingAbstractSolver):
+    """
+    MORL MDP solver using matrix inversion.
+    """
+    def solve(self, *args, **kwargs):
+        return super(MORLDynamicProgrammingInverse, self)._morl_solve(*args, **kwargs)
+
+
+class MORLDynamicProgrammingPolicyEvaluation(DynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingAbstractSolver):
+    """
+    MORL MDP solver using Policy Evaluation.
+    """
+    def solve(self, *args, **kwargs):
+        return super(MORLDynamicProgrammingPolicyEvaluation, self)._morl_solve(*args, **kwargs)

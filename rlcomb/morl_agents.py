@@ -200,7 +200,7 @@ class QMorlAgent(MorlAgent):
     A MORL agent, that uses Q learning.
     """
 
-    def __init__(self, problem, scalarization_weights, alpha=0.3, epsilon=1.0, **kwargs):
+    def __init__(self, problem, scalarization_weights, alpha=0.3, gamma=0.9, epsilon=1.0, **kwargs):
         """
         Initialize the Reinforcement Learning MORL
         Agent with the problem description and alpha,
@@ -219,7 +219,7 @@ class QMorlAgent(MorlAgent):
 
         self._scalarization_weights = scalarization_weights
         self._alpha = alpha
-        self._gamma = self._morl_problem.gamma
+        self._gamma = gamma
         self._epsilon = epsilon
         # the Q function is only one dimensional, since
         # we can only be in one state and choose from

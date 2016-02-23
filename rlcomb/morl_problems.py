@@ -37,20 +37,16 @@ class Deepsea(SaveableObject):
             submarine can move - left, right, up, down.
         :param gamma: The discount factor of the problem.
         """
-        # TODO: "features" meaning reward vector access ... and vectorial reward.
 
         super(Deepsea, self).__init__(
             ['_state', '_time', '_actions', '_scene'])
 
         self._time = 0
 
-        self._state = state
-        self._last_state = state
         self._start_state = state
         self.P = None
         self.R = None
         self._gamma = gamma
-        self._terminal_state = False
 
         if actions is None:
             # Default actions
@@ -88,14 +84,14 @@ class Deepsea(SaveableObject):
             'left': np.array([0, -1]),
             }
 
-        self._position = self._get_position(state)
-        self._last_position = self._position
-
-        self._n_states = self._scene.shape[0] * self._scene.shape[1]
+        self._n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
+        self._index_terminal_state = self._n_states - 1
 
         #self._predictor_accuracy = predictor_accuracy
         #self._payouts = payouts
         self._actions = actions
+
+        self.reset()
 
         # build state transition matrix P_{ss'} where (i, j) is the transition probability
         # from state i to j
@@ -117,20 +113,24 @@ class Deepsea(SaveableObject):
                 # beam back to start_state
                 if self._flat_map[pos_index] > 0:
                     for a in xrange(self.n_actions):
-                        valid_n_pos.append((self._start_state, a))
+                        valid_n_pos.append((self._index_terminal_state, a))
+                elif self._flat_map[pos_index] < 0:
+                    self.P[pos_index, :, pos_index] = 1.0
                 else:
                     # nonterminal transitions
                     for a in xrange(self.n_actions):
                         n_pos = pos + self._actions_map[self._actions[a]]
                         n_pos_index = self._get_index(n_pos)
-                        if self._in_map(n_pos) and not self._flat_map[n_pos_index] > -100:
+                        if self._in_map(n_pos) and self._flat_map[n_pos_index] > -100:
                             valid_n_pos.append((n_pos_index, a))
                 if len(valid_n_pos) > 0:
                     # prob = 1.0 / len(valid_n_pos)
                     for n_pos_index, a in valid_n_pos:
                         self.P[pos_index, a, n_pos_index] = 1.0
                 else:
-                    self.P[pos_index, a, pos_index] = 1.0
+                    self.P[pos_index, :, pos_index] = 1.0
+        self.P[self._index_terminal_state, :, :] = 0
+        self.P[self._index_terminal_state, :, self._index_terminal_state] = 1.0
         normalizer = self.P.sum(axis=2)[:, :, np.newaxis]
         self.P /= normalizer
         self.P[np.isnan(self.P)] = 0
@@ -145,17 +145,19 @@ class Deepsea(SaveableObject):
         # implicitely we assume for this problem reward dimension of 2
         self.R = np.zeros((self.n_states, 2))
         # first the reward from the scene
-        for i in xrange(self.n_states):
+        for i in xrange(self.n_states - 1): # handle terminal state seperately
             self.R[i, 0] = self._scene[self._get_position(i)]
         # second the "time" reward for taking steps
         self.R[:, 1] = -1
         # zero out all position in the ground
         groundpos = self.R[:, 0] <= -100
         self.R[groundpos, :] = 0
+        self.R[self._index_terminal_state, :] = 0.0
 
     def reset(self):
-        self._state = 0
+        self._state = self._start_state
         self._terminal_state = False
+        self._pre_terminal_state = False
         self._time = 0
         self._last_state = self._state
         self._position = self._get_position(self._state)
@@ -256,7 +258,11 @@ class Deepsea(SaveableObject):
 
         self._time += 1
 
-        self._terminal_state = False
+        if self._pre_terminal_state:
+            self._terminal_state = True
+            self._last_state = self._state
+            self._state = self._index_terminal_state
+            return np.array([0, 0])
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
@@ -273,7 +279,7 @@ class Deepsea(SaveableObject):
                 log.debug('Ground touched!')
             elif reward > 0:
                 log.debug('Treasure found! - I got a reward of ' + str(reward))
-                self._terminal_state = True
+                self._pre_terminal_state = True
             else:
                 log.debug('I got a reward of ' + str(reward))
         else:

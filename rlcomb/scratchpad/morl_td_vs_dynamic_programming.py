@@ -26,8 +26,8 @@ if __name__ == '__main__':
     problem = Deepsea()
     reward_dimension = problem.reward_dimension
     scalarization_weights = np.zeros(reward_dimension)
-    scalarization_weights[0] = 0.5
-    scalarization_weights[1] = 0.5
+    scalarization_weights[0] = 1.0
+    scalarization_weights[1] = 0.0
 
     policy = PolicyDeepseaRandom(problem)
     agent = TDMorlAgent(problem, scalarization_weights, policy, alpha=0.1)

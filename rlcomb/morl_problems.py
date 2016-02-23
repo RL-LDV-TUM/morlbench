@@ -24,7 +24,7 @@ class Deepsea(SaveableObject):
     iteratively by calling "action".
     """
 
-    def __init__(self, scene=None, actions=None, state=0, gamma=0.9):
+    def __init__(self, scene=None, actions=None, state=0):
         """
         Initialize the Deepsea problem.
 
@@ -49,7 +49,7 @@ class Deepsea(SaveableObject):
         self._start_state = state
         self.P = None
         self.R = None
-        self._gamma = gamma
+        #self._gamma = gamma
         self._terminal_state = False
 
         if actions is None:
@@ -163,10 +163,6 @@ class Deepsea(SaveableObject):
 
     def __str__(self):
         return self.__class__.__name__
-
-    @property
-    def gamma(self):
-        return self._gamma
 
     @property
     def terminal_state(self):
@@ -345,11 +341,53 @@ class MountainCar(SaveableObject):
         self._accelerationFactor = 0.001
         self._maxGoalVelocity = 0.07
 
+        self._start_state = state
         self._velocity = 0
-        self._state = state
-        self._position = self.get_position(state)
+        self._state = self._start_state
+        self._last_state = self._start_state
+        self._position = self.get_position(self._start_state)
 
         self._time = 0
+
+        self._default_reward = 1
+
+        self._terminal_state = False
+
+        self._n_states = 100  # TODO: Discretize Mountain car states!
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def last_state(self):
+        return self._last_state
+
+    @property
+    def terminal_state(self):
+        return self._terminal_state
+
+    @property
+    def reward_dimension(self):
+        return 2
+
+    @property
+    def n_actions(self):
+        return len(self._actions)
+
+    @property
+    def n_states(self):
+        return self._n_states
+
+    @property
+    def n_states(self):
+        return self._n_states
+
+    def reset(self):
+        self._velocity = 0
+        self._state = self._start_state
+        self._last_state = self._start_state
+        self._position = self.get_position(self._start_state)
 
     def get_position(self, state):
         return state
@@ -391,6 +429,11 @@ class MountainCar(SaveableObject):
 
         self.car_sim(factor)
 
+        if self._terminal_state:
+            return [self._default_reward, self._time]
+        else:
+            return [0, self._time]
+
     def car_sim(self, factor):
 
         def minmax (val, lim1, lim2):
@@ -412,6 +455,8 @@ class MountainCar(SaveableObject):
         #if self._position >= self._goalPosition and abs(self._velocity) > self._maxGoalVelocity:
         #    self._velocity = -self._velocity
 
+        # TODO: set terminal state for being at the goal position
+
 
 class MountainCarMulti(MountainCar):
     def __init__(self,state = 0.5):
@@ -425,6 +470,10 @@ class MountainCarMulti(MountainCar):
         self._nb_actions = 0
 
         super(MountainCarMulti,self).__init__(state=state)
+
+    @property
+    def reward_dimension(self):
+        return 3
 
     def play(self, action):
         '''
@@ -466,3 +515,8 @@ class MountainCarMulti(MountainCar):
             factor = 0 # Default action
 
         self.car_sim(factor)
+
+        if self._terminal_state:
+            return [self._default_reward, self._time]
+        else:
+            return [0, self._time]

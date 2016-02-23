@@ -94,7 +94,7 @@ class TDMorlAgent(MorlAgent):
     A MORL agent, that uses TD for Policy Evaluation.
     """
 
-    def __init__(self, problem, scalarization_weights, policy, alpha=0.3, **kwargs):
+    def __init__(self, problem, scalarization_weights, policy, alpha=0.3, gamma=0.9, **kwargs):
         """
         Initialize the TD Policy Evaluation learner for MORL.
         Scalarization weights have to be given.
@@ -109,7 +109,7 @@ class TDMorlAgent(MorlAgent):
         self._policy = policy
         self._scalarization_weights = scalarization_weights
         self._alpha = alpha
-        self._gamma = self._morl_problem.gamma
+        self._gamma = gamma
 
         self._V = np.zeros(self._morl_problem.n_states)
         self._last_state = 0
@@ -138,7 +138,7 @@ class SARSAMorlAgent(MorlAgent):
     A MORL agent, that uses RL.
     """
 
-    def __init__(self, problem, scalarization_weights, alpha=0.3, epsilon=1.0, **kwargs):
+    def __init__(self, problem, scalarization_weights, alpha=0.3, gamma=0.9, epsilon=1.0, **kwargs):
         """
         Initialize the Reinforcement Learning MORL
         Agent with the problem description and alpha,
@@ -157,7 +157,7 @@ class SARSAMorlAgent(MorlAgent):
 
         self._scalarization_weights = scalarization_weights
         self._alpha = alpha
-        self._gamma = self._morl_problem.gamma
+        self._gamma = gamma
         self._epsilon = epsilon
         # the Q function is only one dimensional, since
         # we can only be in one state and choose from
@@ -308,7 +308,13 @@ class DeterministicAgent(MorlAgent):
 
 class NFQAgent(MorlAgent):
     """
-    Implements neural fitted-Q iteration for the deepsea treasure environment.
+    Implements neural fitted-Q iteration
+
+    Can be used with scenarios where the reward vector contains only
+    values between -1 and 1.
+
+    TODO: Currently only morl problems with a cartesian coordinate
+    system as state can be used.
     """
     def __init__(self, morl_problem, scalarization_weights, gamma, epsilon, **kwargs):
         super(NFQAgent, self).__init__(morl_problem, **kwargs)
@@ -380,11 +386,11 @@ class NFQAgent(MorlAgent):
         inp = np.array(self._train_history)
         tar = np.array(self._goal_hist)
         #tar = tar.reshape(len(tar), 1)
-        tar = tar.reshape(len(tar), 2)
+        tar = tar.reshape(len(tar), 2) # TODO: fix me for arbitrary reward dimensions
 
         # Train network
         # error = self._net.train.train_rprop(input, target, epochs=500, show=100, goal=0.02)
-        nl.train.train_rprop(self._net, inp, tar, epochs=500, show=100, goal=0.02)
+        nl.train.train_rprop(self._net, inp, tar, epochs=500, show=0, goal=0.02)
 
         # Reset histories after termination of one episode
         if self._morl_problem.terminal_state:

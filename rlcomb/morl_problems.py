@@ -24,7 +24,7 @@ class Deepsea(SaveableObject):
     iteratively by calling "action".
     """
 
-    def __init__(self, scene=None, actions=None, state=0):
+    def __init__(self, scene=None, actions=None, gamma=0.9, state=0):
         """
         Initialize the Deepsea problem.
 
@@ -49,7 +49,8 @@ class Deepsea(SaveableObject):
         self._start_state = state
         self.P = None
         self.R = None
-        #self._gamma = gamma
+        # Discount Factor
+        self._gamma = gamma
         self._terminal_state = False
 
         if actions is None:
@@ -197,6 +198,10 @@ class Deepsea(SaveableObject):
         return self._scene.shape[1]
 
     @property
+    def gamma(self):
+        return self._gamma
+
+    @property
     def scene_y_dim(self):
         return self._scene.shape[0]
 
@@ -319,7 +324,7 @@ class DeepseaEnergy(Deepsea):
 
 
 class MountainCar(SaveableObject):
-    def __init__(self, state = -0.5):
+    def __init__(self, state=-0.5, gamma=0.9):
         '''
         Initialize the Mountain car problem.
 
@@ -332,6 +337,9 @@ class MountainCar(SaveableObject):
             ['_state', '_time', '_actions', '_scene'])
 
         self._actions = ('left','right','none')
+
+        # Discount Factor
+        self._gamma = gamma
 
         self._minPosition = -1.2  # Minimum car position
         self._maxPosition = 0.6   # Maximum car position (past goal)
@@ -354,6 +362,10 @@ class MountainCar(SaveableObject):
         self._terminal_state = False
 
         self._n_states = 100  # TODO: Discretize Mountain car states!
+
+    @property
+    def gamma(self):
+        return self._gamma
 
     @property
     def state(self):

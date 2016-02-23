@@ -25,18 +25,18 @@ from plot_heatmap import transition_map,heatmap_matplot
 
 
 if __name__ == '__main__':
-    problem = Deepsea()
+    problem = Deepsea(gamma=0.3)
     # problem = MountainCar()
     reward_dimension = problem.reward_dimension
     scalarization_weights = np.zeros(reward_dimension)
     scalarization_weights[0] = 0.5
     scalarization_weights[1] = 0.5
     agent = SARSAMorlAgent(problem, scalarization_weights=scalarization_weights,
-                           alpha=0.1, gamma=0.9, epsilon=0.7)
+                           alpha=0.1, epsilon=0.7)
     # agent = QMorlAgent(problem, scalarization_weights=scalarization_weights,
-    #                        alpha=0.1, gamma=0.90, epsilon=0.6)
+    #                        alpha=0.1, epsilon=0.6)
     # agent = DeterministicAgent(problem)
-    # agent = NFQAgent(problem, scalarization_weights, gamma=0.9, epsilon=0.8)
+    # agent = NFQAgent(problem, scalarization_weights, epsilon=0.8)
 
     interactions = 5000
 

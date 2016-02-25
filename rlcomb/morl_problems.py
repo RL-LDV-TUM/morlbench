@@ -163,6 +163,7 @@ class Deepsea(SaveableObject):
         self._last_state = self._state
         self._position = self._get_position(self._state)
         self._last_position = self._position
+        self._terminal_reward = 0
 
     def __str__(self):
         return self.__class__.__name__
@@ -263,7 +264,7 @@ class Deepsea(SaveableObject):
             self._terminal_state = True
             self._last_state = self._state
             self._state = self._index_terminal_state
-            return np.array([0, 0])
+            return np.array([self._terminal_reward, 0])
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
@@ -281,6 +282,8 @@ class Deepsea(SaveableObject):
             elif reward > 0:
                 log.debug('Treasure found! - I got a reward of ' + str(reward))
                 self._pre_terminal_state = True
+                self._terminal_reward = reward
+                reward = 0
             else:
                 log.debug('I got a reward of ' + str(reward))
         else:

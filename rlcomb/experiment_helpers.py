@@ -54,18 +54,21 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=100)
         actions = []
         tmp_states = []
         problem.reset()
+        state = problem.state
+        last_state = state
         for t in xrange(max_episode_length):
-            action = agent.decide(t, problem.state)
+            action = agent.decide(t, state)
             reward = problem.play(action)
-            agent.learn(t, action, reward, problem.state)
-
+            state = problem.state
             log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
-                      (t, problem.last_state, action, str(reward), problem.state))
+                      (t, problem.last_state, action, str(reward), state))
+            agent.learn(t, last_state, action, reward, state)
 
             # Preserve reward, action and state
             rewards.append(reward)
             actions.append(action)
             tmp_states.append(problem.last_state)
+            last_state = state
             # Decide if terminal state
             if problem.terminal_state:
                 problem.reset()

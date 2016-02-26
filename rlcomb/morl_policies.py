@@ -133,5 +133,10 @@ class PolicyDeepseaFromAgent(PolicyDeepsea):
         self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
 
         for i in xrange(self._problem.n_states):
-            a = agent.get_learned_action(i)
-            self._pi[i, a] = 1.0
+            # greedy
+            # a = agent.get_learned_action(i)
+            # self._pi[i, :] = 1.0
+
+            # gibbs
+            a_dist = agent.get_learned_action_distribution(i)
+            self._pi[i, :] = a_dist

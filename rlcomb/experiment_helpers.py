@@ -11,6 +11,7 @@ import logging as log
 
 import progressbar as pgbar
 
+my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
 
 def interact_multiple(agent, problem, interactions):
     """
@@ -25,7 +26,7 @@ def interact_multiple(agent, problem, interactions):
         action = agent.decide(t)
         payout = problem.play(action)
         agent.learn(t, action, payout)
-        log.debug(' step %05i: action: %i, payout: %f' %
+        if my_debug: log.debug(' step %05i: action: %i, payout: %f' %
                   (t, action, payout))
         payouts.append(payout)
         actions.append(action)
@@ -60,7 +61,7 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=100)
             action = agent.decide(t, state)
             reward = problem.play(action)
             state = problem.state
-            log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
+            if my_debug: log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
                       (t, problem.last_state, action, str(reward), state))
             agent.learn(t, last_state, action, reward, state)
 
@@ -106,7 +107,7 @@ def interact_multiple_twoplayer(agent1, agent2, problem, interactions,
         else:
             agent1.learn(t, action1, payout1)
             agent2.learn(t, action2, payout2)
-        log.debug(' step %05i: action1: %i, payout1: %i, action2: %i, payout2: \
+        if my_debug: log.debug(' step %05i: action1: %i, payout1: %i, action2: %i, payout2: \
 %i' % (t, action1, payout1, action2, payout2))
         payouts1.append(payout1)
         actions1.append(action1)

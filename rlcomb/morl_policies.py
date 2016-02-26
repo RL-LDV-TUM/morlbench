@@ -121,3 +121,17 @@ class PolicyDeepseaDeterministicExample01(PolicyDeepsea):
                 self._pi[i, self._transition_dict[i]] = 1.0
             else:
                 self._pi[i, :] = 1.0 / self._problem.n_actions
+
+class PolicyDeepseaFromAgent(PolicyDeepsea):
+    """
+    Derive a greedy policy from a trained agent.
+    """
+    def __init__(self, problem, agent):
+        super(PolicyDeepseaFromAgent, self).__init__(problem)
+
+        self._agent = agent
+        self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
+
+        for i in xrange(self._problem.n_states):
+            a = agent.get_learned_action(i)
+            self._pi[i, a] = 1.0

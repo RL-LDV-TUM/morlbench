@@ -15,6 +15,8 @@ from math import cos
 import logging as log
 import os
 
+my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
+
 
 class Deepsea(SaveableObject):
     """
@@ -51,7 +53,7 @@ class Deepsea(SaveableObject):
 
         if actions is None:
             # Default actions
-            actions = ["up", "down", "right", "left"]
+            actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]))
 
         if scene is None:
             # Default Map as used in general MORL papers
@@ -77,13 +79,6 @@ class Deepsea(SaveableObject):
             self.R = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_R.pickle'))
 
         self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
-        # Define action mapping here
-        self._actions_map = {
-            'up': np.array([-1, 0]),
-            'down': np.array([1, 0]),
-            'right': np.array([0, 1]),
-            'left': np.array([0, -1]),
-            }
 
         self._n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
         self._index_terminal_state = self._n_states - 1
@@ -120,10 +115,11 @@ class Deepsea(SaveableObject):
                 else:
                     # nonterminal transitions
                     for a in xrange(self.n_actions):
-                        n_pos = pos + self._actions_map[self._actions[a]]
-                        n_pos_index = self._get_index(n_pos)
-                        if self._in_map(n_pos) and self._flat_map[n_pos_index] > -100:
-                            valid_n_pos.append((n_pos_index, a))
+                        n_pos = pos + self._actions[a]
+                        if self._in_map(n_pos):
+                            n_pos_index = self._get_index(n_pos)
+                            if self._flat_map[n_pos_index] > -100:
+                                valid_n_pos.append((n_pos_index, a))
                 if len(valid_n_pos) > 0:
                     # prob = 1.0 / len(valid_n_pos)
                     for n_pos_index, a in valid_n_pos:
@@ -268,13 +264,13 @@ class Deepsea(SaveableObject):
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
-        log.debug('Position before: ' + str(self._position) + ' moving ' + self._actions[action] +
+        log.debug('Position before: ' + str(self._position) + ' moving ' + str(self._actions[action]) +
                   ' (last pos: ' + str(last_position) + ')')
 
-        if self._in_map(self._position + self._actions_map[self._actions[action]]):
-            self._position += self._actions_map[self._actions[action]]
+        if self._in_map(self._position + self._actions[action]):
+            self._position += self._actions[action]
             reward = self._flat_map[self._get_index(self._position)]
-            log.debug('moved by' + str(self._actions_map[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
+            log.debug('moved by' + str(self._actions[action]) + '(last pos: ' + str(last_position) + ')')
             if reward < 0:
                 self._position = last_position
                 reward = 0

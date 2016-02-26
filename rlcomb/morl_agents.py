@@ -217,8 +217,7 @@ class QMorlAgent(MorlAgent):
         self._last_action = random.randint(0,problem.n_actions-1)
 
     def learn(self, t, last_state, action, reward, state):
-        self._learn(0, self._last_state, self._last_action,
-                    self._last_reward, reward, state)
+        self._learn(0, last_state, self._last_action, reward, state)
         self._last_action = action
 
     def _learn(self, t, last_state, last_action, reward, state):

@@ -18,6 +18,7 @@ log.basicConfig(level=log.DEBUG)
 from morl_problems import Deepsea
 from morl_agents import QMorlAgent
 from morl_policies import PolicyDeepseaRandom
+from inverse_morl import InverseMORL
 from dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
 from experiment_helpers import morl_interact_multiple
 
@@ -29,7 +30,8 @@ if __name__ == '__main__':
 
     policy = PolicyDeepseaRandom(problem)
 
-    scalarization_weights = InverseMORL(problem, policy)
+    i_morl = InverseMORL(problem, policy)
+    scalarization_weights = i_morl.solve()
 
     agent = QMorlAgent(problem, scalarization_weights)
 

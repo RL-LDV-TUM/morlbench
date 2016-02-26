@@ -10,6 +10,7 @@ from helpers import SaveableObject
 from probability_helpers import assurePolicyMatrix, sampleFromDiscreteDistribution
 
 import numpy as np
+import random
 import logging as log
 
 
@@ -62,6 +63,16 @@ class PolicyDeepsea(SaveableObject):
         :return: int action.
         """
         return sampleFromDiscreteDistribution(1, self._pi[state, :])
+
+    def get_optimal_action(self, state):
+        """
+
+        :param state:
+        :return:
+        """
+        # return the action with the max probability, break ties
+        # in a random manner
+        return random.choice(np.where(self._pi[state, :] == max(self._pi[state, :]))[0])
 
 
 class PolicyDeepseaRandom(PolicyDeepsea):

@@ -17,7 +17,7 @@ import cPickle as pickle
 
 from morl_problems import Deepsea
 from morl_agents import TDMorlAgent
-from morl_policies import PolicyDeepseaRandom
+from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministicExample01
 from dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
 from experiment_helpers import morl_interact_multiple
 
@@ -30,6 +30,7 @@ if __name__ == '__main__':
     scalarization_weights[1] = 0.0
 
     policy = PolicyDeepseaRandom(problem)
+    # policy = PolicyDeepseaDeterministicExample01(problem)
     agent = TDMorlAgent(problem, scalarization_weights, policy, alpha=0.5)
 
     solver_dynamic_inverse = MORLDynamicProgrammingInverse(problem, policy)

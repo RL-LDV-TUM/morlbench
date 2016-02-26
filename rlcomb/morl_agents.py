@@ -251,34 +251,21 @@ class QMorlAgent(MorlAgent):
         return np.dot(self._Q[state, :], self._scalarization_weights).argmax()
 
 
-class DeterministicAgent(MorlAgent):
+class FixedPolicyAgent(MorlAgent):
+    """
+    An agent, that follows a fixed policy, defined as a morl policy object.
+    No learning implemented.
+    """
+    def __init__(self, morl_problem, policy, **kwargs):
+        super(FixedPolicyAgent, self).__init__(morl_problem, **kwargs)
 
-    def __init__(self, morl_problem, **kwargs):
-        super(DeterministicAgent, self).__init__(morl_problem, **kwargs)
+        self._policy = policy
 
-        self._transition_dict = {0:   2,
-                                 1:   1,
-                                 11:  2,
-                                 12:  1,
-                                 22:  2,
-                                 23:  1,
-                                 33:  2,
-                                 34:  2,
-                                 35:  2,
-                                 36:  1,
-                                 46:  1,
-                                 56:  1,
-                                 66:  1
-                                 }
+    def learn(self, t, last_state, action, reward, state):
+        pass
 
     def decide(self, t, state):
-        if state in self._transition_dict:
-            return self._transition_dict[state]
-        else:
-            return random.randint(0, self._morl_problem.n_actions-1)
-
-    def learn(self, t, action, reward, state):
-        pass
+        return self._policy.decide(state)
 
 
 class NFQAgent(MorlAgent):

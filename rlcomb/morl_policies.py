@@ -77,3 +77,36 @@ class PolicyDeepseaRandom(PolicyDeepsea):
         # normalize
         self._pi /= self._pi.sum(axis=1)[:, np.newaxis]
         assurePolicyMatrix(self._pi)
+
+
+class PolicyDeepseaDeterministicExample01(PolicyDeepsea):
+    """
+    A deterministic example policy for the deepsea scenario.
+    """
+    _transition_dict = {0:   2,
+                        1:   1,
+                        11:  2,
+                        12:  1,
+                        22:  2,
+                        23:  1,
+                        33:  2,
+                        34:  2,
+                        35:  2,
+                        36:  1,
+                        46:  1,
+                        56:  1,
+                        66:  1
+                        }
+
+    def __init__(self, problem):
+        super(PolicyDeepseaDeterministicExample01, self).__init__(problem)
+
+        self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
+
+        # fill pi for all states with 1/n_actions except for the ones in
+        # transition_dict
+        for i in xrange(self._problem.n_states):
+            if i in self._transition_dict:
+                self._pi[i, self._transition_dict[i]] = 1.0
+            else:
+                self._pi[i, :] = 1.0 / self._problem.n_actions

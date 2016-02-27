@@ -47,6 +47,9 @@ class MorlAgent(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
+    def name(self):
+        return str(self.__class__.__name__)
+
     def learn(self, t, last_state, action, reward, state):
         """
         Learn on the last interaction specified by the
@@ -198,10 +201,13 @@ class SARSALambdaMorlAgent(SARSAMorlAgent):
         self._lmbda = lmbda
         self._e = np.zeros_like(self._Q)
 
+    def name(self):
+        return "SARSALambda_" + str(self._lmbda) + "e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
+
     def _learn(self, t, last_state, last_action, action, reward, state):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
-        delta = scalar_reward + self._gamma * self._Q[state, action] - self._Q[last_state, last_action]
-        self._e[last_state, last_action] = min(self._e[last_state, last_action] + 1.0, 2.0)
+        delta = scalar_reward + self._gamma * self._Q[state, action] - self._Q[last_state, action]
+        self._e[last_state, action] = min(self._e[last_state, action] + 1.0, 2.0)
         self._Q += self._alpha * delta * self._e
         self._e *= self._gamma * self._lmbda
         if my_debug: log.debug(' Q: %s' % (str(self._Q)))
@@ -241,11 +247,14 @@ class QMorlAgent(MorlAgent):
         #         (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
         self._last_action = random.randint(0,problem.n_actions-1)
 
+    def name(self):
+        return "scalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
+
     def learn(self, t, last_state, action, reward, state):
-        self._learn(0, last_state, self._last_action, reward, state)
+        self._learn(0, last_state, action, reward, state)
         self._last_action = action
 
-    def _learn(self, t, last_state, last_action, reward, state):
+    def _learn(self, t, last_state, action, reward, state):
         """
         Updating the Q-table according to Suttons Q-learning update for multiple
         objectives
@@ -254,9 +263,9 @@ class QMorlAgent(MorlAgent):
 
         # scalar_reward = np.dot(self._scalarization_weights.T, reward)
 
-        self._Q[last_state, last_action] += self._alpha * \
+        self._Q[last_state, action] += self._alpha * \
                                   (reward + self._gamma * np.amax(self._Q[state, :], axis=0) - self._Q[
-                                      last_state, last_action])
+                                      last_state, action])
 
         if my_debug: log.debug(' Q: %s' % (str(self._Q[state, :, :])))
 
@@ -273,6 +282,13 @@ class QMorlAgent(MorlAgent):
 
     def get_learned_action(self, state):
         return np.dot(self._Q[state, :], self._scalarization_weights).argmax()
+
+    def get_learned_action_distribution(self, state):
+        tau = 2.0
+        tmp = np.exp(np.dot(self._Q[state, :], self._scalarization_weights) / tau)
+        tsum = tmp.sum()
+        dist = tmp / tsum
+        return dist
 
 
 class PreScalarizedQMorlAgent(MorlAgent):
@@ -305,11 +321,16 @@ class PreScalarizedQMorlAgent(MorlAgent):
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
         self._last_action = random.randint(0,problem.n_actions-1)
 
+    def name(self):
+        return "preScalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
+
     def learn(self, t, last_state, action, reward, state):
-        self._learn(0, last_state, self._last_action, reward, state)
+        #self._learn(0, last_state, self._last_action, reward, state)
+        self._learn(0, last_state, action, reward, state)
+        # Update last action after learning
         self._last_action = action
 
-    def _learn(self, t, last_state, last_action, reward, state):
+    def _learn(self, t, last_state, action, reward, state):
         """
         Updating the Q-table according to Suttons Q-learning update for multiple
         objectives
@@ -318,15 +339,15 @@ class PreScalarizedQMorlAgent(MorlAgent):
 
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
 
-        self._Q[last_state, last_action] += self._alpha * \
+        self._Q[last_state, action] += self._alpha * \
                                   (scalar_reward + self._gamma * np.amax(self._Q[state, :]) - self._Q[
-                                      last_state, last_action])
+                                      last_state, action])
 
         if my_debug: log.debug(' Q: %s' % (str(self._Q[state, :, :])))
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
-            action = random.choice(np.where(self._Q[state, :] == max(self._Q[state, :]))[0])
+            action = random.choice(np.where(self._Q[state, :] == np.amax(self._Q[state, :]))[0])
 
             if my_debug: log.debug('  took greedy action %i' % action)
             return action
@@ -336,6 +357,13 @@ class PreScalarizedQMorlAgent(MorlAgent):
 
     def get_learned_action(self, state):
         return self._Q[state, :].argmax()
+
+    def get_learned_action_distribution(self, state):
+        tau = 2.0
+        tmp = np.exp(self._Q[state, :] / tau)
+        tsum = tmp.sum()
+        dist = tmp / tsum
+        return dist
 
 
 class FixedPolicyAgent(MorlAgent):

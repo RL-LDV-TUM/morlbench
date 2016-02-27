@@ -42,7 +42,7 @@ if __name__ == '__main__':
     scalarized_inverseV = np.dot(inverseV, scalarization_weights)
     scalarized_peV = np.dot(peV, scalarization_weights)
 
-    interactions = 5000
+    interactions = 10000
     trials = 1000
 
     log.info('Playing ...')
@@ -56,6 +56,8 @@ if __name__ == '__main__':
     # print scalarized_peV.reshape(problem.scene_y_dim, problem.scene_x_dim)
     # print scalarized_inverseV.reshape(problem.scene_y_dim, problem.scene_x_dim)
     # print tdV.reshape(problem.scene_y_dim, problem.scene_x_dim)
+
+    pickle.dump((scalarized_peV, scalarized_inverseV, tdV), open("results_td_dynamic_"+str(interactions)+".p", "wb"))
 
     log.info('||scalarized_peV - scalarized_inverseV|| = %f' % (np.linalg.norm(scalarized_peV - scalarized_inverseV)))
     log.info('||tdV - scalarized_peV|| = %f' % (np.linalg.norm(tdV - scalarized_peV)))

@@ -188,7 +188,7 @@ class SARSAMorlAgent(MorlAgent):
         tmp = np.exp(self._Q[state, :] / tau)
         tsum = tmp.sum()
         dist = tmp / tsum
-        return dist
+        return dist.ravel()
 
 
 class SARSALambdaMorlAgent(SARSAMorlAgent):
@@ -288,7 +288,7 @@ class QMorlAgent(MorlAgent):
         tmp = np.exp(np.dot(self._Q[state, :], self._scalarization_weights) / tau)
         tsum = tmp.sum()
         dist = tmp / tsum
-        return dist
+        return dist.ravel()
 
 
 class PreScalarizedQMorlAgent(MorlAgent):
@@ -363,7 +363,7 @@ class PreScalarizedQMorlAgent(MorlAgent):
         tmp = np.exp(self._Q[state, :] / tau)
         tsum = tmp.sum()
         dist = tmp / tsum
-        return dist
+        return dist.ravel()
 
 
 class FixedPolicyAgent(MorlAgent):

@@ -13,7 +13,7 @@ import sys
 import cPickle as pickle
 
 #log.basicConfig(level=log.DEBUG)
-#log.basicConfig(level=log.INFO)
+log.basicConfig(level=log.INFO)
 
 from morl_problems import Deepsea
 from morl_agents import TDMorlAgent
@@ -26,8 +26,8 @@ if __name__ == '__main__':
     problem = Deepsea()
     reward_dimension = problem.reward_dimension
     scalarization_weights = np.zeros(reward_dimension)
-    scalarization_weights[0] = 1.0
-    scalarization_weights[1] = 0.0
+    scalarization_weights[0] = 0.5
+    scalarization_weights[1] = 0.5
 
     policy = PolicyDeepseaRandom(problem)
     # policy = PolicyDeepseaDeterministicExample01(problem)

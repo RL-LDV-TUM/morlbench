@@ -66,6 +66,73 @@ def heatmap_matplot(problem, states):
     plt.show()
 
 
+def policy_plot(problem, policy):
+    """
+    Plot the transition probabilities for a specific policy.
+
+    :param problem: problem object (e.g. Deepsea)
+    :param policy: policy object.
+    :return: noting
+    """
+    # Initialization of empty arrays
+    x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
+    plot_map = np.zeros((3*y_dim, 3*x_dim))  # plot array with 3x3 pixel for each state
+    transition_probabilities = policy.get_pi()[0:x_dim*y_dim]
+
+    # Find non visited states
+    non_zero_states = (problem._flat_map >= 0)
+
+    # Place subpixel in each 3x3 state pixel
+    for i in xrange(non_zero_states.size):
+        if non_zero_states[i]:
+            coords = problem._get_position(i)
+            plot_map[coords[0]*3][(coords[1]*3)+1] = transition_probabilities[i, 0]  # first action (up)
+            plot_map[(coords[0]*3)+2][(coords[1]*3)+1] = transition_probabilities[i, 1]  # second action (down)
+            plot_map[(coords[0]*3)+1][(coords[1]*3)+2] = transition_probabilities[i, 2]  # first action (right)
+            plot_map[(coords[0]*3)+1][(coords[1]*3)] = transition_probabilities[i, 3]  # first action (left)
+
+    # repeat ground mask three times and map the values to the expanded mask
+    trans_map_masked = np.repeat(problem._scene, 3, axis=1)
+    trans_map_masked = np.repeat(trans_map_masked, 3, axis=0)
+    trans_map_masked = np.ma.masked_where(trans_map_masked == -100, trans_map_masked)
+
+    # Copy all values of plot_map to the masked map containing the ground profile
+    trans_map_masked[trans_map_masked >= 0] = plot_map[trans_map_masked >= 0]
+
+    # Generate the heatmap plot
+    fig, ax = plt.subplots()
+    colormap = cm.jet  # color map
+    colormap.set_bad(color='grey')  # set color for mask (ground)
+    ax.imshow(trans_map_masked, colormap, interpolation='nearest')
+    numrows, numcols = trans_map_masked.shape
+
+    xticks_labels = tuple(map(str, range(problem.scene_x_dim)))
+    yticks_labels = tuple(map(str, range(problem.scene_y_dim)))
+
+    plt.xticks(np.arange(1, 30, 3), xticks_labels)
+    plt.yticks(np.arange(1, 33, 3), yticks_labels)
+
+    for i in xrange(1, len(yticks_labels)):
+        ax.axhline((3*i)-0.5, linestyle='--', color='k')
+
+    for i in xrange(len(xticks_labels)):
+        ax.axvline((3*i)-0.5, linestyle='--', color='k')
+
+    # Set z-value to the heatmap value -> so it can be read in the plot
+    def format_coord(x, y):
+        col = int(x + 0.5)
+        row = int(y + 0.5)
+        if col >= 0 and col < numcols and row >= 0 and row < numrows:
+            z = trans_map_masked[row, col]
+            return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
+        else:
+            return 'x=%1.4f, y=%1.4f' % (x, y)
+
+    ax.format_coord = format_coord
+
+    plt.show()
+
+
 def transition_map(problem, states, moves):
     """
     Plots transition probabilities for a given problem and the
@@ -77,9 +144,10 @@ def transition_map(problem, states, moves):
     :return: nothing - a plot is shown
     """
     # Initialization of empty arrays
-    plot_map = np.zeros((3*problem.scene_y_dim, 3*problem.scene_x_dim))  # plot array with 3x3 pixel for each state
-    heatmap = np.zeros(problem.n_states)
-    policy = np.zeros((problem.n_states, problem.n_actions))
+    x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
+    plot_map = np.zeros((3*y_dim, 3*x_dim))  # plot array with 3x3 pixel for each state
+    heatmap = np.zeros(problem.n_states - 1)
+    policy = np.zeros((problem.n_states - 1, problem.n_actions))
 
     # Count states per episode and sum them up
     for i in xrange(states.shape[0]):
@@ -118,8 +186,8 @@ def transition_map(problem, states, moves):
     ax.imshow(trans_map_masked, colormap, interpolation='nearest')
     numrows, numcols = trans_map_masked.shape
 
-    xticks_labels = tuple(map(str, range(problem.scene_x_dim)))
-    yticks_labels = tuple(map(str, range(problem.scene_y_dim)))
+    xticks_labels = tuple(map(str, range(x_dim)))
+    yticks_labels = tuple(map(str, range(y_dim)))
 
     plt.xticks(np.arange(1, 30, 3), xticks_labels)
     plt.yticks(np.arange(1, 33, 3), yticks_labels)

@@ -15,6 +15,8 @@ from math import cos
 import logging as log
 import os
 
+my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
+
 
 class Deepsea(SaveableObject):
     """
@@ -51,7 +53,7 @@ class Deepsea(SaveableObject):
 
         if actions is None:
             # Default actions
-            actions = ["up", "down", "right", "left"]
+            actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]))
 
         if scene is None:
             # Default Map as used in general MORL papers
@@ -63,27 +65,20 @@ class Deepsea(SaveableObject):
             self._scene[8:11, 6:8] = -100
             self._scene[10, 8] = -100
             # Rewards of the default map
-            self._scene[1, 0] = 1
-            self._scene[2, 1] = 2
-            self._scene[3, 2] = 3
-            self._scene[4, 3] = 5
-            self._scene[4, 4] = 8
-            self._scene[4, 5] = 16
-            self._scene[7, 6] = 24
-            self._scene[7, 7] = 50
-            self._scene[9, 8] = 74
+            # self._scene[1, 0] = 1
+            # self._scene[2, 1] = 2
+            # self._scene[3, 2] = 3
+            # self._scene[4, 3] = 5
+            # self._scene[4, 4] = 8
+            # self._scene[4, 5] = 16
+            # self._scene[7, 6] = 24
+            # self._scene[7, 7] = 50
+            # self._scene[9, 8] = 74
             self._scene[10, 9] = 124
             self.P = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_P.pickle'))
             self.R = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_R.pickle'))
 
         self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
-        # Define action mapping here
-        self._actions_map = {
-            'up': np.array([-1, 0]),
-            'down': np.array([1, 0]),
-            'right': np.array([0, 1]),
-            'left': np.array([0, -1]),
-            }
 
         self._n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
         self._index_terminal_state = self._n_states - 1
@@ -120,10 +115,11 @@ class Deepsea(SaveableObject):
                 else:
                     # nonterminal transitions
                     for a in xrange(self.n_actions):
-                        n_pos = pos + self._actions_map[self._actions[a]]
-                        n_pos_index = self._get_index(n_pos)
-                        if self._in_map(n_pos) and self._flat_map[n_pos_index] > -100:
-                            valid_n_pos.append((n_pos_index, a))
+                        n_pos = pos + self._actions[a]
+                        if self._in_map(n_pos):
+                            n_pos_index = self._get_index(n_pos)
+                            if self._flat_map[n_pos_index] > -100:
+                                valid_n_pos.append((n_pos_index, a))
                 if len(valid_n_pos) > 0:
                     # prob = 1.0 / len(valid_n_pos)
                     for n_pos_index, a in valid_n_pos:
@@ -212,14 +208,14 @@ class Deepsea(SaveableObject):
         if self._in_map(position):
             return np.ravel_multi_index(position, self._scene.shape)
         else:
-            log.debug('Error: Position out of map!')
+            if my_debug: log.debug('Error: Position out of map!')
             return -1
 
     def _get_position(self, index):
         if index < (self._scene.shape[0] * self._scene.shape[1]):
             return np.unravel_index(index, self._scene.shape)
         else:
-            log.debug('Error: Index out of list!')
+            if my_debug: log.debug('Error: Index out of list!')
             return -1
 
     def _in_map(self, position):
@@ -268,29 +264,29 @@ class Deepsea(SaveableObject):
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
-        log.debug('Position before: ' + str(self._position) + ' moving ' + self._actions[action] +
+        if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self._actions[action]) +
                   ' (last pos: ' + str(last_position) + ')')
 
-        if self._in_map(self._position + self._actions_map[self._actions[action]]):
-            self._position += self._actions_map[self._actions[action]]
+        if self._in_map(self._position + self._actions[action]):
+            self._position += self._actions[action]
             reward = self._flat_map[self._get_index(self._position)]
-            log.debug('moved by' + str(self._actions_map[self._actions[action]]) + '(last pos: ' + str(last_position) + ')')
+            if my_debug: log.debug('moved by' + str(self._actions[action]) + '(last pos: ' + str(last_position) + ')')
             if reward < 0:
                 self._position = last_position
                 reward = 0
-                log.debug('Ground touched!')
+                if my_debug: log.debug('Ground touched!')
             elif reward > 0:
-                log.debug('Treasure found! - I got a reward of ' + str(reward))
+                if my_debug: log.debug('Treasure found! - I got a reward of ' + str(reward))
                 self._pre_terminal_state = True
                 self._terminal_reward = reward
                 reward = 0
             else:
-                log.debug('I got a reward of ' + str(reward))
+                if my_debug: log.debug('I got a reward of ' + str(reward))
         else:
-            log.debug('Move not allowed!')
+            if my_debug: log.debug('Move not allowed!')
             reward = 0
 
-        log.debug('New position: ' + str(self._position))
+        if my_debug: log.debug('New position: ' + str(self._position))
 
         self._last_position = np.copy(last_position)
         self._last_state = self._state

@@ -19,8 +19,8 @@ try:
 except ImportError, e:
     log.warn("Neurolab not installed: %s" % (str(e)))
 
-# log.basicConfig(level=log.DEBUG)
-
+# log.basicConfig(level=if my_debug: log.debug)
+my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
 
 class MorlAgent(SaveableObject):
     """
@@ -47,12 +47,13 @@ class MorlAgent(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
-    def learn(self, t, action, reward, state):
+    def learn(self, t, last_state, action, reward, state):
         """
         Learn on the last interaction specified by the
         action and the reward received.
 
         :param t: Interaction cycle we are currently in
+        :param last_state: The last state where we transited from
         :param action: last interaction action
         :param reward: received reward vector
         :param state: next state transited to
@@ -119,7 +120,7 @@ class TDMorlAgent(MorlAgent):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
         self._V[last_state] += self._alpha * (scalar_reward + self._gamma * self._V[state] - self._V[last_state])
 
-        log.debug(' V: %s' % (str(self._V[0:110].reshape((11, 10)))))
+        if my_debug: log.debug(' V: %s' % (str(self._V[0:110].reshape((11, 10)))))
 
     def decide(self, t, state):
         return self._policy.decide(state)
@@ -151,9 +152,7 @@ class SARSAMorlAgent(MorlAgent):
         self._alpha = alpha
 
         self._epsilon = epsilon
-        # the Q function is only one dimensional, since
-        # we can only be in one state and choose from
-        # two actions in the newcomb problem.
+
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
         self._last_action = random.randint(0,problem.n_actions-1)
 
@@ -166,20 +165,46 @@ class SARSAMorlAgent(MorlAgent):
         self._Q[last_state, last_action] += self._alpha * \
                                             (scalar_reward + self._gamma * self._Q[state, action] - self._Q[
                                                 last_state, last_action])
-        log.debug(' Q: %s' % (str(self._Q)))
+        if my_debug: log.debug(' Q: %s' % (str(self._Q)))
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
             action = random.choice(np.where(self._Q[state, :] == max(self._Q[state, :]))[0])
             #action = self._Q[state, :].argmax()
-            log.debug('  took greedy action %i' % (action))
+            if my_debug: log.debug('  took greedy action %i' % (action))
             return action
         action = random.randint(0, self._morl_problem.n_actions - 1)
-        log.debug('   took random action %i' % (action))
+        if my_debug: log.debug('   took random action %i' % (action))
         return action
 
     def get_learned_action(self, state):
         return self._Q[state, :].argmax()
+
+    def get_learned_action_distribution(self, state):
+        tau = 2.0
+        tmp = np.exp(self._Q[state, :] / tau)
+        tsum = tmp.sum()
+        dist = tmp / tsum
+        return dist
+
+
+class SARSALambdaMorlAgent(SARSAMorlAgent):
+    """
+    SARSA with eligibility traces.
+    """
+    def __init__(self, problem, scalarization_weights, alpha=0.3, epsilon=1.0, lmbda=0.7, **kwargs):
+        super(SARSALambdaMorlAgent, self).__init__(problem, scalarization_weights, alpha, epsilon, **kwargs)
+
+        self._lmbda = lmbda
+        self._e = np.zeros_like(self._Q)
+
+    def _learn(self, t, last_state, last_action, action, reward, state):
+        scalar_reward = np.dot(self._scalarization_weights.T, reward)
+        delta = scalar_reward + self._gamma * self._Q[state, action] - self._Q[last_state, last_action]
+        self._e[last_state, last_action] = min(self._e[last_state, last_action] + 1.0, 2.0)
+        self._Q += self._alpha * delta * self._e
+        self._e *= self._gamma * self._lmbda
+        if my_debug: log.debug(' Q: %s' % (str(self._Q)))
 
 
 class QMorlAgent(MorlAgent):
@@ -217,8 +242,7 @@ class QMorlAgent(MorlAgent):
         self._last_action = random.randint(0,problem.n_actions-1)
 
     def learn(self, t, last_state, action, reward, state):
-        self._learn(0, self._last_state, self._last_action,
-                    self._last_reward, reward, state)
+        self._learn(0, last_state, self._last_action, reward, state)
         self._last_action = action
 
     def _learn(self, t, last_state, last_action, reward, state):
@@ -234,51 +258,101 @@ class QMorlAgent(MorlAgent):
                                   (reward + self._gamma * np.amax(self._Q[state, :], axis=0) - self._Q[
                                       last_state, last_action])
 
-        log.debug(' Q: %s' % (str(self._Q[state, :, :])))
+        if my_debug: log.debug(' Q: %s' % (str(self._Q[state, :, :])))
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
             weighted_q = np.dot(self._Q[state, :], self._scalarization_weights)
             action = random.choice(np.where(weighted_q == max(weighted_q))[0])
 
-            log.debug('  took greedy action %i' % action)
+            if my_debug: log.debug('  took greedy action %i' % action)
             return action
         action = random.randint(0, self._morl_problem.n_actions - 1)
-        log.debug('   took random action %i' % action)
+        if my_debug: log.debug('   took random action %i' % action)
         return action
 
     def get_learned_action(self, state):
         return np.dot(self._Q[state, :], self._scalarization_weights).argmax()
 
 
-class DeterministicAgent(MorlAgent):
+class PreScalarizedQMorlAgent(MorlAgent):
+    """
+    A MORL agent, that uses Q learning with a scalar
+    value function, scalarizing on every learning step
+    """
 
-    def __init__(self, morl_problem, **kwargs):
-        super(DeterministicAgent, self).__init__(morl_problem, **kwargs)
+    def __init__(self, problem, scalarization_weights, alpha=0.3, epsilon=1.0, **kwargs):
+        """
+        Initialize the Reinforcement Learning MORL
+        Agent with the problem description and alpha,
+        the learning rate.
 
-        self._transition_dict = {0:   2,
-                                 1:   1,
-                                 11:  2,
-                                 12:  1,
-                                 22:  2,
-                                 23:  1,
-                                 33:  2,
-                                 34:  2,
-                                 35:  2,
-                                 36:  1,
-                                 46:  1,
-                                 56:  1,
-                                 66:  1
-                                 }
+        Parameters
+        ----------
+        :param problem: A MORL problem
+        :param scalarization_weights: a weight vector to scalarize the morl reward.
+        :param alpha: real, the learning rate in each
+            Q update step
+        :param epsilon: real, [0, 1] the epsilon factor for
+            the epsilon greedy action selection strategy
+        """
+        super(PreScalarizedQMorlAgent, self).__init__(problem, **kwargs)
+
+        self._scalarization_weights = scalarization_weights
+        self._alpha = alpha
+        self._epsilon = epsilon
+
+        self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
+        self._last_action = random.randint(0,problem.n_actions-1)
+
+    def learn(self, t, last_state, action, reward, state):
+        self._learn(0, last_state, self._last_action, reward, state)
+        self._last_action = action
+
+    def _learn(self, t, last_state, last_action, reward, state):
+        """
+        Updating the Q-table according to Suttons Q-learning update for multiple
+        objectives
+        :return:
+        """
+
+        scalar_reward = np.dot(self._scalarization_weights.T, reward)
+
+        self._Q[last_state, last_action] += self._alpha * \
+                                  (scalar_reward + self._gamma * np.amax(self._Q[state, :]) - self._Q[
+                                      last_state, last_action])
+
+        if my_debug: log.debug(' Q: %s' % (str(self._Q[state, :, :])))
 
     def decide(self, t, state):
-        if state in self._transition_dict:
-            return self._transition_dict[state]
-        else:
-            return random.randint(0, self._morl_problem.n_actions-1)
+        if random.random() < self._epsilon:
+            action = random.choice(np.where(self._Q[state, :] == max(self._Q[state, :]))[0])
 
-    def learn(self, t, action, reward, state):
+            if my_debug: log.debug('  took greedy action %i' % action)
+            return action
+        action = random.randint(0, self._morl_problem.n_actions - 1)
+        if my_debug: log.debug('   took random action %i' % action)
+        return action
+
+    def get_learned_action(self, state):
+        return self._Q[state, :].argmax()
+
+
+class FixedPolicyAgent(MorlAgent):
+    """
+    An agent, that follows a fixed policy, defined as a morl policy object.
+    No learning implemented.
+    """
+    def __init__(self, morl_problem, policy, **kwargs):
+        super(FixedPolicyAgent, self).__init__(morl_problem, **kwargs)
+
+        self._policy = policy
+
+    def learn(self, t, last_state, action, reward, state):
         pass
+
+    def decide(self, t, state):
+        return self._policy.decide(state)
 
 
 class NFQAgent(MorlAgent):
@@ -345,7 +419,7 @@ class NFQAgent(MorlAgent):
         # if self._morl_problem.terminal_state:
         #     costs += self._gamma * (1.0/reward[0])
         #     self._goal_hist.append(costs)
-        #     log.debug('Terminal cost value in state %i is %f', state, costs)
+        #     if my_debug: log.debug('Terminal cost value in state %i is %f', state, costs)
         # else:
         #     Q_vals = []
         #     for i in xrange(self._morl_problem.n_actions):
@@ -356,7 +430,7 @@ class NFQAgent(MorlAgent):
         #
         #     costs += self._gamma * np.array(Q_vals).min()
         #     self._goal_hist.append(costs)
-        #     log.debug('State cost value in state %i is %f', state, costs)
+        #     if my_debug: log.debug('State cost value in state %i is %f', state, costs)
 
         inp = np.array(self._train_history)
         tar = np.array(self._goal_hist)
@@ -389,6 +463,6 @@ class NFQAgent(MorlAgent):
         else:
             action = random.randint(0, self._morl_problem.n_actions - 1)
 
-        log.debug('Decided for action %i in state %i.', action, state)
+        if my_debug: log.debug('Decided for action %i in state %i.', action, state)
 
         return action

@@ -10,6 +10,7 @@ from helpers import SaveableObject
 from probability_helpers import assurePolicyMatrix, sampleFromDiscreteDistribution
 
 import numpy as np
+import random
 import logging as log
 
 
@@ -63,6 +64,16 @@ class PolicyDeepsea(SaveableObject):
         """
         return sampleFromDiscreteDistribution(1, self._pi[state, :])
 
+    def get_optimal_action(self, state):
+        """
+
+        :param state:
+        :return:
+        """
+        # return the action with the max probability, break ties
+        # in a random manner
+        return random.choice(np.where(self._pi[state, :] == max(self._pi[state, :]))[0])
+
 
 class PolicyDeepseaRandom(PolicyDeepsea):
     """
@@ -77,3 +88,55 @@ class PolicyDeepseaRandom(PolicyDeepsea):
         # normalize
         self._pi /= self._pi.sum(axis=1)[:, np.newaxis]
         assurePolicyMatrix(self._pi)
+
+
+class PolicyDeepseaDeterministicExample01(PolicyDeepsea):
+    """
+    A deterministic example policy for the deepsea scenario.
+    """
+    _transition_dict = {0:   2,
+                        1:   1,
+                        11:  2,
+                        12:  1,
+                        22:  2,
+                        23:  1,
+                        33:  2,
+                        34:  2,
+                        35:  2,
+                        36:  1,
+                        46:  1,
+                        56:  1,
+                        66:  1
+                        }
+
+    def __init__(self, problem):
+        super(PolicyDeepseaDeterministicExample01, self).__init__(problem)
+
+        self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
+
+        # fill pi for all states with 1/n_actions except for the ones in
+        # transition_dict
+        for i in xrange(self._problem.n_states):
+            if i in self._transition_dict:
+                self._pi[i, self._transition_dict[i]] = 1.0
+            else:
+                self._pi[i, :] = 1.0 / self._problem.n_actions
+
+class PolicyDeepseaFromAgent(PolicyDeepsea):
+    """
+    Derive a greedy policy from a trained agent.
+    """
+    def __init__(self, problem, agent):
+        super(PolicyDeepseaFromAgent, self).__init__(problem)
+
+        self._agent = agent
+        self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
+
+        for i in xrange(self._problem.n_states):
+            # greedy
+            # a = agent.get_learned_action(i)
+            # self._pi[i, :] = 1.0
+
+            # gibbs
+            a_dist = agent.get_learned_action_distribution(i)
+            self._pi[i, :] = a_dist

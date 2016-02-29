@@ -25,7 +25,7 @@ from plot_heatmap import transition_map,heatmap_matplot
 
 
 if __name__ == '__main__':
-    problem = Deepsea(gamma=0.3)
+    problem = Deepsea(gamma=0.9)
     # problem = MountainCar()
     reward_dimension = problem.reward_dimension
     scalarization_weights = np.zeros(reward_dimension)

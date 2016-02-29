@@ -37,20 +37,26 @@ if __name__ == '__main__':
     # i_morl = InverseMORL(problem, policy)
     # scalarization_weights = i_morl.solve()
     # scalarization_weights = np.array([0.153, 0.847])
-    scalarization_weights = np.array([0.2, 0.8])
+    scalarization_weights = np.array([0.8, 0.2])
 
-    # agent = QMorlAgent(problem, scalarization_weights, alpha=0.5, epsilon=0.7)
-    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=0.3, epsilon=0.95)
-    agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=0.3, epsilon=0.3, lmbda=0.9)
-    interactions = 5000
+    eps = 0.95
+    alfa = 0.3
+
+    agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
+    interactions = 100000
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
 
     plt.ion()
 
     transition_map(problem, states, moves)
-    learned_policy = PolicyDeepseaFromAgent(problem, agent)
+    learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='gibbs')
 
     plt.ioff()
 
     # compare agent.policy policy
-    policy_plot(problem, learned_policy)
+
+    figure_file_name = 'fig_runs-' + str(interactions) + "-" + agent.name() + ".png"
+
+    policy_plot(problem, learned_policy, filename=figure_file_name)

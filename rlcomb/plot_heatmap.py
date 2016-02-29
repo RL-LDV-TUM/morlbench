@@ -6,6 +6,7 @@ Created on Feb 16, 2016
 
 import cPickle as pickle
 from morl_problems import Deepsea
+import time
 
 # import plotly.plotly as py
 # import plotly.graph_objs as go
@@ -66,7 +67,7 @@ def heatmap_matplot(problem, states):
     plt.show()
 
 
-def policy_plot(problem, policy):
+def policy_plot(problem, policy, filename=None):
     """
     Plot the transition probabilities for a specific policy.
 
@@ -129,6 +130,11 @@ def policy_plot(problem, policy):
             return 'x=%1.4f, y=%1.4f' % (x, y)
 
     ax.format_coord = format_coord
+
+    if not(filename):
+        filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S")
+
+    plt.savefig(filename, bbox_inches='tight')
 
     plt.show()
 

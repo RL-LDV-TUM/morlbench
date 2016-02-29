@@ -126,17 +126,19 @@ class PolicyDeepseaFromAgent(PolicyDeepsea):
     """
     Derive a greedy policy from a trained agent.
     """
-    def __init__(self, problem, agent):
+    def __init__(self, problem, agent, mode='gibbs'):
         super(PolicyDeepseaFromAgent, self).__init__(problem)
 
         self._agent = agent
         self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
 
         for i in xrange(self._problem.n_states):
-            # greedy
-            # a = agent.get_learned_action(i)
-            # self._pi[i, :] = 1.0
+            if mode == 'gibbs':
+                # gibbs
+                a_dist = agent.get_learned_action_distribution(i)
+                self._pi[i, :] = a_dist
+            else:
+                # greedy
+                a = agent.get_learned_action(i)
+                self._pi[i, a] = 1.0
 
-            # gibbs
-            a_dist = agent.get_learned_action_distribution(i)
-            self._pi[i, :] = a_dist

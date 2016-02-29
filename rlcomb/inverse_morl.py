@@ -110,7 +110,7 @@ class InverseMORL(SaveableObject):
 
         solution = solvers.lp(matrix(-c), matrix(G), matrix(h))
         alpha = np.asarray(solution['x'][-reward_dimension:])
-        return alpha
+        return alpha.ravel()
 
     def solvep(self):
         """
@@ -160,4 +160,75 @@ class InverseMORL(SaveableObject):
 
         solution = solvers.lp(matrix(-c), matrix(G), matrix(h))
         alpha = np.asarray(solution['x'][-reward_dimension:])
-        return alpha
+        return alpha.ravel()
+
+    def solvealge(self):
+        """
+        Solve the Inverse RL problem
+        :return: Scalarization weights as array.
+        """
+        n_states, n_actions, reward_dimension, gamma, P, R, pi, P_pi = self._prepare_variables()
+
+        v = self._prepare_v(n_states, n_actions, reward_dimension, P)
+
+        D = reward_dimension
+        x_size = n_states + (n_actions - 1) * n_states * 2 + D
+
+        c = -np.hstack([np.ones(n_states), np.zeros(x_size - n_states)])
+        assert c.shape[0] == x_size
+
+        A = np.hstack([
+                np.zeros((n_states * (n_actions - 1), n_states)),
+                np.eye(n_states * (n_actions - 1)),
+                -np.eye(n_states * (n_actions - 1)),
+                np.vstack([v[i, j, :].reshape(1, -1) for i in range(n_states)
+                                                     for j in range(n_actions - 1)])])
+        assert A.shape[1] == x_size
+
+        b = np.zeros(A.shape[0])
+
+        bottom_row = np.vstack([
+                        np.hstack([
+                            np.ones((n_actions - 1, 1)).dot(np.eye(1, n_states, l)),
+                            np.hstack([-np.eye(n_actions - 1) if i == l
+                                else np.zeros((n_actions - 1, n_actions - 1))
+                                    for i in range(n_states)]),
+                            np.hstack([2 * np.eye(n_actions - 1) if i == l
+                                else np.zeros((n_actions - 1, n_actions - 1))
+                                    for i in range(n_states)]),
+                            np.zeros((n_actions - 1, D))])
+                        for l in range(n_states)
+                        ])
+        assert bottom_row.shape[1] == x_size
+
+        G = np.vstack([
+            np.hstack([
+                np.zeros((D, n_states)),
+                np.zeros((D, n_states * (n_actions - 1))),
+                np.zeros((D, n_states * (n_actions - 1))),
+                np.eye(D)]),
+            np.hstack([
+                np.zeros((D, n_states)),
+                np.zeros((D, n_states * (n_actions - 1))),
+                np.zeros((D, n_states * (n_actions - 1))),
+                -np.eye(D)]),
+            np.hstack([
+                np.zeros((n_states * (n_actions - 1), n_states)),
+                -np.eye(n_states * (n_actions - 1)),
+                np.zeros((n_states * (n_actions - 1), n_states * (n_actions - 1))),
+                np.zeros((n_states * (n_actions - 1), D))]),
+            np.hstack([
+                np.zeros((n_states * (n_actions - 1), n_states)),
+                np.zeros((n_states * (n_actions - 1), n_states * (n_actions - 1))),
+                -np.eye(n_states * (n_actions - 1)),
+                np.zeros((n_states * (n_actions - 1), D))]),
+            bottom_row])
+        assert G.shape[1] == x_size
+
+        h = np.vstack([np.ones((D * 2, 1)),
+                   np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
+
+        solvers.options['show_progress'] = True
+        solution = solvers.lp(matrix(c), matrix(G), matrix(h), matrix(A), matrix(b))
+        alpha = np.asarray(solution['x'][-reward_dimension:])
+        return alpha.ravel()

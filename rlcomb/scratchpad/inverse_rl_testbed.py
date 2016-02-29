@@ -40,10 +40,11 @@ if __name__ == '__main__':
     scalarization_weights = np.array([0.2, 0.8])
 
     eps = 0.95
+    alfa = 0.3
 
-    # agent = QMorlAgent(problem, scalarization_weights, alpha=0.5, epsilon=0.7)
-    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=0.3, epsilon=0.95)
-    agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=0.3, epsilon=0.3, lmbda=0.9)
+    agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
     interactions = 500
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
 

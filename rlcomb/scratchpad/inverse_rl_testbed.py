@@ -32,21 +32,38 @@ if __name__ == '__main__':
     reward_dimension = problem.reward_dimension
     scalarization_weights = np.zeros(reward_dimension)
 
+    eps = 0.95
+    interactions = 100000
+
+    scalarization_weights_groundtruth = np.array([0.8, 0.2])
+
+    # agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=0.3, epsilon=eps)
+    # payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
+
+    policy_optimal = PolicyDeepseaDeterministicExample01(problem)
+    # policy_optimal = PolicyDeepseaFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
+    # policy_plot(problem, policy_optimal)
+
+    i_morl = InverseMORL(problem, policy_optimal)
+    scalarization_weights = i_morl.solvep()
+
+    log.info("scalarization weights (with p): %s" % (str(scalarization_weights)))
+    log.info("scalarization weights (without p): %s" % (str(i_morl.solve())))
+    log.info("scalarization weights (without p, sum 1): %s" % (str(i_morl.solve_sum_1())))
+    log.info("scalarization weights (alge): %s" % (str(i_morl.solvealge())))
+
+    sys.exit(0)
+
     policy = PolicyDeepseaDeterministicExample01(problem)
 
-    i_morl = InverseMORL(problem, policy)
-    scalarization_weights = i_morl.solvep()
-    log.info("scalarization weights: %s" % (str(scalarization_weights)))
     # scalarization_weights = np.array([0.153, 0.847])
     # scalarization_weights = np.array([0.2, 0.8])
-
-    eps = 0.95
 
     # agent = QMorlAgent(problem, scalarization_weights, alpha=0.3, epsilon=eps)
     agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=0.3,
                                     epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=0.3, epsilon=eps, lmbda=0.9)
-    interactions = 10000
+
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
 
     plt.ion()

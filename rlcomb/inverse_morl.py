@@ -112,6 +112,34 @@ class InverseMORL(SaveableObject):
         alpha = np.asarray(solution['x'][-reward_dimension:])
         return alpha.ravel()
 
+    def solve_sum_1(self):
+        """
+        Solve the Inverse RL problem
+        :return: Scalarization weights as array.
+        """
+        n_states, n_actions, reward_dimension, gamma, P, R, pi, P_pi = self._prepare_variables()
+
+        v = self._prepare_v(n_states, n_actions, reward_dimension, P)
+
+        c = -np.vstack([np.ones((n_states, 1)), np.zeros((reward_dimension, 1))])
+        G = np.vstack([
+            np.hstack([np.zeros((reward_dimension, n_states)), -np.eye(reward_dimension)]),
+            np.vstack([
+                np.vstack([
+                   np.hstack([self._vertical_ones(1, n_states, i), -v[i, j, :].reshape(1, -1)]) for j in xrange(n_actions - 1)
+                ]) for i in xrange(n_states)
+            ])
+        ])
+        A = np.hstack([
+            np.zeros((1, n_states)), np.ones((1, reward_dimension))
+        ])
+        b = np.ones((1, 1))
+        h = np.vstack([np.zeros((reward_dimension, 1)), np.zeros((n_states * (n_actions - 1), 1))])
+
+        solution = solvers.lp(matrix(c), matrix(G), matrix(h), matrix(A), matrix(b))
+        alpha = np.asarray(solution['x'][-reward_dimension:])
+        return alpha.ravel()
+
     def solvep(self):
         """
         Solve the Inverse RL problem

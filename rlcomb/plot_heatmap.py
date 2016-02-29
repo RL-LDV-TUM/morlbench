@@ -16,6 +16,11 @@ import matplotlib.cm as cm
 
 import numpy as np
 
+def format_axes(ax):
+    ax.margins(0.02)
+
+    #ax.set_axis_off()
+
 
 def heatmap_matplot(problem, states):
     """
@@ -25,8 +30,11 @@ def heatmap_matplot(problem, states):
     :param states: array of states per episode
     :return: shows a plot
     """
-    # Initialization of empty arrays
-    heatmap = np.zeros(problem.n_states)
+
+    x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
+
+    # Initialization of empty heatmap (-1 -> terminal state)
+    heatmap = np.zeros(problem.n_states - 1)
 
     # Count states per episode and sum them up
     for i in xrange(states.size):
@@ -39,25 +47,27 @@ def heatmap_matplot(problem, states):
     # Generate masked heatmap (ground is masked for plotting)
     heatmap_mask = np.ma.masked_where(problem._scene == -100, heatmap)
 
-    fig, ax = plt.subplots()
 
-    colormap = cm.jet  # color map
+    mycmap = plt.get_cmap("YlOrRd")
 
-    colormap.set_bad(color='grey')  # set color for mask (ground)
+    xx, yy = np.meshgrid(range(x_dim), range(y_dim),indexing='xy')
 
-    ax.imshow(heatmap_mask, colormap, interpolation='nearest')
+    fig = plt.figure()
+    fig.suptitle('Heatmap Plot of visited States', fontsize=14, fontweight='bold')
+    ax = fig.add_subplot(111)
 
-    numrows, numcols = heatmap.shape
+    ax.scatter(xx, -yy, c=heatmap[yy, xx], s=100, cmap=mycmap)
 
-    # x = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    # y = ['-0', '-1', '-2', '-3', '-4', '-5', '-6', '-7', '-8', '-9', '-10']
 
-    # Set z-value to the heatmap value -> so it can be read in the plot
+    ticks_offset = 1
+    plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
+               tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
+
     def format_coord(x, y):
-        col = int(x + 0.5)
-        row = int(y + 0.5)
-        if col >= 0 and col < numcols and row >= 0 and row < numrows:
-            z = heatmap[row, col]
+        x = int(x)
+        y = int(-y)
+        if x >= 0 and x <= x_dim and x >= 0 and y <= y_dim:
+            z = heatmap[x, y]
             return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
         else:
             return 'x=%1.4f, y=%1.4f' % (x, y)
@@ -65,6 +75,46 @@ def heatmap_matplot(problem, states):
     ax.format_coord = format_coord
 
     plt.show()
+
+
+    def grid(x, y, z, resX=100, resY=100):
+        """Convert 3 column data to matplotlib grid"
+        Usage:
+        X, Y, Z = grid(x, y, z)
+        plt.contourf(X, Y, Z)
+        """
+        xi = linspace(min(x), max(x), resX)
+        yi = linspace(min(y), max(y), resY)
+        Z = griddata(x, y, z, xi, yi)
+        X, Y = meshgrid(xi, yi)
+        return X, Y, Z
+
+    # fig, ax = plt.subplots()
+    #
+    # colormap = cm.jet  # color map
+    #
+    # colormap.set_bad(color='grey')  # set color for mask (ground)
+    #
+    # ax.imshow(heatmap_mask, colormap, interpolation='nearest')
+    #
+    # numrows, numcols = heatmap.shape
+    #
+    # # x = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+    # # y = ['-0', '-1', '-2', '-3', '-4', '-5', '-6', '-7', '-8', '-9', '-10']
+    #
+    # # Set z-value to the heatmap value -> so it can be read in the plot
+    # def format_coord(x, y):
+    #     col = int(x + 0.5)
+    #     row = int(y + 0.5)
+    #     if col >= 0 and col < numcols and row >= 0 and row < numrows:
+    #         z = heatmap[row, col]
+    #         return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
+    #     else:
+    #         return 'x=%1.4f, y=%1.4f' % (x, y)
+    #
+    # ax.format_coord = format_coord
+    # plt.title('Heatmap')
+    # plt.show()
 
 
 def policy_plot(problem, policy, filename=None):
@@ -133,7 +183,7 @@ def policy_plot(problem, policy, filename=None):
 
     if not(filename):
         filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S")
-
+    plt.title('Policy Plot')
     plt.savefig(filename, bbox_inches='tight')
 
     plt.show()
@@ -215,7 +265,7 @@ def transition_map(problem, states, moves):
             return 'x=%1.4f, y=%1.4f' % (x, y)
 
     ax.format_coord = format_coord
-
+    plt.title('Transition Plot')
     plt.show()
 
 # def heatmap_plotly():

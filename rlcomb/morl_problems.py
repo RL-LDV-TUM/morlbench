@@ -54,6 +54,7 @@ class Deepsea(SaveableObject):
         if actions is None:
             # Default actions
             actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]), np.array([0, 0]))
+            # actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]))
 
         if scene is None:
             # Default Map as used in general MORL papers

@@ -20,7 +20,7 @@ from morl_problems import Deepsea
 from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent
 from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministicExample01, PolicyDeepseaFromAgent
 from inverse_morl import InverseMORL
-from plot_heatmap import policy_plot, transition_map
+from plot_heatmap import policy_plot, transition_map, heatmap_matplot
 from dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
 from experiment_helpers import morl_interact_multiple
 
@@ -37,26 +37,27 @@ if __name__ == '__main__':
     # i_morl = InverseMORL(problem, policy)
     # scalarization_weights = i_morl.solve()
     # scalarization_weights = np.array([0.153, 0.847])
-    scalarization_weights = np.array([0.8, 0.2])
+    scalarization_weights = np.array([0.2, 0.8])
 
-    eps = 0.95
+    eps = 0.8
     alfa = 0.3
 
-    agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-    interactions = 100000
+    interactions = 500
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
 
-    plt.ion()
+    #plt.ion()
 
-    transition_map(problem, states, moves)
+    #transition_map(problem, states, moves)
     learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='gibbs')
+    heatmap_matplot(problem, states)
 
-    plt.ioff()
+    #plt.ioff()
 
     # compare agent.policy policy
 
-    figure_file_name = 'fig_runs-' + str(interactions) + "-" + agent.name() + ".png"
+    # figure_file_name = 'fig_runs-' + str(interactions) + "-" + agent.name() + ".png"
 
-    policy_plot(problem, learned_policy, filename=figure_file_name)
+    # policy_plot(problem, learned_policy, filename=figure_file_name)

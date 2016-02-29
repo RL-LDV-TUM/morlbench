@@ -120,7 +120,8 @@ class PolicyDeepseaDeterministicExample01(PolicyDeepsea):
             if i in self._transition_dict:
                 self._pi[i, self._transition_dict[i]] = 1.0
             else:
-                self._pi[i, :] = 1.0 / self._problem.n_actions
+                # self._pi[i, :] = 1.0 / self._problem.n_actions
+                self._pi[i, 4] = 1.0
 
 class PolicyDeepseaFromAgent(PolicyDeepsea):
     """

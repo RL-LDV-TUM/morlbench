@@ -102,11 +102,61 @@ class InverseMORL(SaveableObject):
             np.hstack([np.zeros((reward_dimension, n_states)), -np.eye(reward_dimension)]),
             np.vstack([
                 np.vstack([
-                   np.hstack([self._vertical_ones(1, n_states, i), v[i, j, :].reshape(1, -1)]) for j in xrange(n_actions - 1)
+                   np.hstack([self._vertical_ones(1, n_states, i), -v[i, j, :].reshape(1, -1)]) for j in xrange(n_actions - 1)
                 ]) for i in xrange(n_states)
             ])
         ])
         h = np.vstack([np.ones((2 * reward_dimension, 1)), np.zeros((n_states * (n_actions - 1), 1))])
+
+        solution = solvers.lp(matrix(-c), matrix(G), matrix(h))
+        alpha = np.asarray(solution['x'][-reward_dimension:])
+        return alpha
+
+    def solvep(self):
+        """
+        Solve the Inverse RL problem
+        :return: Scalarization weights as array.
+        """
+        n_states, n_actions, reward_dimension, gamma, P, R, pi, P_pi = self._prepare_variables()
+
+        v = self._prepare_v(n_states, n_actions, reward_dimension, P)
+
+        # weights for minimization term
+        c = np.vstack([np.ones((n_states, 1)), np.zeros((n_states * (n_actions - 1), 1)), np.zeros((reward_dimension, 1))])
+        # big block selection matrix
+        G = np.vstack([
+            np.hstack([np.zeros((reward_dimension, n_states)), np.zeros((reward_dimension, n_states * (n_actions - 1))), np.eye(reward_dimension)]),
+            np.hstack([np.zeros((reward_dimension, n_states)), np.zeros((reward_dimension, n_states * (n_actions - 1))), -np.eye(reward_dimension)]),
+            np.hstack([
+                np.vstack([self._vertical_ones(n_actions - 1, n_states, i) for i in xrange(n_states)]),
+                np.eye(n_states * (n_actions - 1), n_states * (n_actions - 1)),
+                np.zeros((n_states * (n_actions - 1), reward_dimension))
+            ]),
+            np.hstack([
+                np.zeros((n_states * (n_actions - 1), n_states)),
+                np.eye(n_states * (n_actions - 1), n_states * (n_actions - 1)),
+                np.vstack([
+                    np.vstack([
+                        -v[i, j, :].reshape(1, -1)
+                        for j in xrange(n_actions - 1)
+                    ])
+                    for i in xrange(n_states)
+                ])
+            ]),
+            np.hstack([
+                np.zeros((n_states * (n_actions - 1), n_states)),
+                2 * np.eye(n_states * (n_actions - 1), n_states * (n_actions - 1)),
+                np.vstack([
+                    np.vstack([
+                        -v[i, j, :].reshape(1, -1)
+                        for j in xrange(n_actions - 1)
+                    ])
+                    for i in xrange(n_states)
+                ])
+            ])
+        ])
+        # right hand side of inequalities
+        h = np.vstack([np.ones((2 * reward_dimension, 1)), np.zeros(((n_states * (n_actions - 1)) * 3, 1))])
 
         solution = solvers.lp(matrix(-c), matrix(G), matrix(h))
         alpha = np.asarray(solution['x'][-reward_dimension:])

@@ -65,15 +65,15 @@ class Deepsea(SaveableObject):
             self._scene[8:11, 6:8] = -100
             self._scene[10, 8] = -100
             # Rewards of the default map
-            self._scene[1, 0] = 1
-            self._scene[2, 1] = 2
-            self._scene[3, 2] = 3
-            self._scene[4, 3] = 5
-            self._scene[4, 4] = 8
-            self._scene[4, 5] = 16
-            self._scene[7, 6] = 24
-            self._scene[7, 7] = 50
-            self._scene[9, 8] = 74
+            # self._scene[1, 0] = 1
+            # self._scene[2, 1] = 2
+            # self._scene[3, 2] = 3
+            # self._scene[4, 3] = 5
+            # self._scene[4, 4] = 8
+            # self._scene[4, 5] = 16
+            # self._scene[7, 6] = 24
+            # self._scene[7, 7] = 50
+            # self._scene[9, 8] = 74
             self._scene[10, 9] = 124
             self.P = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_P.pickle'))
             self.R = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_R.pickle'))
@@ -105,27 +105,34 @@ class Deepsea(SaveableObject):
                 pos = (i, j)
                 pos_index = self._get_index(pos)
                 valid_n_pos = []
+                out_of_map_n_pos = []
                 # if we are in a terminal transition (treasure found)
                 # beam back to start_state
                 if self._flat_map[pos_index] > 0:
-                    for a in xrange(self.n_actions):
-                        valid_n_pos.append((self._index_terminal_state, a))
+                    self.P[pos_index, :, self._index_terminal_state] = 1.0
                 elif self._flat_map[pos_index] < 0:
                     self.P[pos_index, :, pos_index] = 1.0
                 else:
                     # nonterminal transitions
                     for a in xrange(self.n_actions):
                         n_pos = pos + self._actions[a]
+                        n_pos_index = self._get_index(n_pos)
                         if self._in_map(n_pos):
-                            n_pos_index = self._get_index(n_pos)
                             if self._flat_map[n_pos_index] > -100:
                                 valid_n_pos.append((n_pos_index, a))
+                            else:
+                                out_of_map_n_pos.append((n_pos_index, a))
+                        else:
+                            out_of_map_n_pos.append((n_pos_index, a))
                 if len(valid_n_pos) > 0:
                     # prob = 1.0 / len(valid_n_pos)
                     for n_pos_index, a in valid_n_pos:
                         self.P[pos_index, a, n_pos_index] = 1.0
-                else:
-                    self.P[pos_index, :, pos_index] = 1.0
+                # else:
+                #     self.P[pos_index, :, pos_index] = 1.0
+                if len(out_of_map_n_pos) > 0:
+                    for n_pos_index, a in out_of_map_n_pos:
+                        self.P[pos_index, a, pos_index] = 1.0
         self.P[self._index_terminal_state, :, :] = 0
         self.P[self._index_terminal_state, :, self._index_terminal_state] = 1.0
         normalizer = self.P.sum(axis=2)[:, :, np.newaxis]

@@ -122,6 +122,79 @@ class PolicyDeepseaDeterministicExample01(PolicyDeepsea):
             else:
                 self._pi[i, :] = 1.0 / self._problem.n_actions
 
+
+class PolicyDeepseaExpert(PolicyDeepsea):
+    """
+    Human expert policy for the deepsea scenario
+    """
+                  # state:   up,   do,   ri,   le,
+    _T1 = {     0:  (0.00, 0.00, 1.00, 0.00),
+                1:  (0.00, 0.10, 0.90, 0.00),
+                2:  (0.00, 0.22, 0.78, 0.00),
+                3:  (0.00, 0.00, 1.00, 0.00),
+                4:  (0.00, 0.00, 1.00, 0.00),
+                5:  (0.00, 0.14, 0.86, 0.00),
+                6:  (0.00, 0.00, 1.00, 0.00),
+                7:  (0.00, 0.50, 0.50, 0.00),
+                8:  (0.00, 0.33, 0.67, 0.00),
+                9:  (0.00, 1.00, 0.00, 0.00),
+                11: (0.00, 0.00, 1.00, 0.00),
+                12: (0.00, 0.33, 0.67, 0.00),
+                13: (0.00, 0.50, 0.50, 0.00),
+                14: (0.00, 1.00, 0.00, 0.00),
+                15: (0.00, 1.00, 0.00, 0.00),
+                17: (0.00, 1.00, 0.00, 0.00),
+                18: (0.00, 1.00, 0.00, 0.00),
+                19: (0.00, 1.00, 0.00, 0.00),
+                22: (0.00, 0.00, 1.00, 0.00),
+                23: (0.00, 0.50, 0.50, 0.00),
+                24: (0.00, 0.00, 1.00, 0.00),
+                25: (0.00, 0.50, 0.50, 0.00),
+                26: (0.00, 0.00, 1.00, 0.00),
+                27: (0.00, 0.80, 0.20, 0.00),
+                28: (0.00, 0.50, 0.50, 0.00),
+                29: (0.00, 1.00, 0.00, 0.00),
+                33: (0.00, 0.00, 1.00, 0.00),
+                34: (1.00, 0.00, 0.00, 0.00),
+                35: (0.00, 1.00, 0.00, 0.00),
+                37: (0.00, 1.00, 0.00, 0.00),
+                38: (0.00, 1.00, 0.00, 0.00),
+                39: (0.00, 1.00, 0.00, 0.00),
+                47: (0.00, 1.00, 0.00, 0.00),
+                48: (0.00, 1.00, 0.00, 0.00),
+                49: (0.00, 1.00, 0.00, 0.00),
+                57: (0.00, 1.00, 0.00, 0.00),
+                58: (0.00, 1.00, 0.00, 0.00),
+                59: (0.00, 1.00, 0.00, 0.00),
+                67: (0.00, 1.00, 0.00, 0.00),
+                68: (0.00, 1.00, 0.00, 0.00),
+                69: (0.00, 1.00, 0.00, 0.00),
+                78: (0.00, 1.00, 0.00, 0.00),
+                79: (0.00, 1.00, 0.00, 0.00),
+                88: (0.00, 1.00, 0.00, 0.00),
+                89: (0.00, 1.00, 0.00, 0.00),
+                99: (0.00, 1.00, 0.00, 0.00)
+                }
+
+    def __init__(self, problem, task='T1'):
+        super(PolicyDeepseaExpert, self).__init__(problem)
+
+        self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
+
+        if task == 'T1':
+            pi_dict = self._T1
+        else:
+            raise ValueError('Given Task Policy does not exist')
+
+        # fill pi for all states with 1/n_actions except for the ones in
+        # transition_dict
+        for i, vals in pi_dict.iteritems():
+            for action, val in enumerate(vals):
+                self._pi[i, action] = val
+
+        # TODO: implement the terminal state and the "do-nothing-action"
+
+
 class PolicyDeepseaFromAgent(PolicyDeepsea):
     """
     Derive a greedy policy from a trained agent.

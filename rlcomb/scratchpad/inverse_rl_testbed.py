@@ -20,7 +20,7 @@ from morl_problems import Deepsea
 from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent
 from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministicExample01, PolicyDeepseaFromAgent
 from inverse_morl import InverseMORL
-from plot_heatmap import policy_plot, transition_map, heatmap_matplot
+from plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
 from dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
 from experiment_helpers import morl_interact_multiple
 
@@ -37,22 +37,24 @@ if __name__ == '__main__':
     # i_morl = InverseMORL(problem, policy)
     # scalarization_weights = i_morl.solve()
     # scalarization_weights = np.array([0.153, 0.847])
-    scalarization_weights = np.array([0.4, 0.6])
+    scalarization_weights = np.array([0.016, 0.99])
 
-    eps = 0.8
+    eps = 0.95
     alfa = 0.3
 
     agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-    interactions = 50
+    interactions = 1000
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
 
     #plt.ion()
 
     #transition_map(problem, states, moves)
     learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='gibbs')
-    heatmap_matplot(problem, states)
+    #heatmap_matplot(problem, states)
+
+    policy_plot2(problem, learned_policy)
 
     #plt.ioff()
 

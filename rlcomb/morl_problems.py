@@ -66,13 +66,13 @@ class Deepsea(SaveableObject):
             self._scene[8:11, 6:8] = -100
             self._scene[10, 8] = -100
             # Rewards of the default map
-            # self._scene[1, 0] = 1
-            # self._scene[2, 1] = 2
-            # self._scene[3, 2] = 3
-            # self._scene[4, 3] = 5
-            # self._scene[4, 4] = 8
-            # self._scene[4, 5] = 16
-            # self._scene[7, 6] = 24
+            self._scene[1, 0] = 1
+            self._scene[2, 1] = 2
+            self._scene[3, 2] = 3
+            self._scene[4, 3] = 5
+            self._scene[4, 4] = 8
+            self._scene[4, 5] = 16
+            self._scene[7, 6] = 24
             self._scene[7, 7] = 50
             self._scene[9, 8] = 74
             self._scene[10, 9] = 124

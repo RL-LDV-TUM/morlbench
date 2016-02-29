@@ -17,12 +17,6 @@ import matplotlib.colors as colors
 import matplotlib.patches as patches
 import numpy as np
 
-def format_axes(ax):
-    ax.margins(0.0)
-
-    #ax.set_axis_off()
-
-
 def heatmap_matplot(problem, states):
     """
     Plots a simple heatmap of visited states for a given problem (e.g. Deepsea)
@@ -45,15 +39,8 @@ def heatmap_matplot(problem, states):
     # Shape the linearized heatmap according to the problem geometry
     heatmap_shaped = heatmap.reshape(problem._scene.shape)
 
-    # Generate masked heatmap (ground is masked for plotting)
-    heatmap_mask = np.ma.masked_where(problem._scene == -100, heatmap_shaped)
-
-
     mycmap = plt.get_cmap("YlOrRd")
     norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
-
-
-    xx, yy = np.meshgrid(range(x_dim), range(y_dim), indexing='ij')
 
     fig = plt.figure()
     fig.suptitle('Heatmap Plot of visited States', fontsize=14, fontweight='bold')
@@ -63,19 +50,16 @@ def heatmap_matplot(problem, states):
         for x in xrange(x_dim):
             ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
 
-            if problem._scene[y,x] < 0:
-                ax.add_patch(patches.Rectangle((x-0.5,-y-0.5),1,1, facecolor='black'))
+            if problem._scene[y, x] < 0:
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1, facecolor='black'))
 
-            if problem._scene[y,x] > 0:
-                ax.add_patch(patches.Rectangle((x-0.5,-y-0.5),1,1,
+            if problem._scene[y, x] > 0:
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
                                                facecolor='none', edgecolor='red', linestyle='dotted'))
 
-    ax.add_patch(patches.Rectangle((-0.5,-y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
+    ax.add_patch(patches.Rectangle((-0.5, -y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
 
 
-    ticks_offset = 1
-    plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
-               tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
 
     def format_coord(x, y):
         x = int(x)
@@ -89,7 +73,69 @@ def heatmap_matplot(problem, states):
 
     ax.format_coord = format_coord
 
+    ax.margins(0.0)
+
+    ticks_offset = 1
+    plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
+               tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
+
     plt.show()
+
+
+def policy_plot2(problem, policy):
+
+    x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
+
+    _pi = policy.get_pi()
+
+    mycmap = plt.get_cmap("YlOrRd")
+    #norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
+
+    fig = plt.figure()
+    fig.suptitle('Policy Plot', fontsize=14, fontweight='bold')
+    ax = fig.add_subplot(111)
+
+    for y in xrange(y_dim):
+        for x in xrange(x_dim):
+            if problem._scene[y,x] < 0:
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1, facecolor='black'))
+            elif problem._scene[y,x] > 0:
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
+                                               facecolor='none', edgecolor='red', linestyle='dotted'))
+                ax.annotate(problem._scene[y,x], (x, -y), color='black', weight='bold',
+                fontsize=12, ha='center', va='center')
+            else:
+                for a in xrange(problem.n_actions-1):
+                    off1 = problem._actions[a] * 0.15
+                    off2 = problem._actions[a] * 0.23
+                    ax.add_patch(patches.FancyArrow(x+off1[1], -y-off1[0], off2[1], -off2[0],
+                                                    width=0.3, head_width=0.3, head_length=0.1, lw=0,
+                                                    fc=mycmap(_pi[problem._get_index((y, x)), a])))
+
+    ax.add_patch(patches.Rectangle((-0.5, -y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
+
+    def format_coord(x, y):
+        x = int(x)
+        y = int(abs(-y))
+        y = int(abs(-y))
+        if x >= 0 and x <= x_dim-1 and x >= 0 and y <= y_dim-1:
+            for a in xrange(problem.n_actions-1):
+                vals = _pi[problem._get_index((y, x)), :]
+                vals = ' '.join('%1.2f' % v for v in vals )
+            return 'x=%1.0f, y=%1.0f, values=%s' % (x, y, vals)
+        else:
+            return 'x=%1.0f, y=%1.0f' % (x, y)
+
+    ax.format_coord = format_coord
+
+    ticks_offset = 1
+    plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
+               tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
+
+    ax.margins(0.0)
+
+    plt.show()
+
 
 def policy_plot(problem, policy, filename=None):
     """

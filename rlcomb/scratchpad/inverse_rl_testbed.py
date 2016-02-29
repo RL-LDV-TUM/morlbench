@@ -37,15 +37,15 @@ if __name__ == '__main__':
     # i_morl = InverseMORL(problem, policy)
     # scalarization_weights = i_morl.solve()
     # scalarization_weights = np.array([0.153, 0.847])
-    scalarization_weights = np.array([0.2, 0.8])
+    scalarization_weights = np.array([0.4, 0.6])
 
     eps = 0.8
     alfa = 0.3
 
-    # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-    interactions = 500
+    interactions = 50
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
 
     #plt.ion()

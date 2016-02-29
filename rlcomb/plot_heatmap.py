@@ -13,11 +13,12 @@ import time
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-
+import matplotlib.colors as colors
+import matplotlib.patches as patches
 import numpy as np
 
 def format_axes(ax):
-    ax.margins(0.02)
+    ax.margins(0.0)
 
     #ax.set_axis_off()
 
@@ -42,21 +43,34 @@ def heatmap_matplot(problem, states):
         heatmap[:len(z)] += z
 
     # Shape the linearized heatmap according to the problem geometry
-    heatmap = heatmap.reshape(problem._scene.shape)
+    heatmap_shaped = heatmap.reshape(problem._scene.shape)
 
     # Generate masked heatmap (ground is masked for plotting)
-    heatmap_mask = np.ma.masked_where(problem._scene == -100, heatmap)
+    heatmap_mask = np.ma.masked_where(problem._scene == -100, heatmap_shaped)
 
 
     mycmap = plt.get_cmap("YlOrRd")
+    norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
 
-    xx, yy = np.meshgrid(range(x_dim), range(y_dim),indexing='xy')
+
+    xx, yy = np.meshgrid(range(x_dim), range(y_dim), indexing='ij')
 
     fig = plt.figure()
     fig.suptitle('Heatmap Plot of visited States', fontsize=14, fontweight='bold')
     ax = fig.add_subplot(111)
 
-    ax.scatter(xx, -yy, c=heatmap[yy, xx], s=100, cmap=mycmap)
+    for y in xrange(y_dim):
+        for x in xrange(x_dim):
+            ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
+
+            if problem._scene[y,x] < 0:
+                ax.add_patch(patches.Rectangle((x-0.5,-y-0.5),1,1, facecolor='black'))
+
+            if problem._scene[y,x] > 0:
+                ax.add_patch(patches.Rectangle((x-0.5,-y-0.5),1,1,
+                                               facecolor='none', edgecolor='red', linestyle='dotted'))
+
+    ax.add_patch(patches.Rectangle((-0.5,-y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
 
 
     ticks_offset = 1
@@ -65,57 +79,17 @@ def heatmap_matplot(problem, states):
 
     def format_coord(x, y):
         x = int(x)
-        y = int(-y)
-        if x >= 0 and x <= x_dim and x >= 0 and y <= y_dim:
-            z = heatmap[x, y]
-            return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
+        y = int(abs(-y))
+        y = int(abs(-y))
+        if x >= 0 and x <= x_dim-1 and x >= 0 and y <= y_dim-1:
+            z = heatmap_shaped[y, x]
+            return 'x=%1.0f, y=%1.0f, z=%1.2f' % (x, y, z)
         else:
-            return 'x=%1.4f, y=%1.4f' % (x, y)
+            return 'x=%1.0f, y=%1.0f' % (x, y)
 
     ax.format_coord = format_coord
 
     plt.show()
-
-
-    def grid(x, y, z, resX=100, resY=100):
-        """Convert 3 column data to matplotlib grid"
-        Usage:
-        X, Y, Z = grid(x, y, z)
-        plt.contourf(X, Y, Z)
-        """
-        xi = linspace(min(x), max(x), resX)
-        yi = linspace(min(y), max(y), resY)
-        Z = griddata(x, y, z, xi, yi)
-        X, Y = meshgrid(xi, yi)
-        return X, Y, Z
-
-    # fig, ax = plt.subplots()
-    #
-    # colormap = cm.jet  # color map
-    #
-    # colormap.set_bad(color='grey')  # set color for mask (ground)
-    #
-    # ax.imshow(heatmap_mask, colormap, interpolation='nearest')
-    #
-    # numrows, numcols = heatmap.shape
-    #
-    # # x = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    # # y = ['-0', '-1', '-2', '-3', '-4', '-5', '-6', '-7', '-8', '-9', '-10']
-    #
-    # # Set z-value to the heatmap value -> so it can be read in the plot
-    # def format_coord(x, y):
-    #     col = int(x + 0.5)
-    #     row = int(y + 0.5)
-    #     if col >= 0 and col < numcols and row >= 0 and row < numrows:
-    #         z = heatmap[row, col]
-    #         return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
-    #     else:
-    #         return 'x=%1.4f, y=%1.4f' % (x, y)
-    #
-    # ax.format_coord = format_coord
-    # plt.title('Heatmap')
-    # plt.show()
-
 
 def policy_plot(problem, policy, filename=None):
     """

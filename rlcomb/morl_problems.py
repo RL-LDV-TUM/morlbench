@@ -268,7 +268,7 @@ class Deepsea(SaveableObject):
             self._terminal_state = True
             self._last_state = self._state
             self._state = self._index_terminal_state
-            return np.array([self._terminal_reward, 0])
+            return np.array([self._terminal_reward, -1]) # before for time 0
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 

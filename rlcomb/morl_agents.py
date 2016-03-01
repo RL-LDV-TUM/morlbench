@@ -129,6 +129,9 @@ class TDMorlAgent(MorlAgent):
         return self._policy.decide(state)
 
     def reset(self):
+        """
+        resets the current agent! Be careful and save value function first!
+        """
         self._V = np.zeros(self._morl_problem.n_states)
 
 
@@ -160,7 +163,9 @@ class SARSAMorlAgent(MorlAgent):
         self._epsilon = epsilon
 
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
-        self._last_action = random.randint(0, self._morl_problemproblem.n_actions-1)
+        # hidden variables for conserving agent state
+        self._Q_save = []
+        self._last_action = random.randint(0, self._morl_problem.n_actions-1)
 
     def learn(self, t, last_state, action, reward, state):
         self._learn(0, last_state, self._last_action, action, reward, state)
@@ -194,8 +199,20 @@ class SARSAMorlAgent(MorlAgent):
         return dist.ravel()
 
     def reset(self):
+        """
+        resets the current agent! Be careful and save learned Q matrix first!
+        """
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
-        self._last_action = random.randint(0,self._morl_problem.problem.n_actions-1)
+        self._last_action = random.randint(0,self._morl_problem.n_actions-1)
+
+    def save(self):
+        self._Q_save.append(self._Q)
+
+    def restore(self):
+        tmp = np.zeros_like(self._Q)
+        for i in self._Q_save:
+            tmp += i
+        self._Q = np.divide(tmp, self._Q_save.__len__())
 
 
 class SARSALambdaMorlAgent(SARSAMorlAgent):
@@ -207,6 +224,8 @@ class SARSALambdaMorlAgent(SARSAMorlAgent):
 
         self._lmbda = lmbda
         self._e = np.zeros_like(self._Q)
+        # hidden variables for conserving agent state
+        self._e_save = []
 
     def name(self):
         return "SARSALambda_" + str(self._lmbda) + "e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
@@ -220,9 +239,26 @@ class SARSALambdaMorlAgent(SARSAMorlAgent):
         if my_debug: log.debug(' Q: %s' % (str(self._Q)))
 
     def reset(self):
+        """
+        resets the current agent! Be careful and save learned Q matrix and the eligibility traces first!
+        """
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
-        self._last_action = random.randint(0,self._morl_problem.problem.n_actions-1)
+        self._last_action = random.randint(0,self._morl_problem.n_actions-1)
         self._e = np.zeros_like(self._Q)
+
+    def save(self):
+        self._Q_save.append(self._Q)
+        self._e_save.append(self._e)
+
+    def restore(self):
+        tmp = np.zeros_like(self._Q)
+        for i in self._Q_save:
+            tmp += i
+        self._Q = np.divide(tmp,self._Q_save.__len__())
+        tmp = np.zeros_like(self._Q)
+        for i in self._e_save:
+            tmp += i
+        self._e = np.divide(tmp,self._e_save.__len__())
 
 
 class QMorlAgent(MorlAgent):
@@ -258,6 +294,9 @@ class QMorlAgent(MorlAgent):
         # self._Q = np.ones(
         #         (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
         self._last_action = random.randint(0, self._morl_problem.n_actions-1)
+
+        # hidden variables for conserving agent state
+        self._Q_save = []
 
     def name(self):
         return "scalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
@@ -303,9 +342,22 @@ class QMorlAgent(MorlAgent):
         return dist.ravel()
 
     def reset(self):
+        """
+        resets the current agent! Be careful and save learned Q matrix first!
+        """
         self._Q = np.zeros(
                 (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
         self._last_action = random.randint(0, self._morl_problem.n_actions-1)
+
+    def save(self):
+        self._Q_save.append(self._Q)
+
+    def restore(self):
+        tmp = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
+        for i in self._Q_save:
+            tmp += i
+        self._Q = np.divide(tmp,self._Q_save.__len__())
+
 
 
 class PreScalarizedQMorlAgent(MorlAgent):
@@ -336,6 +388,7 @@ class PreScalarizedQMorlAgent(MorlAgent):
         self._epsilon = epsilon
 
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
+        self._Q_save = []
         self._last_action = random.randint(0,problem.n_actions-1)
 
     def name(self):
@@ -383,8 +436,20 @@ class PreScalarizedQMorlAgent(MorlAgent):
         return dist.ravel()
 
     def reset(self):
+        """
+        resets the current agent! Be careful and save learned Q matrix first!
+        """
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
         self._last_action = random.randint(0,problem.n_actions-1)
+
+    def save(self):
+        self._Q_save.append(self._Q)
+
+    def restore(self):
+        tmp = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
+        for i in self._Q_save:
+            tmp += i
+        self._Q = np.divide(tmp,self._Q_save.__len__())
 
 
 class FixedPolicyAgent(MorlAgent):
@@ -404,6 +469,15 @@ class FixedPolicyAgent(MorlAgent):
         return self._policy.decide(state)
 
     def reset(self):
+        """
+        resets the current agent!
+        """
+        pass
+
+    def save(self):
+        pass
+
+    def restore(self):
         pass
 
 

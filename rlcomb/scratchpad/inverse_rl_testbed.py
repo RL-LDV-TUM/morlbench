@@ -40,7 +40,8 @@ if __name__ == '__main__':
     # agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=0.3, epsilon=eps)
     # payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
 
-    policy_optimal = PolicyDeepseaDeterministicExample01(problem)
+    # policy_optimal = PolicyDeepseaDeterministicExample01(problem)
+    policy_optimal = PolicyDeepseaRandom(problem)
     # policy_optimal = PolicyDeepseaFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
     # policy_plot(problem, policy_optimal)
 

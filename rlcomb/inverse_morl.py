@@ -7,7 +7,7 @@ Created on Feb 26, 2016
 """
 
 from helpers import SaveableObject, virtualFunction
-from dynamic_programming import DynamicProgrammingInverse
+from dynamic_programming import MORLDynamicProgrammingInverse, MORLDynamicProgrammingPolicyEvaluation
 
 import numpy as np
 import numpy.linalg as npla
@@ -54,7 +54,8 @@ class InverseMORL(SaveableObject):
     def _prepare_v(self, n_states, n_actions, reward_dimension, P):
         problem, policy = self._problem, self._policy
 
-        dp = DynamicProgrammingInverse(problem, policy)
+        # dp = MORLDynamicProgrammingInverse(problem, policy)
+        dp = MORLDynamicProgrammingPolicyEvaluation(problem, policy)
         V = dp.solve()
 
         v = np.zeros((n_states, n_actions - 1, reward_dimension))

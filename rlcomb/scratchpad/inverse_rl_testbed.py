@@ -32,19 +32,20 @@ if __name__ == '__main__':
     reward_dimension = problem.reward_dimension
     scalarization_weights = np.zeros(reward_dimension)
 
-    policy = PolicyDeepseaDeterministicExample01(problem)
+    policy1 = PolicyDeepseaDeterministicExample01(problem)
 
-    # policy = PolicyDeepseaExpert(problem)
+    policy = PolicyDeepseaExpert(problem)
 
-    # i_morl = InverseMORL(problem, policy)
-    # scalarization_weights = i_morl.solve()
+    i_morl = InverseMORL(problem, policy)
+    scalarization_weights = i_morl.solve()
+
     # scalarization_weights = np.array([0.153, 0.847])
-    scalarization_weights = np.array([0.847, 0.153])
+    # scalarization_weights = np.array([0.847, 0.153])
     # scalarization_weights = np.array([0.016, 0.99])
 
     eps = 0.9
     alfa = 0.1
-    interactions = 1000
+    interactions = 10000
 
     agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)

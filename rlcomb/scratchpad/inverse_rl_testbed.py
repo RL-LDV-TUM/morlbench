@@ -18,7 +18,7 @@ log.basicConfig(level=log.INFO)
 
 from morl_problems import Deepsea
 from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent
-from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministicExample01, PolicyDeepseaFromAgent, PolicyDeepseaExpert
+from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyDeepseaFromAgent, PolicyDeepseaExpert
 from inverse_morl import InverseMORL
 from plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
 from dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
@@ -40,23 +40,21 @@ if __name__ == '__main__':
     # agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=0.3, epsilon=eps)
     # payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
 
-    policy_optimal = PolicyDeepseaDeterministicExample01(problem)
-    policy_human = PolicyDeepseaExpert(problem)
+    policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
+    policy_human = PolicyDeepseaExpert(problem, task='T3')
     # policy_optimal = PolicyDeepseaRandom(problem)
     # policy_optimal = PolicyDeepseaFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
     # policy_plot(problem, policy_optimal)
 
-    i_morl = InverseMORL(problem, policy_human)
+    i_morl = InverseMORL(problem, policy_optimal)
     scalarization_weights = i_morl.solvep()
 
-    log.info("scalarization weights (with p): %s" % (str(scalarization_weights)))
-    log.info("scalarization weights (without p): %s" % (str(i_morl.solve())))
+    #log.info("scalarization weights (with p): %s" % (str(scalarization_weights)))
+    #log.info("scalarization weights (without p): %s" % (str(i_morl.solve())))
     log.info("scalarization weights (without p, sum 1): %s" % (str(i_morl.solve_sum_1())))
-    log.info("scalarization weights (alge): %s" % (str(i_morl.solvealge())))
+    #log.info("scalarization weights (alge): %s" % (str(i_morl.solvealge())))
 
     # sys.exit(0)
-
-    policy = PolicyDeepseaDeterministicExample01(problem)
 
     # i_morl = InverseMORL(problem, policy)
     # scalarization_weights = i_morl.solve()

@@ -153,7 +153,7 @@ class Deepsea(SaveableObject):
         for i in xrange(self.n_states - 1): # handle terminal state seperately
             self.R[i, 0] = self._scene[self._get_position(i)]
         # second the "time" reward for taking steps
-        self.R[:, 1] = -1
+        self.R[:, 1] = -1.0
         # zero out all position in the ground
         groundpos = self.R[:, 0] <= -100
         self.R[groundpos, :] = 0

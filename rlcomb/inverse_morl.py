@@ -41,8 +41,11 @@ class InverseMORL(SaveableObject):
         n_actions = self._problem.n_actions
         reward_dimension = self._problem.reward_dimension
         gamma = self._problem.gamma
+        # transition matrix P_{ss'}
         P = self._problem.P
+        # reward matrix R(s)
         R = self._problem.R
+        # Policy pi
         pi = self._policy.get_pi()
 
         # calculate state transition probability matrix together with policy

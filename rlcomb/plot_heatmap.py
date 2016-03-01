@@ -79,10 +79,15 @@ def heatmap_matplot(problem, states):
     plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
                tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
 
+    plt.xticks(range(0+ticks_offset, x_dim+ticks_offset),
+               tuple(map(str, range(0+ticks_offset, x_dim+ticks_offset, 1))))
+
     plt.show()
 
 
 def policy_plot2(problem, policy):
+
+    filename = None
 
     x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
 
@@ -92,7 +97,7 @@ def policy_plot2(problem, policy):
     #norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
 
     fig = plt.figure()
-    fig.suptitle('Policy Plot', fontsize=14, fontweight='bold')
+
     ax = fig.add_subplot(111)
 
     for y in xrange(y_dim):
@@ -132,9 +137,24 @@ def policy_plot2(problem, policy):
     plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
                tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
 
+    plt.xticks(range(0, x_dim),
+               tuple(map(str, range(0, x_dim, 1))))
+    ax.xaxis.set_label_position('top')
+    ax.xaxis.set_ticks_position('top') # the rest is the same
+
+
     ax.margins(0.0)
 
+    if not filename:
+        filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S" + '.pdf')
+
+    plt.savefig(filename, format='pdf', bbox_inches='tight')
+
+    fig.suptitle('Policy Plot', fontsize=14, fontweight='bold')
+
     plt.show()
+
+
 
 
 def policy_plot(problem, policy, filename=None):

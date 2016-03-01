@@ -13,9 +13,9 @@ import time
 
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
-
+import matplotlib.colors as colors
+import matplotlib.patches as patches
 import numpy as np
-
 
 def heatmap_matplot(problem, states):
     """
@@ -25,8 +25,11 @@ def heatmap_matplot(problem, states):
     :param states: array of states per episode
     :return: shows a plot
     """
-    # Initialization of empty arrays
-    heatmap = np.zeros(problem.n_states)
+
+    x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
+
+    # Initialization of empty heatmap (-1 -> terminal state)
+    heatmap = np.zeros(problem.n_states - 1)
 
     # Count states per episode and sum them up
     for i in xrange(states.size):
@@ -34,37 +37,124 @@ def heatmap_matplot(problem, states):
         heatmap[:len(z)] += z
 
     # Shape the linearized heatmap according to the problem geometry
-    heatmap = heatmap.reshape(problem._scene.shape)
+    heatmap_shaped = heatmap.reshape(problem._scene.shape)
 
-    # Generate masked heatmap (ground is masked for plotting)
-    heatmap_mask = np.ma.masked_where(problem._scene == -100, heatmap)
+    mycmap = plt.get_cmap("YlOrRd")
+    norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
 
-    fig, ax = plt.subplots()
+    fig = plt.figure()
+    fig.suptitle('Heatmap Plot of visited States', fontsize=14, fontweight='bold')
+    ax = fig.add_subplot(111)
 
-    colormap = cm.jet  # color map
+    for y in xrange(y_dim):
+        for x in xrange(x_dim):
+            ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
 
-    colormap.set_bad(color='grey')  # set color for mask (ground)
+            if problem._scene[y, x] < 0:
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1, facecolor='black'))
 
-    ax.imshow(heatmap_mask, colormap, interpolation='nearest')
+            if problem._scene[y, x] > 0:
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
+                                               facecolor='none', edgecolor='red', linestyle='dotted'))
 
-    numrows, numcols = heatmap.shape
+    ax.add_patch(patches.Rectangle((-0.5, -y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
 
-    # x = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
-    # y = ['-0', '-1', '-2', '-3', '-4', '-5', '-6', '-7', '-8', '-9', '-10']
 
-    # Set z-value to the heatmap value -> so it can be read in the plot
+
     def format_coord(x, y):
-        col = int(x + 0.5)
-        row = int(y + 0.5)
-        if col >= 0 and col < numcols and row >= 0 and row < numrows:
-            z = heatmap[row, col]
-            return 'x=%1.4f, y=%1.4f, z=%1.4f' % (x, y, z)
+        x = int(x)
+        y = int(abs(-y))
+        y = int(abs(-y))
+        if x >= 0 and x <= x_dim-1 and x >= 0 and y <= y_dim-1:
+            z = heatmap_shaped[y, x]
+            return 'x=%1.0f, y=%1.0f, z=%1.2f' % (x, y, z)
         else:
-            return 'x=%1.4f, y=%1.4f' % (x, y)
+            return 'x=%1.0f, y=%1.0f' % (x, y)
 
     ax.format_coord = format_coord
 
+    ax.margins(0.0)
+
+    ticks_offset = 1
+    plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
+               tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
+
+    plt.xticks(range(0+ticks_offset, x_dim+ticks_offset),
+               tuple(map(str, range(0+ticks_offset, x_dim+ticks_offset, 1))))
+
     plt.show()
+
+
+def policy_plot2(problem, policy):
+
+    filename = None
+
+    x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
+
+    _pi = policy.get_pi()
+
+    mycmap = plt.get_cmap("YlOrRd")
+    #norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
+
+    fig = plt.figure()
+
+    ax = fig.add_subplot(111)
+
+    for y in xrange(y_dim):
+        for x in xrange(x_dim):
+            if problem._scene[y,x] < 0:
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1, facecolor='black'))
+            elif problem._scene[y,x] > 0:
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
+                                               facecolor='none', edgecolor='red', linestyle='dotted'))
+                ax.annotate(problem._scene[y,x], (x, -y), color='black', weight='bold',
+                fontsize=12, ha='center', va='center')
+            else:
+                for a in xrange(problem.n_actions-1):
+                    off1 = problem._actions[a] * 0.15
+                    off2 = problem._actions[a] * 0.23
+                    ax.add_patch(patches.FancyArrow(x+off1[1], -y-off1[0], off2[1], -off2[0],
+                                                    width=0.3, head_width=0.3, head_length=0.1, lw=0,
+                                                    fc=mycmap(_pi[problem._get_index((y, x)), a])))
+
+    ax.add_patch(patches.Rectangle((-0.5, -y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
+
+    def format_coord(x, y):
+        x = int(x)
+        y = int(abs(-y))
+        y = int(abs(-y))
+        if x >= 0 and x <= x_dim-1 and x >= 0 and y <= y_dim-1:
+            for a in xrange(problem.n_actions-1):
+                vals = _pi[problem._get_index((y, x)), :]
+                vals = ' '.join('%1.2f' % v for v in vals )
+            return 'x=%1.0f, y=%1.0f, values=%s' % (x, y, vals)
+        else:
+            return 'x=%1.0f, y=%1.0f' % (x, y)
+
+    ax.format_coord = format_coord
+
+    ticks_offset = 1
+    plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
+               tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
+
+    plt.xticks(range(0, x_dim),
+               tuple(map(str, range(0, x_dim, 1))))
+    ax.xaxis.set_label_position('top')
+    ax.xaxis.set_ticks_position('top') # the rest is the same
+
+
+    ax.margins(0.0)
+
+    if not filename:
+        filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S" + '.pdf')
+
+    plt.savefig(filename, format='pdf', bbox_inches='tight')
+
+    fig.suptitle('Policy Plot', fontsize=14, fontweight='bold')
+
+    plt.show()
+
+
 
 
 def policy_plot(problem, policy, filename=None):
@@ -133,7 +223,7 @@ def policy_plot(problem, policy, filename=None):
 
     if not(filename):
         filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S")
-
+    plt.title('Policy Plot')
     plt.savefig(filename, bbox_inches='tight')
 
     plt.show()
@@ -215,7 +305,7 @@ def transition_map(problem, states, moves):
             return 'x=%1.4f, y=%1.4f' % (x, y)
 
     ax.format_coord = format_coord
-
+    plt.title('Transition Plot')
     plt.show()
 
 # def heatmap_plotly():

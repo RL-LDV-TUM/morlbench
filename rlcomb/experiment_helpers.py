@@ -35,7 +35,7 @@ def interact_multiple(agent, problem, interactions):
     return actions, payouts
 
 
-def morl_interact_multiple(agent, problem, interactions, max_episode_length=100):
+def morl_interact_multiple(agent, problem, interactions, max_episode_length=150):
     """
     Interact multiple times with the multi objective RL
     problem and then return arrays of actions chosen and
@@ -78,6 +78,57 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=100)
                 final_rewards.append(reward)
                 break
         pbar.update(i)
+    # newline to fix output of pgbar
+    print ""
+    return np.array(final_rewards), np.array(moves), np.array(states)
+
+def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, max_episode_length=150):
+    """
+    Perform multiple runs with of multiple interactions with the
+    multi objective RL problem and then return arrays of actions chosen and
+    payouts received in each stage.
+    """
+
+    final_rewards = []
+    moves = []
+    states = []
+
+    log.info('Playing %i runs with %i interactions each... ', runs, interactions)
+    pbar = pgbar.ProgressBar(widgets=['Runs ', pgbar.SimpleProgress('/'), ' (', pgbar.Percentage(), ') ',
+                                      pgbar.Bar(), ' ', pgbar.ETA()], maxval=runs)
+    pbar.start()
+    for r in xrange(runs):
+
+        for i in xrange(interactions):
+            rewards = []
+            actions = []
+            tmp_states = []
+            problem.reset()
+            state = problem.state
+            last_state = state
+            for t in xrange(max_episode_length):
+                action = agent.decide(t, state)
+                reward = problem.play(action)
+                state = problem.state
+                if my_debug: log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
+                          (t, problem.last_state, action, str(reward), state))
+                agent.learn(t, last_state, action, reward, state)
+
+                # Preserve reward, action and state
+                rewards.append(reward)
+                actions.append(action)
+                tmp_states.append(problem.last_state)
+                last_state = state
+                # Decide if terminal state
+                if problem.terminal_state:
+                    problem.reset()
+                    moves.append(actions)
+                    states.append(tmp_states)
+                    final_rewards.append(reward)
+                    break
+
+        agent.reset()
+        pbar.update(r)
     # newline to fix output of pgbar
     print ""
     return np.array(final_rewards), np.array(moves), np.array(states)

@@ -128,6 +128,9 @@ class TDMorlAgent(MorlAgent):
     def decide(self, t, state):
         return self._policy.decide(state)
 
+    def reset(self):
+        self._V = np.zeros(self._morl_problem.n_states)
+
 
 class SARSAMorlAgent(MorlAgent):
     """
@@ -157,7 +160,7 @@ class SARSAMorlAgent(MorlAgent):
         self._epsilon = epsilon
 
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
-        self._last_action = random.randint(0,problem.n_actions-1)
+        self._last_action = random.randint(0, self._morl_problemproblem.n_actions-1)
 
     def learn(self, t, last_state, action, reward, state):
         self._learn(0, last_state, self._last_action, action, reward, state)
@@ -190,6 +193,10 @@ class SARSAMorlAgent(MorlAgent):
         dist = tmp / tsum
         return dist.ravel()
 
+    def reset(self):
+        self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
+        self._last_action = random.randint(0,self._morl_problem.problem.n_actions-1)
+
 
 class SARSALambdaMorlAgent(SARSAMorlAgent):
     """
@@ -211,6 +218,11 @@ class SARSALambdaMorlAgent(SARSAMorlAgent):
         self._Q += self._alpha * delta * self._e
         self._e *= self._gamma * self._lmbda
         if my_debug: log.debug(' Q: %s' % (str(self._Q)))
+
+    def reset(self):
+        self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
+        self._last_action = random.randint(0,self._morl_problem.problem.n_actions-1)
+        self._e = np.zeros_like(self._Q)
 
 
 class QMorlAgent(MorlAgent):
@@ -245,7 +257,7 @@ class QMorlAgent(MorlAgent):
                 (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
         # self._Q = np.ones(
         #         (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
-        self._last_action = random.randint(0,problem.n_actions-1)
+        self._last_action = random.randint(0, self._morl_problem.n_actions-1)
 
     def name(self):
         return "scalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
@@ -289,6 +301,11 @@ class QMorlAgent(MorlAgent):
         tsum = tmp.sum()
         dist = tmp / tsum
         return dist.ravel()
+
+    def reset(self):
+        self._Q = np.zeros(
+                (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
+        self._last_action = random.randint(0, self._morl_problem.n_actions-1)
 
 
 class PreScalarizedQMorlAgent(MorlAgent):
@@ -365,6 +382,10 @@ class PreScalarizedQMorlAgent(MorlAgent):
         dist = tmp / tsum
         return dist.ravel()
 
+    def reset(self):
+        self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
+        self._last_action = random.randint(0,problem.n_actions-1)
+
 
 class FixedPolicyAgent(MorlAgent):
     """
@@ -381,6 +402,9 @@ class FixedPolicyAgent(MorlAgent):
 
     def decide(self, t, state):
         return self._policy.decide(state)
+
+    def reset(self):
+        pass
 
 
 class NFQAgent(MorlAgent):
@@ -413,6 +437,19 @@ class NFQAgent(MorlAgent):
                                   [0, self._morl_problem.scene_x_dim],
                                   [0, self._morl_problem.n_actions]],
                                  [20, 20, len(self._scalarization_weights)])
+
+    def reset(self):
+        self._last_state = 0
+        self._last_action = random.randint(0, self._morl_problem.n_actions-1)
+        self._transistion_history = []  # full transition history (s,a,a')
+        self._train_history = []  # input history for NN (s,a)
+        self._goal_hist = []  # goal history
+        self._last_reward = np.zeros_like(self._scalarization_weights)
+        self._net = nl.net.newff([[0, self._morl_problem.scene_y_dim],
+                                  [0, self._morl_problem.scene_x_dim],
+                                  [0, self._morl_problem.n_actions]],
+                                 [20, 20, len(self._scalarization_weights)])
+
 
     def learn(self, t, action, reward, state):
         self._learn(0, self._last_state, self._last_action,

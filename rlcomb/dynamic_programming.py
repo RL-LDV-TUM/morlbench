@@ -104,7 +104,7 @@ class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
                 V_n = R + gamma * np.dot(P_pi, V)
                 if npla.norm(V - V_n) < 1e-22:
                     V = V_n
-                    log.debug("Value iteration converged after %i iterations" % (i))
+                    log.debug("Policy evaluation converged after %i iterations" % (i))
                     break
                 V = V_n
         else:
@@ -119,9 +119,9 @@ class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
                     delta = max(delta, abs(tmp - V[s]))
                     i += 1
                 if i > max_iterations:
-                    log.warn("Value iteration truncated after max_iterations delta: %f" % delta)
+                    log.warn("Policy evaluation truncated after max_iterations delta: %f" % delta)
                     break
-            log.debug("Value iteration converged after %i iterations" % (i))
+            log.debug("Policy evaluation converged after %i iterations" % (i))
 
         return V
 

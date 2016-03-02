@@ -116,8 +116,8 @@ class Deepsea(MORLProblem):
         self.reward_dimension = 2
         self._extended_reward = extended_reward
         if extended_reward:
-            # self._reward_dimension += self.n_states
-            self.reward_dimension = self.n_states
+            self.reward_dimension += self.n_states
+            # self.reward_dimension = self.n_states
 
         self.reset()
 
@@ -137,7 +137,7 @@ class Deepsea(MORLProblem):
                 pos = (i, j)
                 pos_index = self._get_index(pos)
                 for a in xrange(self.n_actions - 1):  # for all action except the last -> idle action
-                    n_pos = pos + self._actions[a]
+                    n_pos = pos + self.actions[a]
                     n_pos_index = self._get_index(n_pos)
 
                     if self._in_map(n_pos) and self._flat_map[pos_index] == 0:  # we are in the map and no special state
@@ -209,9 +209,9 @@ class Deepsea(MORLProblem):
     def _get_reward(self, state):
         r = np.zeros(self.reward_dimension)
 
-        if self._extended_reward:
-            r[state] = 1
-            return r
+        # if self._extended_reward:
+        #     r[state] = 1
+        #     return r
 
         # -1 for all moves
         r[1] = -1.0
@@ -265,7 +265,7 @@ class Deepsea(MORLProblem):
 
         last_position = np.copy(self._position)  # numpy arrays are mutable -> must be copied
 
-        if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self._actions[action]) +
+        if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self.actions[action]) +
                                ' (last pos: ' + str(last_position) + ')')
 
         if self._in_map(self._position + self.actions[action]):
@@ -310,7 +310,7 @@ class DeepseaEnergy(Deepsea):
         self.reward_dimension = 3
 
         super(DeepseaEnergy, self).__init__(scene=scene, actions=actions, state=state)
-        super(Deepsea, self).__init__(keys=['_time', '_actions', '_scene', '_energy'])
+        super(Deepsea, self).__init__(keys=['_time', 'actions', '_scene', '_energy'])
 
     def reset(self):
         super(DeepseaEnergy, self).reset()
@@ -334,7 +334,7 @@ class MountainCar(MORLProblem):
         """
 
         super(MountainCar, self).__init__(
-                ['state', '_time', '_actions', '_scene'])
+                ['state', '_time', 'actions', '_scene'])
 
         self.actions = ('left', 'right', 'none')
 
@@ -492,9 +492,9 @@ class MountainCarMulti(MountainCar):
         }
 
         # Determine acceleration factor
-        if action < len(self._actions):
+        if action < len(self.actions):
             factor = map_actions[self.actions[action]]  # map action to thrust factor
-            if (self._actions[action] == 'right') or (self._actions[action] == 'left'):
+            if (self._actions[action] == 'right') or (self.actions[action] == 'left'):
                 self._nb_actions += 1
         else:
             print 'Warning: No matching action - Default action was selected!'

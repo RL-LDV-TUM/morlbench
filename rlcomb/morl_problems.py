@@ -112,7 +112,7 @@ class Deepsea(MORLProblem):
         #self._predictor_accuracy = predictor_accuracy
         #self._payouts = payouts
         self.actions = actions
-        self.n_actions = len(self._actions)
+        self.n_actions = len(self.actions)
 
         self.reward_dimension = 2
         self._extended_reward = extended_reward

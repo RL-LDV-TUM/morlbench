@@ -580,24 +580,39 @@ class Gridworld(MORLProblem):
     def _construct_p(self):
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
+            xi, yi = self._get_position(i)
             for a in xrange(self.n_actions):
-                for j in xrange(self.n_states):
-                    xi, yi = self._get_position(i)
-                    xj, yj = self._get_position(j)
+                ox, oy = self._actions[a]
+                tx, ty = xi + ox, yi + oy
 
-                    ox, oy = self._actions[a]
+                if not self._in_map((tx, ty)):
+                    self.P[i, a, i] = 1.0
+                else:
+                    j = self._get_index((tx, ty))
+                    self.P[i, a, j] = 1.0
 
-                    tx, ty = xi + ox, yi + oy
-
-                    if not self._in_map((tx, ty)):
-                        self.P[i, a, i] = 1.0
-                    else:
-                        if xj == tx and yj == ty:
-                            self.P[i, a, j] = 1.0
-                        else:
-                            self.P[i, a, j] = 0.0
-
-                    # self.P[i, a, j] = self._transition_probability(i, a, j)
+                # for j in xrange(self.n_states):
+                #     xi, yi = self._get_position(i)
+                #     xj, yj = self._get_position(j)
+                #
+                #     ox, oy = self._actions[a]
+                #
+                #     tx, ty = xi + ox, yi + oy
+                #
+                #     if xj == tx and yj == ty:
+                #         self.P[i, a, j] = 1.0
+                #
+                #     if not self._in_map((tx, ty)):
+                #         self.P[i, a, i] = 1.0
+                #
+                #
+                #
+                #     else:
+                #         self.P[i, a, i] = 1.0
+                #
+                #
+                #
+                #     # self.P[i, a, j] = self._transition_probability(i, a, j)
 
     def reset(self):
         self._state = 0
@@ -608,10 +623,10 @@ class Gridworld(MORLProblem):
         return position[1] * self.scene_x_dim + position[0]
 
     def _get_position(self, index):
-        return index // self.scene_y_dim, index % self.scene_x_dim
+        return index % self.scene_x_dim, index // self.scene_y_dim
 
     def _in_map(self, pos):
-        return pos[0] >= 0 and pos[0] < self.scene_y_dim - 1 and pos[1] >= 0 and pos[1] < self.scene_x_dim - 1
+        return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
 
     # def _transition_probability(self, i, a, j):
     #     xi, yi = self._get_position(i)

@@ -18,7 +18,7 @@ log.basicConfig(level=log.INFO)
 
 from morl_problems import Deepsea
 from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent
-from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministicExample01, PolicyDeepseaFromAgent
+from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyDeepseaFromAgent, PolicyDeepseaExpert
 from inverse_morl import InverseMORL
 from plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
 from dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
@@ -40,7 +40,8 @@ if __name__ == '__main__':
     # agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=0.3, epsilon=eps)
     # payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
 
-    policy_optimal = PolicyDeepseaDeterministicExample01(problem)
+    policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
+    policy_human = PolicyDeepseaExpert(problem, task='T3')
     # policy_optimal = PolicyDeepseaRandom(problem)
     # policy_optimal = PolicyDeepseaFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
     # policy_plot(problem, policy_optimal)
@@ -49,10 +50,10 @@ if __name__ == '__main__':
     # scalarization_weights = i_morl.solvep()
     scalarization_weights_alge = i_morl.solvealge()
 
-    # log.info("scalarization weights (with p): %s" % (str(scalarization_weights)))
-    # log.info("scalarization weights (without p): %s" % (str(i_morl.solve())))
-    # log.info("scalarization weights (without p, sum 1): %s" % (str(i_morl.solve_sum_1())))
-    log.info("scalarization weights (alge): %s" % (str(scalarization_weights_alge)))
+    #log.info("scalarization weights (with p): %s" % (str(scalarization_weights)))
+    #log.info("scalarization weights (without p): %s" % (str(i_morl.solve())))
+    log.info("scalarization weights (without p, sum 1): %s" % (str(i_morl.solve_sum_1())))
+    #log.info("scalarization weights (alge): %s" % (str(i_morl.solvealge())))
 
     tmp = np.dot(scalarization_weights_alge, problem.R.T)
     # tmp = np.dot(scalarization_weights, problem.R.T)
@@ -70,8 +71,8 @@ if __name__ == '__main__':
     alfa = 0.1
     interactions = 10000
 
-    agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
 
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)

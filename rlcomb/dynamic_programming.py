@@ -111,7 +111,7 @@ class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
         else:
             delta = float('inf')
             i = 0
-            while delta > 1e-3:
+            while delta > 1e-2:
                 delta = 0
                 for s in xrange(n_states):
                     tmp = V[s]

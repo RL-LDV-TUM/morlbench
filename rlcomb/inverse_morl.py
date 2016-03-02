@@ -185,7 +185,9 @@ class InverseMORL(SaveableObject):
             ])
         ])
         # right hand side of inequalities
-        h = np.vstack([np.ones((2 * reward_dimension, 1)), np.zeros(((n_states * (n_actions - 1)) * 3, 1))])
+        #h = np.vstack([np.ones((2 * reward_dimension, 1)), np.zeros(((n_states * (n_actions - 1)) * 3, 1))])
+
+        h = np.vstack([np.ones((reward_dimension, 1)), np.zeros((reward_dimension, 1)), np.zeros(((n_states * (n_actions - 1)) * 3, 1))])
 
         solution = solvers.lp(matrix(-c), matrix(G), matrix(h))
         alpha = np.asarray(solution['x'][-reward_dimension:])

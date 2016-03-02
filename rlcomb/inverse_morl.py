@@ -54,7 +54,7 @@ class InverseMORL(SaveableObject):
     def _prepare_v(self, n_states, n_actions, reward_dimension, P):
         problem, policy = self._problem, self._policy
 
-        # dp = MORLDynamicProgrammingInverse(problem, policy)
+        #dp = MORLDynamicProgrammingInverse(problem, policy)
         dp = MORLDynamicProgrammingPolicyEvaluation(problem, policy)
         V = dp.solve()
 
@@ -257,6 +257,23 @@ class InverseMORL(SaveableObject):
         h = np.vstack([np.ones((D * 2, 1)),
                    np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
 
+        # c = c.reshape(-1, 1)
+        # b = b.reshape(-1, 1)
+        # print c.shape
+        # print G.shape
+        # print h.shape
+        # print A.shape
+        # print b.shape
+
+        # normalize each row
+        # asum = np.sum(np.abs(A), axis=1)
+        # print asum.shape
+        # print A.shape
+        # A /= asum[:, np.newaxis]
+        # b /= asum
+
+        solvers.options['feastol'] = 1e-1
+        solvers.options['abstol'] = 1e-3
         solvers.options['show_progress'] = True
         solution = solvers.lp(matrix(c), matrix(G), matrix(h), matrix(A), matrix(b))
         alpha = np.asarray(solution['x'][-reward_dimension:])

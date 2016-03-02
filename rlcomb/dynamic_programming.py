@@ -96,14 +96,34 @@ class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
         :param max_iterations: Maximum number of PE iterations
         :return: Value function as a vector with length n_states.
         """
+        vector_implementation = False
+
         V = np.zeros(n_states)
-        for i in xrange(max_iterations):
-            V_n = R + gamma * np.dot(P_pi, V)
-            if npla.norm(V - V_n) < 1e-22:
+
+        if vector_implementation:
+            for i in xrange(max_iterations):
+                V_n = R + gamma * np.dot(P_pi, V)
+                if npla.norm(V - V_n) < 1e-22:
+                    V = V_n
+                    log.debug("Value iteration converged after %i iterations" % (i))
+                    break
                 V = V_n
-                log.debug("Value iteration converged after %i iterations" % (i))
-                break
-            V = V_n
+        else:
+            delta = float('inf')
+            i = 0
+            while delta > 1e-3:
+                delta = 0
+                for s in xrange(n_states):
+                    tmp = V[s]
+                    a = np.argmax(pi[s, :])
+                    V[s] = sum(P[s, a, k] * (R[k] + gamma * V[k]) for k in xrange(n_states))
+                    delta = max(delta, abs(tmp - V[s]))
+                    i += 1
+                if i > max_iterations:
+                    log.warn("Value iteration truncated after max_iterations delta: %f" % delta)
+                    break
+            log.debug("Value iteration converged after %i iterations" % (i))
+
         return V
 
 

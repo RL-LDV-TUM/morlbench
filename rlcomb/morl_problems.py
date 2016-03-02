@@ -6,7 +6,7 @@ Created on Nov 19, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 """
 
-from helpers import SaveableObject, loadMatrixIfExists
+from helpers import SaveableObject, loadMatrixIfExists, virtualFunction
 from probability_helpers import assureProbabilityMatrix
 
 import numpy as np
@@ -18,7 +18,65 @@ import os
 my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
 
 
-class Deepsea(SaveableObject):
+class MORLProblem(SaveableObject):
+    def __init__(self, *args, **kwargs):
+        super(MORLProblem, self).__init__(args, **kwargs)
+
+    def reset(self):
+        virtualFunction()
+
+    def _construct_r(self):
+        # Multi objective reward has to be stationary for the batch IRL algorithms
+        # That means a reward that grows with the number of steps is difficult to
+        # handle.
+
+        self.R = np.zeros((self.n_states, self.reward_dimension))
+        for i in xrange(self.n_states):
+            self.R[i, :] = self._get_reward(i)
+
+    def _get_reward(self, state):
+        virtualFunction()
+
+    def __str__(self):
+        return self.__class__.__name__
+
+    @property
+    def terminal_state(self):
+        return self._terminal_state
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def last_state(self):
+        return self._last_state
+
+    @property
+    def actions(self):
+        return self._actions
+
+    @property
+    def n_actions(self):
+        return len(self._actions)
+
+    @property
+    def n_states(self):
+        return self._n_states
+
+    @property
+    def reward_dimension(self):
+        return self._reward_dimension
+
+    @property
+    def gamma(self):
+        return self._gamma
+
+    def play(self):
+        virtualFunction()
+
+
+class Deepsea(MORLProblem):
     """
     This class represents a Deepsea problem.
     All the parameters should be set up on object
@@ -26,7 +84,7 @@ class Deepsea(SaveableObject):
     iteratively by calling "action".
     """
 
-    def __init__(self, scene=None, actions=None, gamma=0.9, state=0):
+    def __init__(self, scene=None, actions=None, gamma=0.9, state=0, extended_reward=False):
         """
         Initialize the Deepsea problem.
 
@@ -84,9 +142,13 @@ class Deepsea(SaveableObject):
         self._n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
         self._index_terminal_state = self._n_states - 1
 
-        #self._predictor_accuracy = predictor_accuracy
-        #self._payouts = payouts
         self._actions = actions
+
+        self._reward_dimension = 2
+        self._extended_reward = extended_reward
+        if extended_reward:
+            # self._reward_dimension += self._n_states
+            self._reward_dimension = self._n_states
 
         self.reset()
 
@@ -142,23 +204,6 @@ class Deepsea(SaveableObject):
         # TODO: fix this checkup of probability matrices
         # assureProbabilityMatrix(self.P)
 
-    def _construct_r(self):
-        # Multi objective reward has to be stationary for the batch IRL algorithms
-        # That means a reward that grows with the number of steps is difficult to
-        # handle.
-
-        # implicitely we assume for this problem reward dimension of 2
-        self.R = np.zeros((self.n_states, 2))
-        # first the reward from the scene
-        for i in xrange(self.n_states - 1): # handle terminal state seperately
-            self.R[i, 0] = self._scene[self._get_position(i)]
-        # second the "time" reward for taking steps
-        self.R[:, 1] = -1
-        # zero out all position in the ground
-        groundpos = self.R[:, 0] <= -100
-        self.R[groundpos, :] = 0
-        self.R[self._index_terminal_state, :] = 0.0
-
     def reset(self):
         self._state = self._start_state
         self._terminal_state = False
@@ -169,44 +214,9 @@ class Deepsea(SaveableObject):
         self._last_position = self._position
         self._terminal_reward = 0
 
-    def __str__(self):
-        return self.__class__.__name__
-
-    @property
-    def terminal_state(self):
-        return self._terminal_state
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def last_state(self):
-        return self._last_state
-
-    @property
-    def actions(self):
-        return self._actions
-
-    @property
-    def n_actions(self):
-        return len(self._actions)
-
-    @property
-    def n_states(self):
-        return self._n_states
-
-    @property
-    def reward_dimension(self):
-        return 2
-
     @property
     def scene_x_dim(self):
         return self._scene.shape[1]
-
-    @property
-    def gamma(self):
-        return self._gamma
 
     @property
     def scene_y_dim(self):
@@ -247,6 +257,40 @@ class Deepsea(SaveableObject):
     #         return 1
     #     return 0
 
+    def _get_reward(self, state):
+        r = np.zeros(self._reward_dimension)
+
+        if self._extended_reward:
+            r[state] = 1
+            return r
+
+        # -1 for all moves
+        r[1] = -1.0
+
+        if state < self._n_states - 2:
+            map_value = self._flat_map[state]
+        else:
+            map_value = 0.0
+        # we transited to the terminal state and stay there
+        if self._terminal_state:
+            r[0] = 0.0
+        # if we transited into a treasure state the next will be the terminal state
+        elif self._pre_terminal_state:
+            r[0] = map_value
+        else:
+            if map_value > 0:
+                r[0] = map_value
+            elif map_value < 0:
+                # print "so nicht %i" % (state)
+                r[0] = 0.0
+            else:
+                r[0] = 0.0
+
+        if self._extended_reward:
+            r[state + 2] = 1.0
+
+        return r
+
     def play(self, action):
         """
         Perform an action with the submarine
@@ -268,7 +312,7 @@ class Deepsea(SaveableObject):
             self._terminal_state = True
             self._last_state = self._state
             self._state = self._index_terminal_state
-            return np.array([self._terminal_reward, 0])
+            return self._get_reward(self._state)
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
@@ -277,22 +321,19 @@ class Deepsea(SaveableObject):
 
         if self._in_map(self._position + self._actions[action]):
             self._position += self._actions[action]
-            reward = self._flat_map[self._get_index(self._position)]
+            map_value = self._flat_map[self._get_index(self._position)]
             if my_debug: log.debug('moved by' + str(self._actions[action]) + '(last pos: ' + str(last_position) + ')')
-            if reward < 0:
+            if map_value < 0:
                 self._position = last_position
-                reward = 0
                 if my_debug: log.debug('Ground touched!')
-            elif reward > 0:
+            elif map_value > 0:
                 if my_debug: log.debug('Treasure found! - I got a reward of ' + str(reward))
                 self._pre_terminal_state = True
-                self._terminal_reward = reward
-                reward = 0
+                self._terminal_reward = map_value
             else:
                 if my_debug: log.debug('I got a reward of ' + str(reward))
         else:
             if my_debug: log.debug('Move not allowed!')
-            reward = 0
 
         if my_debug: log.debug('New position: ' + str(self._position))
 
@@ -305,7 +346,7 @@ class Deepsea(SaveableObject):
         #     predictor_action = self.__invert_action(predictor_action)
 
         # return np.array([reward, -self._time])
-        return np.array([reward, -1])
+        return self._get_reward(self._state)
 
 
 class DeepseaEnergy(Deepsea):
@@ -336,15 +377,15 @@ class DeepseaEnergy(Deepsea):
         return np.array([reward, -1, self._energy])
 
 
-class MountainCar(SaveableObject):
+class MountainCar(MORLProblem):
     def __init__(self, state=-0.5, gamma=0.9):
-        '''
+        """
         Initialize the Mountain car problem.
 
         Parameters
         ----------
         state: default state is -0.5
-        '''
+        """
 
         super(MountainCar, self).__init__(
             ['_state', '_time', '_actions', '_scene'])
@@ -375,38 +416,8 @@ class MountainCar(SaveableObject):
         self._terminal_state = False
 
         self._n_states = 100  # TODO: Discretize Mountain car states!
+        self._reward_dimension = 2
 
-    @property
-    def gamma(self):
-        return self._gamma
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def last_state(self):
-        return self._last_state
-
-    @property
-    def terminal_state(self):
-        return self._terminal_state
-
-    @property
-    def reward_dimension(self):
-        return 2
-
-    @property
-    def n_actions(self):
-        return len(self._actions)
-
-    @property
-    def n_states(self):
-        return self._n_states
-
-    @property
-    def n_states(self):
-        return self._n_states
 
     def reset(self):
         self._velocity = 0
@@ -484,24 +495,22 @@ class MountainCar(SaveableObject):
 
 
 class MountainCarMulti(MountainCar):
-    def __init__(self,state = 0.5):
-        '''
+    def __init__(self, state=0.5):
+        """
         Initialize the Multi Objective Mountain car problem.
 
         Parameters
         ----------
         state: default state is -0.5
-        '''
+        """
         self._nb_actions = 0
 
-        super(MountainCarMulti,self).__init__(state=state)
+        super(MountainCarMulti, self).__init__(state=state)
 
-    @property
-    def reward_dimension(self):
-        return 3
+        self._reward_dimension = 3
 
     def play(self, action):
-        '''
+        """
         Perform an action with the car in the
         multi objective mountains and receive reward (or not).
 
@@ -517,7 +526,7 @@ class MountainCarMulti(MountainCar):
         Returns
         -------
         reward: reward of the current state.
-        '''
+        """
 
         # Remember state before executing action
         previousState = self._state
@@ -545,3 +554,94 @@ class MountainCarMulti(MountainCar):
             return [self._default_reward, self._time]
         else:
             return [0, self._time]
+
+
+class Gridworld(MORLProblem):
+
+    def __init__(self, size=10, gamma=0.9):
+        self._gamma = gamma
+
+        self._actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        self._n_states = size * size
+        self._size = size
+        self._reward_dimension = self._n_states
+
+        self.P = None
+        self.R = None
+
+        if not self.P:
+            self._construct_p()
+
+        if not self.R:
+            self._construct_r()
+
+        self.reset()
+
+    def _construct_p(self):
+        self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
+        for i in xrange(self.n_states):
+            for a in xrange(self.n_actions):
+                for j in xrange(self.n_states):
+                    xi, yi = self._get_position(i)
+                    xj, yj = self._get_position(j)
+
+                    ox, oy = self._actions[a]
+
+                    tx, ty = xi + ox, yi + oy
+
+                    if not self._in_map((tx, ty)):
+                        self.P[i, a, i] = 1.0
+                    else:
+                        if xj == tx and yj == ty:
+                            self.P[i, a, j] = 1.0
+                        else:
+                            self.P[i, a, j] = 0.0
+
+                    # self.P[i, a, j] = self._transition_probability(i, a, j)
+
+    def reset(self):
+        self._state = 0
+        self._last_state = 0
+        self._terminal_state = False
+
+    def _get_index(self, position):
+        return position[1] * self.scene_x_dim + position[0]
+
+    def _get_position(self, index):
+        return index // self.scene_y_dim, index % self.scene_x_dim
+
+    def _in_map(self, pos):
+        return pos[0] >= 0 and pos[0] < self.scene_y_dim - 1 and pos[1] >= 0 and pos[1] < self.scene_x_dim - 1
+
+    # def _transition_probability(self, i, a, j):
+    #     xi, yi = self._get_position(i)
+    #     xj, yj = self._get_position(j)
+    #
+    #     ox, oy = self._actions[a]
+    #
+    #     tx, ty = xi + ox, yi + oy
+    #
+    #     if not self._in_map((tx, ty)):
+    #
+    #         return 0.0
+    #
+    #     if xj == tx and yj == ty:
+    #         return 1.0
+    #
+    #     return 0.0
+
+    def _get_reward(self, state):
+        r = np.zeros(self.reward_dimension)
+        r[state] = 1.0
+        return r
+
+    def play(self):
+        pass
+
+    @property
+    def scene_x_dim(self):
+        return self._size
+
+    @property
+    def scene_y_dim(self):
+        return self._size

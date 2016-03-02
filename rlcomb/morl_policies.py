@@ -14,21 +14,21 @@ import random
 import logging as log
 
 
-class PolicyDeepsea(SaveableObject):
+class Policy(SaveableObject):
     """
-    This is the base class for all Deepsea problem policies.
+    This is the base class for all problem policies.
     """
 
     def __init__(self, problem):
         """
-        Initialize the Deepsea problem base policy
+        Initialize the problem base policy
 
         Parameters
         ----------
         :param problem: Initialized Deepsea problem.
         """
 
-        super(PolicyDeepsea, self).__init__([])
+        super(Policy, self).__init__([])
         self._problem = problem
         self._pi = None
 
@@ -75,7 +75,7 @@ class PolicyDeepsea(SaveableObject):
         return random.choice(np.where(self._pi[state, :] == max(self._pi[state, :]))[0])
 
 
-class PolicyDeepseaRandom(PolicyDeepsea):
+class PolicyDeepseaRandom(Policy):
     """
     A random policy for the Deepsea MORL problem.
     """
@@ -90,7 +90,7 @@ class PolicyDeepseaRandom(PolicyDeepsea):
         assurePolicyMatrix(self._pi)
 
 
-class PolicyDeepseaDeterministicExample01(PolicyDeepsea):
+class PolicyDeepseaDeterministicExample01(Policy):
     """
     A deterministic example policy for the deepsea scenario.
     """
@@ -124,7 +124,7 @@ class PolicyDeepseaDeterministicExample01(PolicyDeepsea):
                 self._pi[i, 4] = 1.0
 
 
-class PolicyDeepseaExpert(PolicyDeepsea):
+class PolicyDeepseaExpert(Policy):
     """
     Human expert policy for the deepsea scenario
     """
@@ -196,7 +196,7 @@ class PolicyDeepseaExpert(PolicyDeepsea):
         # TODO: implement the terminal state and the "do-nothing-action"
 
 
-class PolicyDeepseaFromAgent(PolicyDeepsea):
+class PolicyDeepseaFromAgent(Policy):
     """
     Derive a greedy policy from a trained agent.
     """
@@ -216,3 +216,21 @@ class PolicyDeepseaFromAgent(PolicyDeepsea):
                 a = agent.get_learned_action(i)
                 self._pi[i, a] = 1.0
 
+
+class PolicyGridworldExample(Policy):
+    """
+    Optimal policy for the gridworld is to go diagonal from the upper left
+    to the lower right.
+    """
+    def __init__(self, problem):
+        super(PolicyGridworldExample, self).__init__(problem)
+
+        self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
+
+        for i in xrange(self._problem.n_states):
+            # TODO: this is a private function and should be refactored
+            x, y = self._problem._get_position(i)
+            if x < y:
+                self._pi[i, 0] = 1.0
+            else:
+                self._pi[i, 1] = 1.0

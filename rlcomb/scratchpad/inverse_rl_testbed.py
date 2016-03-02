@@ -33,7 +33,7 @@ if __name__ == '__main__':
     scalarization_weights = np.zeros(reward_dimension)
 
     eps = 0.95
-    interactions = 100000
+    interactions = 1000
 
     scalarization_weights_groundtruth = np.array([0.8, 0.2])
 
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     # payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
 
     policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
-    policy_human = PolicyDeepseaExpert(problem, task='T3')
+    # policy_human = PolicyDeepseaExpert(problem, task='T3')
     # policy_optimal = PolicyDeepseaRandom(problem)
     # policy_optimal = PolicyDeepseaFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
     # policy_plot(problem, policy_optimal)

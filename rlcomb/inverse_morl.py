@@ -263,7 +263,10 @@ class InverseMORL(SaveableObject):
 
         # h = np.vstack([np.ones((D * 2, 1)),
         #                np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
-        h = np.vstack([10.0 * np.ones((D, 1)), np.zeros((D, 1)),
+        # slack tuning variable
+        m = 1.0
+        # m = 10.0
+        h = np.vstack([m * np.ones((D, 1)), np.zeros((D, 1)),
                        np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
 
         # c = c.reshape(-1, 1)

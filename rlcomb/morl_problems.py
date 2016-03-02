@@ -65,6 +65,7 @@ class Deepsea(MORLProblem):
             submarine can move - left, right, up, down.
         :param gamma: The discount factor of the problem.
         """
+
         super(Deepsea, self).__init__(
             ['state', '_time', '_actions', '_scene'])
 
@@ -109,8 +110,6 @@ class Deepsea(MORLProblem):
         self.n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
         self._index_terminal_state = self.n_states - 1
 
-        #self._predictor_accuracy = predictor_accuracy
-        #self._payouts = payouts
         self.actions = actions
         self.n_actions = len(self.actions)
 
@@ -137,42 +136,33 @@ class Deepsea(MORLProblem):
             for j in xrange(self._scene.shape[1]):
                 pos = (i, j)
                 pos_index = self._get_index(pos)
-                valid_n_pos = []
-                out_of_map_n_pos = []
-                # if we are in a terminal transition (treasure found)
-                # beam back to start_state
-                if self._flat_map[pos_index] > 0:
-                    self.P[pos_index, :, self._index_terminal_state] = 1.0
-                elif self._flat_map[pos_index] < 0:
-                    self.P[pos_index, :, pos_index] = 1.0
-                else:
-                    # nonterminal transitions
-                    for a in xrange(self.n_actions):
-                        n_pos = pos + self.actions[a]
-                        if self._in_map(n_pos):
-                            n_pos_index = self._get_index(n_pos)
-                            if self._flat_map[n_pos_index] > -100:
-                                valid_n_pos.append((n_pos_index, a))
-                            else:
-                                out_of_map_n_pos.append(a)
+                for a in xrange(self.n_actions - 1):  # for all action except the last -> idle action
+                    n_pos = pos + self._actions[a]
+                    n_pos_index = self._get_index(n_pos)
+
+                    if self._in_map(n_pos) and self._flat_map[pos_index] == 0:  # we are in the map and no special state
+                        if self._flat_map[n_pos_index] >= 0:  # normal or reward _next_ state
+                            self.P[pos_index, a, n_pos_index] = 1.0
+                        elif self._flat_map[n_pos_index] < 0:  # we go directly into the ground
+                            self.P[pos_index, a, pos_index] = 1.0  # stay at position
                         else:
-                            out_of_map_n_pos.append(a)
-                if len(valid_n_pos) > 0:
-                    # prob = 1.0 / len(valid_n_pos)
-                    for n_pos_index, a in valid_n_pos:
-                        self.P[pos_index, a, n_pos_index] = 1.0
-                # else:
-                #     self.P[pos_index, :, pos_index] = 1.0
-                if len(out_of_map_n_pos) > 0:
-                    for a in out_of_map_n_pos:
+                            raise ValueError('Sollte nicht vorkommen (state: %i)!', pos_index)
+                    # state must be a ground or reward state -> special transition
+                    elif self._flat_map[pos_index] < 0:  # current state is ground -> we stay there
                         self.P[pos_index, a, pos_index] = 1.0
-        self.P[self._index_terminal_state, :, :] = 0
-        self.P[self._index_terminal_state, :, self._index_terminal_state] = 1.0
-        normalizer = self.P.sum(axis=2)[:, :, np.newaxis]
-        self.P /= normalizer
-        self.P[np.isnan(self.P)] = 0
-        # TODO: fix this checkup of probability matrices
-        # assureProbabilityMatrix(self.P)
+                    elif self._flat_map[pos_index] > 0:  # reward state -> we transfer to the terminal state
+                        self.P[pos_index, a, self._index_terminal_state] = 1.0
+                    else:
+                        # we are out of the map and stay in our state
+                        self.P[pos_index, a, pos_index] = 1.0
+
+                    # idle action -> we always stay in our state except for reward states -> terminal state
+                    if self._flat_map[pos_index] > 0:
+                        self.P[pos_index, -1, self._index_terminal_state] = 1.0
+                    else:
+                        self.P[pos_index, -1, pos_index] = 1.0
+        # stay in terminal state forever
+        self.P[-1, :, -1] = 1.0
 
     def reset(self):
         self.state = self._start_state
@@ -273,10 +263,10 @@ class Deepsea(MORLProblem):
             self.state = self._index_terminal_state
             return self._get_reward(self.state)
 
-        last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
+        last_position = np.copy(self._position)  # numpy arrays are mutable -> must be copied
 
-        if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self.actions[action]) +
-                  ' (last pos: ' + str(last_position) + ')')
+        if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self._actions[action]) +
+                               ' (last pos: ' + str(last_position) + ')')
 
         if self._in_map(self._position + self.actions[action]):
             self._position += self.actions[action]
@@ -344,15 +334,15 @@ class MountainCar(MORLProblem):
         """
 
         super(MountainCar, self).__init__(
-            ['state', '_time', '_actions', '_scene'])
+                ['state', '_time', '_actions', '_scene'])
 
-        self.actions = ('left','right','none')
+        self.actions = ('left', 'right', 'none')
 
         # Discount Factor
         self.gamma = gamma
 
         self._minPosition = -1.2  # Minimum car position
-        self._maxPosition = 0.6   # Maximum car position (past goal)
+        self._maxPosition = 0.6  # Maximum car position (past goal)
         self._maxVelocity = 0.07  # Maximum velocity of car
         self._goalPosition = 0.5  # Goal position - how to tell we are done
 
@@ -407,16 +397,16 @@ class MountainCar(MORLProblem):
 
         map_actions = {
             'none': 0,  # coasting
-            'right': 1, # forward thrust
-            'left': -1, # backward thrust
-            }
+            'right': 1,  # forward thrust
+            'left': -1,  # backward thrust
+        }
 
         # Determine acceleration factor
         if action < len(self.actions):
-            factor = map_actions[self.actions[action]] # map action to thrust factor
+            factor = map_actions[self.actions[action]]  # map action to thrust factor
         else:
             print 'Warning: No matching action - Default action was selected!'
-            factor = 0 # Default action
+            factor = 0  # Default action
 
         self.car_sim(factor)
 
@@ -447,13 +437,13 @@ class MountainCar(MORLProblem):
 
         self._position = minmax(self._position, self._minPosition, self._maxPosition)
 
-        if self._position <= self._minPosition: #and (self._velocity < 0)
+        if self._position <= self._minPosition:  # and (self._velocity < 0)
             self._velocity = 0.0
 
-        # if self._position >= self._goalPosition and abs(self._velocity) > self._maxGoalVelocity:
-        #    self._velocity = -self._velocity
+            # if self._position >= self._goalPosition and abs(self._velocity) > self._maxGoalVelocity:
+            #    self._velocity = -self._velocity
 
-        # TODO: set terminal state for being at the goal position
+            # TODO: set terminal state for being at the goal position
 
 
 class MountainCarMulti(MountainCar):
@@ -496,19 +486,19 @@ class MountainCarMulti(MountainCar):
         self._time += 1
 
         map_actions = {
-            'left': -1, # backward thrust
-            'right': 1, # forward thrust
+            'left': -1,  # backward thrust
+            'right': 1,  # forward thrust
             'none': 0,  # coasting
-            }
+        }
 
         # Determine acceleration factor
         if action < len(self._actions):
-            factor = map_actions[self._actions[action]] # map action to thrust factor
+            factor = map_actions[self.actions[action]]  # map action to thrust factor
             if (self._actions[action] == 'right') or (self._actions[action] == 'left'):
                 self._nb_actions += 1
         else:
             print 'Warning: No matching action - Default action was selected!'
-            factor = 0 # Default action
+            factor = 0  # Default action
 
         self.car_sim(factor)
 

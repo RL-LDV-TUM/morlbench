@@ -33,7 +33,7 @@ if __name__ == '__main__':
     scalarization_weights = np.zeros(reward_dimension)
 
     eps = 0.95
-    interactions = 100000
+    interactions = 1000
 
     # agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=0.3, epsilon=eps)
     # payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)

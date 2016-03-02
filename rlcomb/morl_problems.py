@@ -149,14 +149,14 @@ class Deepsea(MORLProblem):
                     # nonterminal transitions
                     for a in xrange(self.n_actions):
                         n_pos = pos + self.actions[a]
-                        n_pos_index = self._get_index(n_pos)
                         if self._in_map(n_pos):
+                            n_pos_index = self._get_index(n_pos)
                             if self._flat_map[n_pos_index] > -100:
                                 valid_n_pos.append((n_pos_index, a))
                             else:
-                                out_of_map_n_pos.append((n_pos_index, a))
+                                out_of_map_n_pos.append(a)
                         else:
-                            out_of_map_n_pos.append((n_pos_index, a))
+                            out_of_map_n_pos.append(a)
                 if len(valid_n_pos) > 0:
                     # prob = 1.0 / len(valid_n_pos)
                     for n_pos_index, a in valid_n_pos:
@@ -164,7 +164,7 @@ class Deepsea(MORLProblem):
                 # else:
                 #     self.P[pos_index, :, pos_index] = 1.0
                 if len(out_of_map_n_pos) > 0:
-                    for n_pos_index, a in out_of_map_n_pos:
+                    for a in out_of_map_n_pos:
                         self.P[pos_index, a, pos_index] = 1.0
         self.P[self._index_terminal_state, :, :] = 0
         self.P[self._index_terminal_state, :, self._index_terminal_state] = 1.0

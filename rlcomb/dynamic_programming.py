@@ -83,7 +83,7 @@ class DynamicProgrammingInverse(DynamicProgramming):
 
 
 class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
-    def _scalar_reward_solve(self, n_states, gamma, P, R, pi, P_pi, max_iterations=10000):
+    def _scalar_reward_solve(self, n_states, gamma, P, R, pi, P_pi, max_iterations=10000, vector_implementation=True):
         """
         Solve the MDP for scalar reward (also used by the MORL classes)
 
@@ -96,7 +96,6 @@ class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
         :param max_iterations: Maximum number of PE iterations
         :return: Value function as a vector with length n_states.
         """
-        vector_implementation = False
 
         V = np.zeros(n_states)
 
@@ -116,7 +115,7 @@ class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
                 for s in xrange(n_states):
                     tmp = V[s]
                     a = np.argmax(pi[s, :])
-                    V[s] = sum(P[s, a, k] * (R[k] + gamma * V[k]) for k in xrange(n_states))
+                    V[s] = sum(P[s, a, k] * (R[k] + gamma * V[k]) for k in range(n_states))
                     delta = max(delta, abs(tmp - V[s]))
                     i += 1
                 if i > max_iterations:
@@ -125,7 +124,6 @@ class DynamicProgrammingPolicyEvaluation(DynamicProgramming):
             log.debug("Value iteration converged after %i iterations" % (i))
 
         return V
-
 
     def solve(self, max_iterations=10000):
         """

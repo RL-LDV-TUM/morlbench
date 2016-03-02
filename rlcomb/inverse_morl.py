@@ -13,7 +13,7 @@ import numpy as np
 import numpy.linalg as npla
 import logging as log
 try:
-    from cvxopt import solvers, matrix
+    from cvxopt import matrix, solvers
 except ImportError:
     log.warn("cvxopt module not found. Inverse RL functions not available.")
 
@@ -56,7 +56,8 @@ class InverseMORL(SaveableObject):
 
         #dp = MORLDynamicProgrammingInverse(problem, policy)
         dp = MORLDynamicProgrammingPolicyEvaluation(problem, policy)
-        V = dp.solve()
+        # V = dp.solve(vector_implementation=True)
+        V = dp.solve(vector_implementation=False)
 
         v = np.zeros((n_states, n_actions - 1, reward_dimension))
 
@@ -222,42 +223,43 @@ class InverseMORL(SaveableObject):
                         np.hstack([
                             np.ones((n_actions - 1, 1)).dot(np.eye(1, n_states, l)),
                             np.hstack([-np.eye(n_actions - 1) if i == l
-                                else np.zeros((n_actions - 1, n_actions - 1))
-                                    for i in range(n_states)]),
+                                       else np.zeros((n_actions - 1, n_actions - 1))
+                                       for i in range(n_states)]),
                             np.hstack([2 * np.eye(n_actions - 1) if i == l
-                                else np.zeros((n_actions - 1, n_actions - 1))
-                                    for i in range(n_states)]),
+                                       else np.zeros((n_actions - 1, n_actions - 1))
+                                       for i in range(n_states)]),
                             np.zeros((n_actions - 1, D))])
                         for l in range(n_states)
                         ])
         assert bottom_row.shape[1] == x_size
 
         G = np.vstack([
-            np.hstack([
-                np.zeros((D, n_states)),
-                np.zeros((D, n_states * (n_actions - 1))),
-                np.zeros((D, n_states * (n_actions - 1))),
-                np.eye(D)]),
-            np.hstack([
-                np.zeros((D, n_states)),
-                np.zeros((D, n_states * (n_actions - 1))),
-                np.zeros((D, n_states * (n_actions - 1))),
-                -np.eye(D)]),
-            np.hstack([
-                np.zeros((n_states * (n_actions - 1), n_states)),
-                -np.eye(n_states * (n_actions - 1)),
-                np.zeros((n_states * (n_actions - 1), n_states * (n_actions - 1))),
-                np.zeros((n_states * (n_actions - 1), D))]),
-            np.hstack([
-                np.zeros((n_states * (n_actions - 1), n_states)),
-                np.zeros((n_states * (n_actions - 1), n_states * (n_actions - 1))),
-                -np.eye(n_states * (n_actions - 1)),
-                np.zeros((n_states * (n_actions - 1), D))]),
-            bottom_row])
+                np.hstack([
+                    np.zeros((D, n_states)),
+                    np.zeros((D, n_states * (n_actions - 1))),
+                    np.zeros((D, n_states * (n_actions - 1))),
+                    np.eye(D)]),
+                np.hstack([
+                    np.zeros((D, n_states)),
+                    np.zeros((D, n_states * (n_actions - 1))),
+                    np.zeros((D, n_states * (n_actions - 1))),
+                    -np.eye(D)]),
+                np.hstack([
+                    np.zeros((n_states * (n_actions - 1), n_states)),
+                    -np.eye(n_states * (n_actions - 1)),
+                    np.zeros((n_states * (n_actions - 1), n_states * (n_actions - 1))),
+                    np.zeros((n_states * (n_actions - 1), D))]),
+                np.hstack([
+                    np.zeros((n_states * (n_actions - 1), n_states)),
+                    np.zeros((n_states * (n_actions - 1), n_states * (n_actions - 1))),
+                    -np.eye(n_states * (n_actions - 1)),
+                    np.zeros((n_states * (n_actions - 1), D))]),
+                bottom_row
+        ])
         assert G.shape[1] == x_size
 
         h = np.vstack([np.ones((D * 2, 1)),
-                   np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
+                       np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
 
         # c = c.reshape(-1, 1)
         # b = b.reshape(-1, 1)
@@ -274,9 +276,14 @@ class InverseMORL(SaveableObject):
         # A /= asum[:, np.newaxis]
         # b /= asum
 
-        solvers.options['feastol'] = 1e-1
-        solvers.options['abstol'] = 1e-3
-        solvers.options['show_progress'] = True
+        # solvers.options['feastol'] = 1e-1
+        # solvers.options['abstol'] = 1e-3
+        # solvers.options['show_progress'] = True
+        # c = matrix(c)
+        # G = matrix(G)
+        # h = matrix(h)
+        # A = matrix(A)
+        # b = matrix(b)
         solution = solvers.lp(matrix(c), matrix(G), matrix(h), matrix(A), matrix(b))
-        alpha = np.asarray(solution['x'][-reward_dimension:])
+        alpha = np.asarray(solution['x'][-reward_dimension:], dtype=np.double)
         return alpha.ravel()

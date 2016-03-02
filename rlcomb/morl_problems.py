@@ -40,38 +40,6 @@ class MORLProblem(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
-    @property
-    def terminal_state(self):
-        return self._terminal_state
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def last_state(self):
-        return self._last_state
-
-    @property
-    def actions(self):
-        return self._actions
-
-    @property
-    def n_actions(self):
-        return len(self._actions)
-
-    @property
-    def n_states(self):
-        return self._n_states
-
-    @property
-    def reward_dimension(self):
-        return self._reward_dimension
-
-    @property
-    def gamma(self):
-        return self._gamma
-
     def play(self):
         virtualFunction()
 
@@ -97,9 +65,8 @@ class Deepsea(MORLProblem):
             submarine can move - left, right, up, down.
         :param gamma: The discount factor of the problem.
         """
-
         super(Deepsea, self).__init__(
-            ['_state', '_time', '_actions', '_scene'])
+            ['state', '_time', '_actions', '_scene'])
 
         self._time = 0
 
@@ -107,7 +74,7 @@ class Deepsea(MORLProblem):
         self.P = None
         self.R = None
         # Discount Factor
-        self._gamma = gamma
+        self.gamma = gamma
 
         if actions is None:
             # Default actions
@@ -139,18 +106,19 @@ class Deepsea(MORLProblem):
 
         self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
 
-        self._n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
-        self._index_terminal_state = self._n_states - 1
+        self.n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
+        self._index_terminal_state = self.n_states - 1
 
         #self._predictor_accuracy = predictor_accuracy
         #self._payouts = payouts
-        self._actions = actions
+        self.actions = actions
+        self.n_actions = len(self._actions)
 
-        self._reward_dimension = 2
+        self.reward_dimension = 2
         self._extended_reward = extended_reward
         if extended_reward:
-            # self._reward_dimension += self._n_states
-            self._reward_dimension = self._n_states
+            # self._reward_dimension += self.n_states
+            self.reward_dimension = self.n_states
 
         self.reset()
 
@@ -180,7 +148,7 @@ class Deepsea(MORLProblem):
                 else:
                     # nonterminal transitions
                     for a in xrange(self.n_actions):
-                        n_pos = pos + self._actions[a]
+                        n_pos = pos + self.actions[a]
                         n_pos_index = self._get_index(n_pos)
                         if self._in_map(n_pos):
                             if self._flat_map[n_pos_index] > -100:
@@ -207,12 +175,12 @@ class Deepsea(MORLProblem):
         # assureProbabilityMatrix(self.P)
 
     def reset(self):
-        self._state = self._start_state
-        self._terminal_state = False
+        self.state = self._start_state
+        self.terminal_state = False
         self._pre_terminal_state = False
         self._time = 0
-        self._last_state = self._state
-        self._position = self._get_position(self._state)
+        self.last_state = self.state
+        self._position = self._get_position(self.state)
         self._last_position = self._position
         self._terminal_reward = 0
 
@@ -220,40 +188,8 @@ class Deepsea(MORLProblem):
         return self.__class__.__name__
 
     @property
-    def terminal_state(self):
-        return self._terminal_state
-
-    @property
-    def state(self):
-        return self._state
-
-    @property
-    def last_state(self):
-        return self._last_state
-
-    @property
-    def actions(self):
-        return self._actions
-
-    @property
-    def n_actions(self):
-        return len(self._actions)
-
-    @property
-    def n_states(self):
-        return self._n_states
-
-    @property
-    def reward_dimension(self):
-        return 2
-
-    @property
     def scene_x_dim(self):
         return self._scene.shape[1]
-
-    @property
-    def gamma(self):
-        return self._gamma
 
     @property
     def scene_y_dim(self):
@@ -275,13 +211,13 @@ class Deepsea(MORLProblem):
 
     def _in_map(self, position):
         return not ((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or
-                   (position[1] > self._scene.shape[1] - 1))
+                    (position[1] > self._scene.shape[1] - 1))
 
     def print_map(self):
         plt.imshow(self._scene, interpolation='none')
 
     def _get_reward(self, state):
-        r = np.zeros(self._reward_dimension)
+        r = np.zeros(self.reward_dimension)
 
         if self._extended_reward:
             r[state] = 1
@@ -290,12 +226,12 @@ class Deepsea(MORLProblem):
         # -1 for all moves
         r[1] = -1.0
 
-        if state < self._n_states - 2:
+        if state < self.n_states - 2:
             map_value = self._flat_map[state]
         else:
             map_value = 0.0
         # we transited to the terminal state and stay there
-        if self._terminal_state:
+        if self.terminal_state:
             r[0] = 0.0
         # if we transited into a treasure state the next will be the terminal state
         elif self._pre_terminal_state:
@@ -332,20 +268,20 @@ class Deepsea(MORLProblem):
         self._time += 1
 
         if self._pre_terminal_state:
-            self._terminal_state = True
-            self._last_state = self._state
-            self._state = self._index_terminal_state
-            return self._get_reward(self._state)
+            self.terminal_state = True
+            self.last_state = self.state
+            self.state = self._index_terminal_state
+            return self._get_reward(self.state)
 
         last_position = np.copy(self._position) # numpy arrays are mutable -> must be copied
 
-        if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self._actions[action]) +
+        if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self.actions[action]) +
                   ' (last pos: ' + str(last_position) + ')')
 
-        if self._in_map(self._position + self._actions[action]):
-            self._position += self._actions[action]
+        if self._in_map(self._position + self.actions[action]):
+            self._position += self.actions[action]
             map_value = self._flat_map[self._get_index(self._position)]
-            if my_debug: log.debug('moved by' + str(self._actions[action]) + '(last pos: ' + str(last_position) + ')')
+            if my_debug: log.debug('moved by' + str(self.actions[action]) + '(last pos: ' + str(last_position) + ')')
             if map_value < 0:
                 self._position = last_position
                 if my_debug: log.debug('Ground touched!')
@@ -361,15 +297,15 @@ class Deepsea(MORLProblem):
         if my_debug: log.debug('New position: ' + str(self._position))
 
         self._last_position = np.copy(last_position)
-        self._last_state = self._state
-        self._state = self._get_index(self._position)
+        self.last_state = self.state
+        self.state = self._get_index(self._position)
 
         # predictor_action = action
         # if random.random() > self.predictor_accuracy:
         #     predictor_action = self.__invert_action(predictor_action)
 
         # return np.array([reward, -self._time])
-        return self._get_reward(self._state)
+        return self._get_reward(self.state)
 
 
 class DeepseaEnergy(Deepsea):
@@ -381,6 +317,7 @@ class DeepseaEnergy(Deepsea):
         self._energy = energy
 
         self._init_energy = energy
+        self.reward_dimension = 3
 
         super(DeepseaEnergy, self).__init__(scene=scene, actions=actions, state=state)
         super(Deepsea, self).__init__(keys=['_time', '_actions', '_scene', '_energy'])
@@ -388,10 +325,6 @@ class DeepseaEnergy(Deepsea):
     def reset(self):
         super(DeepseaEnergy, self).reset()
         self._energy = self._init_energy
-
-    @property
-    def reward_dimension(self):
-        return 3
 
     def play(self, action):
         reward = super(DeepseaEnergy, self).play(action)
@@ -411,12 +344,12 @@ class MountainCar(MORLProblem):
         """
 
         super(MountainCar, self).__init__(
-            ['_state', '_time', '_actions', '_scene'])
+            ['state', '_time', '_actions', '_scene'])
 
-        self._actions = ('left','right','none')
+        self.actions = ('left','right','none')
 
         # Discount Factor
-        self._gamma = gamma
+        self.gamma = gamma
 
         self._minPosition = -1.2  # Minimum car position
         self._maxPosition = 0.6   # Maximum car position (past goal)
@@ -428,23 +361,23 @@ class MountainCar(MORLProblem):
 
         self._start_state = state
         self._velocity = 0
-        self._state = self._start_state
-        self._last_state = self._start_state
+        self.state = self._start_state
+        self.last_state = self._start_state
         self._position = self.get_position(self._start_state)
 
         self._time = 0
 
         self._default_reward = 1
 
-        self._terminal_state = False
+        self.terminal_state = False
 
-        self._n_states = 100  # TODO: Discretize Mountain car states!
-        self._reward_dimension = 2
+        self.n_states = 100  # TODO: Discretize Mountain car states!
+        self.reward_dimension = 2
 
     def reset(self):
         self._velocity = 0
-        self._state = self._start_state
-        self._last_state = self._start_state
+        self.state = self._start_state
+        self.last_state = self._start_state
         self._position = self.get_position(self._start_state)
 
     def get_position(self, state):
@@ -454,7 +387,7 @@ class MountainCar(MORLProblem):
         pass
 
     def play(self, action):
-        '''
+        """
         Perform an action with the car in the mountains
         and receive reward (or not).
 
@@ -465,7 +398,7 @@ class MountainCar(MORLProblem):
             1: forward thrust
             -1: backward thrust
 
-        '''
+        """
 
         # Remember state before executing action
         previousState = self._state
@@ -479,23 +412,30 @@ class MountainCar(MORLProblem):
             }
 
         # Determine acceleration factor
-        if action < len(self._actions):
-            factor = map_actions[self._actions[action]] # map action to thrust factor
+        if action < len(self.actions):
+            factor = map_actions[self.actions[action]] # map action to thrust factor
         else:
             print 'Warning: No matching action - Default action was selected!'
             factor = 0 # Default action
 
         self.car_sim(factor)
 
-        if self._terminal_state:
+        if self.terminal_state:
             return [self._default_reward, self._time]
         else:
             return [0, self._time]
 
     def car_sim(self, factor):
 
-        def minmax (val, lim1, lim2):
-            "Bounding item between lim1 and lim2"
+        def minmax(val, lim1, lim2):
+            """
+            Bounding item between lim1 and lim2
+
+            :param val:
+            :param lim1:
+            :param lim2:
+            :return:
+            """
             return max(lim1, min(lim2, val))
 
         # State update
@@ -507,10 +447,10 @@ class MountainCar(MORLProblem):
 
         self._position = minmax(self._position, self._minPosition, self._maxPosition)
 
-        if (self._position <= self._minPosition): #and (self._velocity < 0)
+        if self._position <= self._minPosition: #and (self._velocity < 0)
             self._velocity = 0.0
 
-        #if self._position >= self._goalPosition and abs(self._velocity) > self._maxGoalVelocity:
+        # if self._position >= self._goalPosition and abs(self._velocity) > self._maxGoalVelocity:
         #    self._velocity = -self._velocity
 
         # TODO: set terminal state for being at the goal position
@@ -529,7 +469,7 @@ class MountainCarMulti(MountainCar):
 
         super(MountainCarMulti, self).__init__(state=state)
 
-        self._reward_dimension = 3
+        self.reward_dimension = 3
 
     def play(self, action):
         """
@@ -551,7 +491,7 @@ class MountainCarMulti(MountainCar):
         """
 
         # Remember state before executing action
-        previousState = self._state
+        previousState = self.state
 
         self._time += 1
 
@@ -572,21 +512,24 @@ class MountainCarMulti(MountainCar):
 
         self.car_sim(factor)
 
-        if self._terminal_state:
+        if self.terminal_state:
             return [self._default_reward, self._time]
         else:
             return [0, self._time]
 
 
 class Gridworld(MORLProblem):
+    """
 
+    """
     def __init__(self, size=10, gamma=0.9):
-        self._gamma = gamma
+        self.gamma = gamma
 
-        self._actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
-        self._n_states = size * size
+        self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        self.n_actinos = len(self.actions)
+        self.n_states = size * size
         self._size = size
-        self._reward_dimension = self._n_states
+        self.reward_dimension = self.n_states
 
         self.P = None
         self.R = None
@@ -604,7 +547,7 @@ class Gridworld(MORLProblem):
         for i in xrange(self.n_states):
             xi, yi = self._get_position(i)
             for a in xrange(self.n_actions):
-                ox, oy = self._actions[a]
+                ox, oy = self.actions[a]
                 tx, ty = xi + ox, yi + oy
 
                 if not self._in_map((tx, ty)):
@@ -613,33 +556,10 @@ class Gridworld(MORLProblem):
                     j = self._get_index((tx, ty))
                     self.P[i, a, j] = 1.0
 
-                # for j in xrange(self.n_states):
-                #     xi, yi = self._get_position(i)
-                #     xj, yj = self._get_position(j)
-                #
-                #     ox, oy = self._actions[a]
-                #
-                #     tx, ty = xi + ox, yi + oy
-                #
-                #     if xj == tx and yj == ty:
-                #         self.P[i, a, j] = 1.0
-                #
-                #     if not self._in_map((tx, ty)):
-                #         self.P[i, a, i] = 1.0
-                #
-                #
-                #
-                #     else:
-                #         self.P[i, a, i] = 1.0
-                #
-                #
-                #
-                #     # self.P[i, a, j] = self._transition_probability(i, a, j)
-
     def reset(self):
-        self._state = 0
+        self.state = 0
         self._last_state = 0
-        self._terminal_state = False
+        self.terminal_state = False
 
     def _get_index(self, position):
         return position[1] * self.scene_x_dim + position[0]
@@ -649,23 +569,6 @@ class Gridworld(MORLProblem):
 
     def _in_map(self, pos):
         return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
-
-    # def _transition_probability(self, i, a, j):
-    #     xi, yi = self._get_position(i)
-    #     xj, yj = self._get_position(j)
-    #
-    #     ox, oy = self._actions[a]
-    #
-    #     tx, ty = xi + ox, yi + oy
-    #
-    #     if not self._in_map((tx, ty)):
-    #
-    #         return 0.0
-    #
-    #     if xj == tx and yj == ty:
-    #         return 1.0
-    #
-    #     return 0.0
 
     def _get_reward(self, state):
         r = np.zeros(self.reward_dimension)

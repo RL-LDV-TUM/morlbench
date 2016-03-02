@@ -12,8 +12,8 @@ import sys
 
 import cPickle as pickle
 
-#log.basicConfig(level=log.DEBUG)
-log.basicConfig(level=log.INFO)
+log.basicConfig(level=log.DEBUG)
+#log.basicConfig(level=log.INFO)
 
 
 from morl_problems import Deepsea
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     # payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
 
     policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
-    policy_human = PolicyDeepseaExpert(problem, task='T3')
+    # policy_human = PolicyDeepseaExpert(problem, task='T3')
     # policy_optimal = PolicyDeepseaRandom(problem)
     # policy_optimal = PolicyDeepseaFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
     # policy_plot(problem, policy_optimal)

@@ -53,7 +53,7 @@ if __name__ == '__main__':
     #log.info("scalarization weights (without p, sum 1): %s" % (str(i_morl.solve_sum_1())))
     log.info("scalarization weights (alge): %s" % (str(scalarization_weights_alge)))
 
-    tmp = np.dot(scalarization_weights_alge, problem.R.T)
+    tmp = np.dot(problem.R, scalarization_weights_alge)
     # tmp = np.dot(scalarization_weights, problem.R.T)
 
     sys.exit(0)

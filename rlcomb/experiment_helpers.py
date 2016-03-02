@@ -75,7 +75,7 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
                 problem.reset()
                 moves.append(actions)
                 states.append(tmp_states)
-                final_rewards.append(reward)
+                final_rewards.append((reward[0], -t))
                 break
         pbar.update(i)
     # newline to fix output of pgbar
@@ -124,11 +124,14 @@ def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, ma
                     problem.reset()
                     moves.append(actions)
                     states.append(tmp_states)
-                    final_rewards.append(reward)
+                    final_rewards.append((reward[0], -t))
                     break
 
+        agent.save()
         agent.reset()
         pbar.update(r)
+
+    agent.restore()
     # newline to fix output of pgbar
     print ""
     return np.array(final_rewards), np.array(moves), np.array(states)

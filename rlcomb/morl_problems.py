@@ -142,6 +142,8 @@ class Deepsea(MORLProblem):
         self._n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
         self._index_terminal_state = self._n_states - 1
 
+        #self._predictor_accuracy = predictor_accuracy
+        #self._payouts = payouts
         self._actions = actions
 
         self._reward_dimension = 2
@@ -214,9 +216,44 @@ class Deepsea(MORLProblem):
         self._last_position = self._position
         self._terminal_reward = 0
 
+    def __str__(self):
+        return self.__class__.__name__
+
+    @property
+    def terminal_state(self):
+        return self._terminal_state
+
+    @property
+    def state(self):
+        return self._state
+
+    @property
+    def last_state(self):
+        return self._last_state
+
+    @property
+    def actions(self):
+        return self._actions
+
+    @property
+    def n_actions(self):
+        return len(self._actions)
+
+    @property
+    def n_states(self):
+        return self._n_states
+
+    @property
+    def reward_dimension(self):
+        return 2
+
     @property
     def scene_x_dim(self):
         return self._scene.shape[1]
+
+    @property
+    def gamma(self):
+        return self._gamma
 
     @property
     def scene_y_dim(self):
@@ -417,7 +454,6 @@ class MountainCar(MORLProblem):
 
         self._n_states = 100  # TODO: Discretize Mountain car states!
         self._reward_dimension = 2
-
 
     def reset(self):
         self._velocity = 0

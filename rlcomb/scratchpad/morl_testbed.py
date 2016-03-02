@@ -36,9 +36,9 @@ if __name__ == '__main__':
     # scalarization_weights = np.array([0.153, 0.847])
     scalarization_weights = np.array([0.5, 0.5])
 
-    eps = 0.9
+    eps = 0.6
     alfa = 0.3
-    runs = 500
+    runs = 1
     interactions = 50000
 
     agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)

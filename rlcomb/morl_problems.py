@@ -91,6 +91,16 @@ class Deepsea(MORLProblem):
             self._scene[5:11, 3:6] = -100
             self._scene[8:11, 6:8] = -100
             self._scene[10, 8] = -100
+
+            # self._scene[2:11, 0] = -100
+            # self._scene[3:11, 1] = -100
+            # self._scene[4:11, 2] = -100
+            # self._scene[5:11, 3] = -100
+            # self._scene[6:11, 4] = -100
+            # self._scene[7:11, 5] = -100
+            # self._scene[8:11, 6] = -100
+            # self._scene[9:11, 7] = -100
+            # self._scene[10, 8] = -100
             # Rewards of the default map
             self._scene[1, 0] = 1
             self._scene[2, 1] = 2
@@ -102,12 +112,23 @@ class Deepsea(MORLProblem):
             self._scene[7, 7] = 50
             self._scene[9, 8] = 74
             self._scene[10, 9] = 124
+
+            # self._scene[1, 0] = 1
+            # self._scene[2, 1] = 2
+            # self._scene[3, 2] = 3
+            # self._scene[4, 3] = 5
+            # self._scene[5, 4] = 8
+            # self._scene[6, 5] = 16
+            # self._scene[7, 6] = 24
+            # self._scene[8, 7] = 50
+            # self._scene[9, 8] = 74
+            # self._scene[10, 9] = 124
             self.P = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_P.pickle'))
             self.R = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_R.pickle'))
 
         self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
 
-        self.n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1 # +1 for terminal state
+        self.n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1  # +1 for terminal state
         self._index_terminal_state = self.n_states - 1
 
         self.actions = actions
@@ -216,7 +237,7 @@ class Deepsea(MORLProblem):
         # -1 for all moves
         r[1] = -1.0
 
-        if state < self.n_states - 2:
+        if state < self.n_states - 1:
             map_value = self._flat_map[state]
         else:
             map_value = 0.0
@@ -225,6 +246,7 @@ class Deepsea(MORLProblem):
             r[0] = 0.0
         # if we transited into a treasure state the next will be the terminal state
         elif self._pre_terminal_state:
+            # r[0] = self._terminal_reward
             r[0] = map_value
         else:
             if map_value > 0:
@@ -257,8 +279,9 @@ class Deepsea(MORLProblem):
 
         self._time += 1
 
-        if self._pre_terminal_state:
+        if self._pre_terminal_state or self.terminal_state:
             self.terminal_state = True
+            self._pre_terminal_state = False
             self.last_state = self.state
             self.state = self._index_terminal_state
             return self._get_reward(self.state)

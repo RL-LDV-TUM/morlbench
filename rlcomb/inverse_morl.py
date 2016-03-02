@@ -261,7 +261,9 @@ class InverseMORL(SaveableObject):
         ])
         assert G.shape[1] == x_size
 
-        h = np.vstack([np.ones((D * 2, 1)),
+        # h = np.vstack([np.ones((D * 2, 1)),
+        #                np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
+        h = np.vstack([10.0 * np.ones((D, 1)), np.zeros((D, 1)),
                        np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
 
         # c = c.reshape(-1, 1)
@@ -288,5 +290,5 @@ class InverseMORL(SaveableObject):
         # A = matrix(A)
         # b = matrix(b)
         solution = solvers.lp(matrix(c), matrix(G), matrix(h), matrix(A), matrix(b))
-        alpha = -np.asarray(solution['x'][-reward_dimension:], dtype=np.double)
+        alpha = np.asarray(solution['x'][-reward_dimension:], dtype=np.double)
         return alpha.ravel()

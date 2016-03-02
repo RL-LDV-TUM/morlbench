@@ -280,20 +280,6 @@ class Deepsea(MORLProblem):
     def print_map(self):
         plt.imshow(self._scene, interpolation='none')
 
- #    def __str__(self):
- #        return 'Newcomb problem with\n actions:\n%s\n\
- # predictor_accuracy:\n%03f\n\
- # payouts:\n%s' % (str(self.actions), self.predictor_accuracy, self.payouts)
-
-    # def __invert_action(self, action):
-    #     '''
-    #     Invert the action, if the predictor will
-    #     predict wrong.
-    #     '''
-    #     if action == 0:
-    #         return 1
-    #     return 0
-
     def _get_reward(self, state):
         r = np.zeros(self._reward_dimension)
 

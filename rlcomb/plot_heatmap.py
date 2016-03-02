@@ -111,8 +111,8 @@ def policy_plot2(problem, policy):
                 fontsize=12, ha='center', va='center')
             else:
                 for a in xrange(problem.n_actions-1):
-                    off1 = problem._actions[a] * 0.15
-                    off2 = problem._actions[a] * 0.23
+                    off1 = problem.actions[a] * 0.15
+                    off2 = problem.actions[a] * 0.23
                     ax.add_patch(patches.FancyArrow(x+off1[1], -y-off1[0], off2[1], -off2[0],
                                                     width=0.3, head_width=0.3, head_length=0.1, lw=0,
                                                     fc=mycmap(_pi[problem._get_index((y, x)), a])))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Created on Mar 01, 2016
+Created on Mar 02, 2016
 
 @author: Johannes Feldmaier <@tum.de>
 """
@@ -33,9 +33,9 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     problem = Deepsea()
 
-    scalarization_weights = np.array([0.153, 0.847])
+    # scalarization_weights = np.array([0.153, 0.847])
     # scalarization_weights = np.array([0.5, 0.5])
-    # scalarization_weights = np.array([0.0, 1.0])
+    scalarization_weights = np.array([1.0, 0.0])
 
     eps = 0.6
     alfa = 0.3
@@ -67,5 +67,16 @@ if __name__ == '__main__':
 
     log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
+    i_morl = InverseMORL(problem, learned_policy)
+    # scalarization_weights = i_morl.solvep()
+    scalarization_weights_alge = i_morl.solvealge()
 
+    # log.info("scalarization weights (with p): %s" % (str(scalarization_weights)))
+    # log.info("scalarization weights (without p): %s" % (str(i_morl.solve())))
+    # log.info("scalarization weights (without p, sum 1): %s" % (str(i_morl.solve_sum_1())))
+    log.info("scalarization weights (alge): %s" % (str(scalarization_weights_alge)))
 
+    agent2 = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    payouts, moves, states = morl_interact_multiple(agent2, problem, interactions=interactions, max_episode_length=150)
+    learned_policy2 = PolicyDeepseaFromAgent(problem, agent2, mode='gibbs')
+    policy_plot2(problem, learned_policy2)

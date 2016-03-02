@@ -288,5 +288,5 @@ class InverseMORL(SaveableObject):
         # A = matrix(A)
         # b = matrix(b)
         solution = solvers.lp(matrix(c), matrix(G), matrix(h), matrix(A), matrix(b))
-        alpha = np.asarray(solution['x'][-reward_dimension:], dtype=np.double)
+        alpha = -np.asarray(solution['x'][-reward_dimension:], dtype=np.double)
         return alpha.ravel()

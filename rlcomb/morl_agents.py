@@ -335,11 +335,15 @@ class QMorlAgent(MorlAgent):
         return np.dot(self._Q[state, :], self._scalarization_weights).argmax()
 
     def get_learned_action_distribution(self, state):
-        tau = 2.0
+        tau = 1.0
         tmp = np.exp(np.dot(self._Q[state, :], self._scalarization_weights) / tau)
         tsum = tmp.sum()
         dist = tmp / tsum
         return dist.ravel()
+        # action_value = np.dot(self._Q[state, :], self._scalarization_weights)
+        # action_value = action_value.ravel()
+        # action_value /= action_value.sum()
+        # return action_value
 
     def reset(self):
         """

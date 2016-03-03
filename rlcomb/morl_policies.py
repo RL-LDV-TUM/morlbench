@@ -334,12 +334,12 @@ class PolicyDeepseaExpert(Policy):
         # TODO: implement the terminal state!?
 
 
-class PolicyDeepseaFromAgent(Policy):
+class PolicyFromAgent(Policy):
     """
     Derive a greedy policy from a trained agent.
     """
     def __init__(self, problem, agent, mode='gibbs'):
-        super(PolicyDeepseaFromAgent, self).__init__(problem)
+        super(PolicyFromAgent, self).__init__(problem)
 
         self._agent = agent
         self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
@@ -361,7 +361,7 @@ class PolicyGridworld(Policy):
     to the lower right.
     """
     def __init__(self, problem, policy='DIAGONAL'):
-        super(PolicyGridworldExample, self).__init__(problem)
+        super(PolicyGridworld, self).__init__(problem)
 
         self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
 

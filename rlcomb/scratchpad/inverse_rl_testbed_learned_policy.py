@@ -18,7 +18,7 @@ log.basicConfig(level=log.INFO)
 
 from morl_problems import Deepsea
 from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent
-from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyDeepseaFromAgent, PolicyDeepseaExpert
+from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyFromAgent, PolicyDeepseaExpert
 from inverse_morl import InverseMORLIRL
 from plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2, policy_heat_plot
 from dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
@@ -52,8 +52,8 @@ if __name__ == '__main__':
     # # payouts, moves, states = morl_interact_multiple_average(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions=interactions, max_episode_length=150)
 
-    learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='gibbs')
-    # learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='greedy')
+    learned_policy = PolicyFromAgent(problem, agent, mode='gibbs')
+    # learned_policy = PolicyFromAgent(problem, agent, mode='greedy')
 
     # learned_policy = PolicyDeepseaDeterministic(problem, policy='P1')
 
@@ -75,8 +75,8 @@ if __name__ == '__main__':
     agent2 = QMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps)
     payouts, moves, states = morl_interact_multiple(agent2, problem2, interactions=interactions, max_episode_length=150)
     log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
-    # learned_policy2 = PolicyDeepseaFromAgent(problem2, agent2, mode='gibbs')
-    learned_policy2 = PolicyDeepseaFromAgent(problem2, agent2, mode='greedy')
+    # learned_policy2 = PolicyFromAgent(problem2, agent2, mode='gibbs')
+    learned_policy2 = PolicyFromAgent(problem2, agent2, mode='greedy')
 
 
     plt.ion()

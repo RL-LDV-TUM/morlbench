@@ -289,7 +289,7 @@ class InverseMORLIRL(InverseMORL):
         # m = 10.0
         # h = np.vstack([np.ones((1, 1)), m * np.ones((D, 1)), np.zeros((D, 1)),
         #                np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
-        h = np.vstack([m * np.ones((D, 1)), np.zeros((D, 1)),
+        h = np.vstack([m * np.ones((D, 1)), np.ones((D, 1)),
                        np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
 
         # c = c.reshape(-1, 1)
@@ -321,7 +321,6 @@ class InverseMORLIRL(InverseMORL):
 
 
 class InverseMORLDirect(InverseMORL):
-
     def solve(self):
         problem, policy = self._problem, self._policy
         reward_dimension = self._problem.reward_dimension

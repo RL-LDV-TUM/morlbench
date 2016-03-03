@@ -400,7 +400,7 @@ if __name__ == '__main__':
 
     #policy = PolicyDeepseaExpert(problem, task='T2')
 
-    policy = PolicyDeepseaFromAgent(problem, agent)
+    policy = PolicyFromAgent(problem, agent)
 
     # policy_plot2(problem, policy)
     # heatmap_matplot(problem, states)

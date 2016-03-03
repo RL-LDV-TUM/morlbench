@@ -18,7 +18,7 @@ log.basicConfig(level=log.DEBUG)
 
 from morl_problems import Deepsea
 from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent
-from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyDeepseaFromAgent, PolicyDeepseaExpert
+from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyFromAgent, PolicyDeepseaExpert
 from inverse_morl import InverseMORLIRL
 from plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
 from dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
@@ -41,7 +41,7 @@ if __name__ == '__main__':
     policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
     # policy_human = PolicyDeepseaExpert(problem, task='T3')
     # policy_optimal = PolicyDeepseaRandom(problem)
-    # policy_optimal = PolicyDeepseaFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
+    # policy_optimal = PolicyFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
     # policy_plot(problem, policy_optimal)
 
     i_morl = InverseMORLIRL(problem, policy_optimal)
@@ -76,7 +76,7 @@ if __name__ == '__main__':
     #plt.ion()
 
     #transition_map(problem, states, moves)
-    learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='gibbs')
+    learned_policy = PolicyFromAgent(problem, agent, mode='gibbs')
     #heatmap_matplot(problem, states)
 
     policy_plot2(problem, learned_policy)

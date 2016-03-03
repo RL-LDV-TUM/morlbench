@@ -606,10 +606,32 @@ class MORLGridworld(Gridworld):
     """
     Multiobjective gridworld.
     """
-    def __init__(self, size=10, gamma=0.9, **kwargs):
-        super(MORLGridworld, self).__init__(size, gamma, **kwargs)
+    def __init__(self, size=10, gamma=0.9):
+        self.gamma = gamma
 
+        self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        self.n_actions = len(self.actions)
+        self.n_actions_print = self.n_actions
+        self.n_states = size * size
+        self._size = size
         self.reward_dimension = 3
+
+        self.P = None
+        self.R = None
+
+        # Default Map as used in general MORL papers
+        self._scene = np.zeros((size, size))
+        self._scene[0, size-1] = 1
+        self._scene[size-1, 0] = 1
+        self._scene[size-1, size-1] = 1
+
+        if not self.P:
+            self._construct_p()
+
+        if not self.R:
+            self._construct_r()
+
+        self.reset()
 
     def _get_reward(self, state):
         position = self._get_position(state)

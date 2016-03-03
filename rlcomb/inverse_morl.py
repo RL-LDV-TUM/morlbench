@@ -19,11 +19,6 @@ except ImportError:
 
 
 class InverseMORL(SaveableObject):
-    """
-    Inverse RL for finding scalarization weights in Multi-Objective
-    Reinforcement Learning problems.
-    """
-
     def __init__(self, problem, policy):
         """
         Initialize the Inverse MORL solver.
@@ -53,6 +48,16 @@ class InverseMORL(SaveableObject):
         P_pi = P_pi.sum(axis=1)
         P_pi /= P_pi.sum(axis=1)[:, np.newaxis]
         return (n_states, n_actions, reward_dimension, gamma, P, R, pi, P_pi)
+
+    def solve(self):
+        virtualFunction()
+
+
+class InverseMORLIRL(InverseMORL):
+    """
+    Inverse RL for finding scalarization weights in Multi-Objective
+    Reinforcement Learning problems.
+    """
 
     def _prepare_v(self, n_states, n_actions, reward_dimension, P):
         problem, policy = self._problem, self._policy
@@ -314,3 +319,53 @@ class InverseMORL(SaveableObject):
         solution = solvers.lp(matrix(c), matrix(G), matrix(h), matrix(A), matrix(b))
         alpha = np.asarray(solution['x'][-reward_dimension:], dtype=np.double)
         return alpha.ravel()
+
+
+class InverseMORLDirect(InverseMORL):
+
+    def solve(self):
+        problem, policy = self._problem, self._policy
+        reward_dimension = self._problem.reward_dimension
+        n_states = self._problem.n_states
+        n_actions = self._problem.n_actions
+        P = self._problem.P
+        R = self._problem.R
+        gamma = self._problem.gamma
+
+        #dp = MORLDynamicProgrammingInverse(problem, policy)
+        dp = MORLDynamicProgrammingPolicyEvaluation(problem, policy)
+        # V = dp.solve(vector_implementation=True)
+        V = dp.solve(vector_implementation=False)
+
+        # calculate all Q(s,a) for each reward dimension
+        Q = np.zeros((n_states, n_actions, reward_dimension))
+
+        for r in xrange(reward_dimension):
+            for s in xrange(n_states):
+                for a in xrange(n_actions):
+                    Q[s, a, r] = sum(P[s, a, s_prime] * (R[s_prime, r] + gamma * V[s_prime, r])
+                                     for s_prime in range(n_states))
+
+        Q_vec = np.zeros((reward_dimension, n_states))
+        for r in xrange(reward_dimension):
+            for s in xrange(n_states):
+                Q_vec[r, s] = Q[s, policy.get_optimal_action(s), r]
+
+        Q_sum = np.dot(Q_vec, np.ones((n_states, 1)))
+
+        # A = np.ones((reward_dimension, 1))
+        # b = np.ones((1, 1))
+        G = np.vstack([
+                np.ones((1, reward_dimension)),
+                -np.eye(reward_dimension, reward_dimension)
+            ])
+        h = np.vstack([
+                np.ones((1, 1)),
+                np.zeros((reward_dimension, 1))
+            ])
+        # solution = solvers.lp(matrix(Q_sum), matrix(G), matrix(h), matrix(A), matrix(b))
+        solution = solvers.lp(matrix(Q_sum), matrix(G), matrix(h))
+        alpha = np.asarray(solution['x'], dtype=np.double)
+        return alpha.ravel()
+
+

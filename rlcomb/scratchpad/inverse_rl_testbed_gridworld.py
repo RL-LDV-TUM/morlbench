@@ -18,7 +18,7 @@ log.basicConfig(level=log.DEBUG)
 
 from morl_problems import Gridworld
 from morl_policies import PolicyGridworldExample
-from inverse_morl import InverseMORL
+from inverse_morl import InverseMORLIRL
 
 
 if __name__ == '__main__':

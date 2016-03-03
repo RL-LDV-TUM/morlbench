@@ -292,7 +292,6 @@ class InverseMORLIRL(InverseMORL):
         h = np.vstack([m * np.ones((D, 1)), np.zeros((D, 1)),
                        np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
 
-
         # c = c.reshape(-1, 1)
         # b = b.reshape(-1, 1)
         # print c.shape

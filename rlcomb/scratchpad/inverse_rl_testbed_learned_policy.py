@@ -34,8 +34,8 @@ if __name__ == '__main__':
     problem = Deepsea()
 
     # scalarization_weights = np.array([0.153, 0.847])
-    scalarization_weights = np.array([0.4, 0.2, 10.0])
-    # scalarization_weights = np.array([1.0, 0.0])
+    # scalarization_weights = np.array([0.4, 0.2])
+    scalarization_weights = np.array([1.0, 0.0])
     # scalarization_weights = np.array([0.0, 1.0])
 
     eps = 0.6
@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
     # log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
-    i_morl = InverseMORL(problem, learned_policy)
+    i_morl = InverseMORLIRL(problem, learned_policy)
     # scalarization_weights = i_morl.solvep()
     scalarization_weights_alge = i_morl.solvealge()
 

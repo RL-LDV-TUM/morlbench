@@ -28,7 +28,7 @@ if __name__ == '__main__':
 
     policy_optimal = PolicyGridworldExample(problem)
 
-    i_morl = InverseMORL(problem, policy_optimal)
+    i_morl = InverseMORLIRL(problem, policy_optimal)
     # scalarization_weights = i_morl.solvep()
     scalarization_weights_alge = i_morl.solvealge()
 

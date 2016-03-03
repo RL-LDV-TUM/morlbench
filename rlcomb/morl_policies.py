@@ -376,9 +376,15 @@ class PolicyGridworld(Policy):
         elif policy == 'DOWN':
             for i in xrange(self._problem.n_states):
                 x, y = self._problem._get_position(i)
-                if x == 0:
+                # TODO: check if this only works for square worlds or also in general!
+                if x + y < self._problem.scene_x_dim:
                     self._pi[i, 1] = 1.0
                 else:
-                    pass
+                    self._pi[i, 2] = 1.0
         elif policy == 'RIGHT':
-            pass
+            for i in xrange(self._problem.n_states):
+                x, y = self._problem._get_position(i)
+                if x + y < self._problem.scene_x_dim:
+                    self._pi[i, 0] = 1.0
+                else:
+                    self._pi[i, 3] = 1.0

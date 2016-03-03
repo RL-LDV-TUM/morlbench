@@ -134,7 +134,8 @@ class Deepsea(MORLProblem):
         self.actions = actions
         self.n_actions = len(self.actions)
 
-        self.reward_dimension = 2
+        # self.reward_dimension = 2
+        self.reward_dimension = 3
         self._extended_reward = extended_reward
         if extended_reward:
             self.reward_dimension += self.n_states
@@ -230,6 +231,7 @@ class Deepsea(MORLProblem):
         r = np.zeros(self.reward_dimension)
 
         r[1] = -1.0
+        r[2] = state
 
         if state == self._index_terminal_state:
             r[0] = 0.0
@@ -245,7 +247,7 @@ class Deepsea(MORLProblem):
                 raise ValueError('Invalid map_value for state %i', state)
 
         if self._extended_reward:
-            r[state + 2] = 1.0
+            r[state + 3] = 1.0
 
         return r
 

@@ -34,14 +34,14 @@ if __name__ == '__main__':
     problem = Deepsea()
 
     # scalarization_weights = np.array([0.153, 0.847])
-    # scalarization_weights = np.array([0.5, 0.5])
-    scalarization_weights = np.array([1.0, 0.0])
+    scalarization_weights = np.array([0.4, 0.2, 10.0])
+    # scalarization_weights = np.array([1.0, 0.0])
     # scalarization_weights = np.array([0.0, 1.0])
 
     eps = 0.6
     alfa = 0.3
     runs = 1
-    interactions = 5000
+    interactions = 10000
 
     agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
@@ -54,10 +54,12 @@ if __name__ == '__main__':
     learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='gibbs')
     # learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='greedy')
 
+    # learned_policy = PolicyDeepseaDeterministic(problem, policy='P1')
+
     # filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S")
     # pickle.dump((payouts, moves, states, problem, agent), open(filename, "wb"))
 
-    log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
+    # log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
     i_morl = InverseMORL(problem, learned_policy)
     # scalarization_weights = i_morl.solvep()

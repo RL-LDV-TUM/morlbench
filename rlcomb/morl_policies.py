@@ -355,20 +355,30 @@ class PolicyDeepseaFromAgent(Policy):
                 self._pi[i, a] = 1.0
 
 
-class PolicyGridworldExample(Policy):
+class PolicyGridworld(Policy):
     """
     Optimal policy for the gridworld is to go diagonal from the upper left
     to the lower right.
     """
-    def __init__(self, problem):
+    def __init__(self, problem, policy='DIAGONAL'):
         super(PolicyGridworldExample, self).__init__(problem)
 
         self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
 
-        for i in xrange(self._problem.n_states):
-            # TODO: this is a private function and should be refactored
-            x, y = self._problem._get_position(i)
-            if x < y:
-                self._pi[i, 0] = 1.0
-            else:
-                self._pi[i, 1] = 1.0
+        if policy == 'DIAGONAL':
+            for i in xrange(self._problem.n_states):
+                # TODO: this is a private function and should be refactored
+                x, y = self._problem._get_position(i)
+                if x < y:
+                    self._pi[i, 0] = 1.0
+                else:
+                    self._pi[i, 1] = 1.0
+        elif policy == 'DOWN':
+            for i in xrange(self._problem.n_states):
+                x, y = self._problem._get_position(i)
+                if x == 0:
+                    self._pi[i, 1] = 1.0
+                else:
+                    pass
+        elif policy == 'RIGHT':
+            pass

@@ -524,7 +524,7 @@ class MountainCarMulti(MountainCar):
 
 class Gridworld(MORLProblem):
     """
-
+    Original Algen-Gridworld.
     """
     def __init__(self, size=10, gamma=0.9):
         self.gamma = gamma
@@ -589,3 +589,18 @@ class Gridworld(MORLProblem):
     @property
     def scene_y_dim(self):
         return self._size
+
+class MORLGridworld(Gridworld):
+    """
+    Multiobjective gridworld.
+    """
+    def __init__(self, size=10, gamma=0.9, **kwargs):
+        super(MORLGridworld, self).__init__(size, gamma, **kwargs)
+
+        self.reward_dimension = 3
+
+    def _get_reward(self, state):
+        pass
+
+    def play(self):
+        pass

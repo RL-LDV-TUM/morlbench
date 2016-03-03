@@ -58,24 +58,25 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
         state = problem.state
         last_state = state
         for t in xrange(max_episode_length):
-            action = agent.decide(t, state)
+            action = agent.decide(t, problem.state)
             reward = problem.play(action)
-            state = problem.state
+
             if my_debug: log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
-                      (t, problem.last_state, action, str(reward), state))
-            agent.learn(t, last_state, action, reward, state)
+                      (t, problem.last_state, action, str(reward), problem.state))
+
+            agent.learn(t, problem.last_state, action, reward, problem.state)
 
             # Preserve reward, action and state
             rewards.append(reward)
             actions.append(action)
             tmp_states.append(problem.last_state)
-            last_state = state
+
             # Decide if terminal state
             if problem.terminal_state:
                 problem.reset()
                 moves.append(actions)
                 states.append(tmp_states)
-                final_rewards.append((reward[0], -t))
+                final_rewards.append(rewards[-2])
                 break
         pbar.update(i)
     # newline to fix output of pgbar
@@ -107,12 +108,12 @@ def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, ma
             state = problem.state
             last_state = state
             for t in xrange(max_episode_length):
-                action = agent.decide(t, state)
+                action = agent.decide(t, problem.state)
                 reward = problem.play(action)
                 state = problem.state
                 if my_debug: log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
-                          (t, problem.last_state, action, str(reward), state))
-                agent.learn(t, last_state, action, reward, state)
+                          (t, problem.last_state, action, str(reward), problem.state))
+                agent.learn(t, problem.last_state, action, reward, problem.state)
 
                 # Preserve reward, action and state
                 rewards.append(reward)
@@ -124,7 +125,7 @@ def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, ma
                     problem.reset()
                     moves.append(actions)
                     states.append(tmp_states)
-                    final_rewards.append((reward[0], -t))
+                    final_rewards.append(rewards[-2])
                     break
 
         agent.save()

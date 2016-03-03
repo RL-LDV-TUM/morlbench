@@ -188,12 +188,11 @@ class Deepsea(MORLProblem):
     def reset(self):
         self.state = self._start_state
         self.terminal_state = False
-        self._pre_terminal_state = False
+        self.treasure_state = False
         self._time = 0
         self.last_state = self.state
         self._position = self._get_position(self.state)
         self._last_position = self._position
-        self._terminal_reward = 0
 
     def __str__(self):
         return self.__class__.__name__
@@ -230,32 +229,20 @@ class Deepsea(MORLProblem):
     def _get_reward(self, state):
         r = np.zeros(self.reward_dimension)
 
-        # if self._extended_reward:
-        #     r[state] = 1
-        #     return r
-
-        # -1 for all moves
         r[1] = -1.0
 
-        if state < self.n_states - 1:
-            map_value = self._flat_map[state]
-        else:
-            map_value = 0.0
-        # we transited to the terminal state and stay there
-        if self.terminal_state:
+        if state == self._index_terminal_state:
             r[0] = 0.0
-        # if we transited into a treasure state the next will be the terminal state
-        elif self._pre_terminal_state:
-            # r[0] = self._terminal_reward
-            r[0] = map_value
         else:
+            map_value = self._flat_map[state]
             if map_value > 0:
                 r[0] = map_value
             elif map_value < 0:
-                # print "so nicht %i" % (state)
+                r[0] = 0.0
+            elif map_value == 0:
                 r[0] = 0.0
             else:
-                r[0] = 0.0
+                raise ValueError('Invalid map_value for state %i', state)
 
         if self._extended_reward:
             r[state + 2] = 1.0
@@ -279,17 +266,16 @@ class Deepsea(MORLProblem):
 
         self._time += 1
 
-        if self._pre_terminal_state or self.terminal_state:
-            self.terminal_state = True
-            self._pre_terminal_state = False
-            self.last_state = self.state
-            self.state = self._index_terminal_state
-            return self._get_reward(self.state)
-
         last_position = np.copy(self._position)  # numpy arrays are mutable -> must be copied
 
         if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self.actions[action]) +
                                ' (last pos: ' + str(last_position) + ')')
+
+        if self.treasure_state:
+            self.last_state = self.state
+            self.state = self._index_terminal_state
+            self.terminal_state = True
+            return self._get_reward(self.state)
 
         if self._in_map(self._position + self.actions[action]):
             self._position += self.actions[action]
@@ -299,11 +285,10 @@ class Deepsea(MORLProblem):
                 self._position = last_position
                 if my_debug: log.debug('Ground touched!')
             elif map_value > 0:
-                if my_debug: log.debug('Treasure found! - I got a reward of ' + str(reward))
-                self._pre_terminal_state = True
-                self._terminal_reward = map_value
+                if my_debug: log.debug('Treasure found! - I got a reward of ' + str(map_value))
+                self.treasure_state = True
             else:
-                if my_debug: log.debug('I got a reward of ' + str(reward))
+                if my_debug: log.debug('Normal state!')
         else:
             if my_debug: log.debug('Move not allowed!')
 
@@ -313,11 +298,6 @@ class Deepsea(MORLProblem):
         self.last_state = self.state
         self.state = self._get_index(self._position)
 
-        # predictor_action = action
-        # if random.random() > self.predictor_accuracy:
-        #     predictor_action = self.__invert_action(predictor_action)
-
-        # return np.array([reward, -self._time])
         return self._get_reward(self.state)
 
 

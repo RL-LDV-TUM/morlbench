@@ -221,14 +221,15 @@ class InverseMORL(SaveableObject):
         assert A.shape[1] == x_size
 
         b = np.zeros(A.shape[0])
-
+        # p-Function
+        n = 10
         bottom_row = np.vstack([
                         np.hstack([
                             np.ones((n_actions - 1, 1)).dot(np.eye(1, n_states, l)),
                             np.hstack([-np.eye(n_actions - 1) if i == l
                                        else np.zeros((n_actions - 1, n_actions - 1))
                                        for i in range(n_states)]),
-                            np.hstack([2 * np.eye(n_actions - 1) if i == l
+                            np.hstack([n * np.eye(n_actions - 1) if i == l
                                        else np.zeros((n_actions - 1, n_actions - 1))
                                        for i in range(n_states)]),
                             np.zeros((n_actions - 1, D))])
@@ -264,7 +265,7 @@ class InverseMORL(SaveableObject):
         # h = np.vstack([np.ones((D * 2, 1)),
         #                np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])
         # slack tuning variable
-        m = 1.0
+        m = 10.0
         # m = 10.0
         h = np.vstack([m * np.ones((D, 1)), np.zeros((D, 1)),
                        np.zeros((n_states * (n_actions - 1) * 2 + bottom_row.shape[0], 1))])

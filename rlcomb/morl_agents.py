@@ -228,7 +228,7 @@ class SARSALambdaMorlAgent(SARSAMorlAgent):
         self._e_save = []
 
     def name(self):
-        return "SARSALambda_" + str(self._lmbda) + "e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
+        return "SARSALambda_" + str(self._lmbda) + "e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._scalarization_weights.ravel().tolist().__str__()
 
     def _learn(self, t, last_state, last_action, action, reward, state):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
@@ -299,7 +299,7 @@ class QMorlAgent(MorlAgent):
         self._Q_save = []
 
     def name(self):
-        return "scalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
+        return "scalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._scalarization_weights.ravel().tolist().__str__()
 
     def learn(self, t, last_state, action, reward, state):
         self._learn(0, last_state, action, reward, state)
@@ -335,7 +335,7 @@ class QMorlAgent(MorlAgent):
         return np.dot(self._Q[state, :], self._scalarization_weights).argmax()
 
     def get_learned_action_distribution(self, state):
-        tau = 1.0
+        tau = 2.0
         tmp = np.exp(np.dot(self._Q[state, :], self._scalarization_weights) / tau)
         tsum = tmp.sum()
         dist = tmp / tsum
@@ -357,7 +357,7 @@ class QMorlAgent(MorlAgent):
         self._Q_save.append(self._Q)
 
     def restore(self):
-        tmp = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
+        tmp = np.zeros(self._Q.shape)
         for i in self._Q_save:
             tmp += i
         self._Q = np.divide(tmp,self._Q_save.__len__())
@@ -396,7 +396,7 @@ class PreScalarizedQMorlAgent(MorlAgent):
         self._last_action = random.randint(0,problem.n_actions-1)
 
     def name(self):
-        return "preScalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._scalarization_weights)
+        return "preScalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._scalarization_weights.ravel().tolist().__str__()
 
     def learn(self, t, last_state, action, reward, state):
         #self._learn(0, last_state, self._last_action, reward, state)
@@ -444,13 +444,13 @@ class PreScalarizedQMorlAgent(MorlAgent):
         resets the current agent! Be careful and save learned Q matrix first!
         """
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
-        self._last_action = random.randint(0,problem.n_actions-1)
+        self._last_action = random.randint(0, self._morl_problem.n_actions-1)
 
     def save(self):
         self._Q_save.append(self._Q)
 
     def restore(self):
-        tmp = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension))
+        tmp = np.zeros(self._Q.shape)
         for i in self._Q_save:
             tmp += i
         self._Q = np.divide(tmp,self._Q_save.__len__())

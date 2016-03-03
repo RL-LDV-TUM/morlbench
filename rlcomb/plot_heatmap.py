@@ -17,7 +17,21 @@ import matplotlib.colors as colors
 import matplotlib.patches as patches
 import numpy as np
 
+from morl_policies import *
+
 def heatmap_matplot(problem, states):
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    fig.suptitle('Heatmap Plot of visited States', fontsize=14, fontweight='bold')
+
+    _heatmap_matplot(problem, states, ax)
+
+    plt.show()
+
+
+def _heatmap_matplot(problem, states, ax):
     """
     Plots a simple heatmap of visited states for a given problem (e.g. Deepsea)
      and an array of recorded states.
@@ -42,10 +56,6 @@ def heatmap_matplot(problem, states):
     mycmap = plt.get_cmap("YlOrRd")
     norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
 
-    fig = plt.figure()
-    fig.suptitle('Heatmap Plot of visited States', fontsize=14, fontweight='bold')
-    ax = fig.add_subplot(111)
-
     for y in xrange(y_dim):
         for x in xrange(x_dim):
             ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
@@ -59,8 +69,6 @@ def heatmap_matplot(problem, states):
 
     ax.add_patch(patches.Rectangle((-0.5, -y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
 
-
-
     def format_coord(x, y):
         x = int(x)
         y = int(abs(-y))
@@ -73,21 +81,23 @@ def heatmap_matplot(problem, states):
 
     ax.format_coord = format_coord
 
-    ax.margins(0.0)
-
     ticks_offset = 1
     plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
                tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
 
-    plt.xticks(range(0+ticks_offset, x_dim+ticks_offset),
-               tuple(map(str, range(0+ticks_offset, x_dim+ticks_offset, 1))))
+    plt.xticks(range(0, x_dim),
+               tuple(map(str, range(0, x_dim, 1))))
+    ax.xaxis.set_label_position('top')
+    ax.xaxis.set_ticks_position('top') # the rest is the same
 
-    plt.show()
+    ax.margins(0.0)
+
+    return ax
 
 
-def policy_plot2(problem, policy):
 
-    filename = None
+
+def _policy_plot2(problem, policy, ax):
 
     x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
 
@@ -95,10 +105,6 @@ def policy_plot2(problem, policy):
 
     mycmap = plt.get_cmap("YlOrRd")
     #norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
-
-    fig = plt.figure()
-
-    ax = fig.add_subplot(111)
 
     for y in xrange(y_dim):
         for x in xrange(x_dim):
@@ -141,20 +147,52 @@ def policy_plot2(problem, policy):
                tuple(map(str, range(0, x_dim, 1))))
     ax.xaxis.set_label_position('top')
     ax.xaxis.set_ticks_position('top') # the rest is the same
-
-
     ax.margins(0.0)
+
+    return ax
+
+
+def policy_plot2(problem, policy, title=None, filename=None):
+
+
+    fig = plt.figure()
+
+    ax = fig.add_subplot(111)
+
+    _policy_plot2(problem, policy, ax)
 
     if not filename:
         filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S" + '.pdf')
+    else:
+        filename += '_' + time.strftime("%H%M%S") + '.pdf'
+
+    if not title:
+        plt.savefig(filename, format='pdf', bbox_inches='tight')
+        title = 'Policy Plot'
+    else:
+        fig.suptitle(title, fontsize=14, fontweight='bold')
 
     plt.savefig(filename, format='pdf', bbox_inches='tight')
-
-    fig.suptitle('Policy Plot', fontsize=14, fontweight='bold')
 
     plt.show()
 
 
+def policy_heat_plot(problem, policy, states, title=None, filename=None):
+
+
+    fig = plt.figure()
+
+    ax = fig.add_subplot(111)
+
+    _heatmap_matplot(problem, states, ax)
+
+    _policy_plot2(problem, policy, ax)
+
+    # plt.figure(fig1.number)
+    # fig1.sca(plt.gca())
+    # plt.axes()
+    # fig2.show()
+    plt.show()
 
 
 def policy_plot(problem, policy, filename=None):
@@ -308,7 +346,7 @@ def transition_map(problem, states, moves):
     plt.title('Transition Plot')
     plt.show()
 
-# def heatmap_plotly():
+def heatmap_plotly():
 #     py.sign_in('xtra', 'jut0nmg713')
 #     annotations = []
 #     for n, row in enumerate(heatmap):
@@ -338,15 +376,18 @@ def transition_map(problem, states, moves):
 #         autosize=False
 #     )
 #     url = py.plot(fig, filename='Annotated Heatmap', height=750)
+    pass
 
 if __name__ == '__main__':
-    prob = Deepsea()
-    saved_payouts, saved_moves, saved_states = pickle.load(open("results_10000_eps0.8_0.5-0.5.p"))
+    problem = Deepsea()
 
-    transition_map(problem=prob, states=saved_states, moves=saved_moves)
-    # heatmap_matplot()
-    # heatmap_plotly()
+    payouts, moves, states, problem, agent = pickle.load(open("scalQ_e0.7a0.3W=[1.0, 0.0]_114301.p"))
 
+    #policy = PolicyDeepseaExpert(problem, task='T2')
 
+    policy = PolicyDeepseaFromAgent(problem, agent)
 
+    # policy_plot2(problem, policy)
+    # heatmap_matplot(problem, states)
+    policy_heat_plot(problem, policy, states)
 

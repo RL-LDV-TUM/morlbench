@@ -41,7 +41,7 @@ if __name__ == '__main__':
     eps = 0.6
     alfa = 0.3
     runs = 1
-    interactions = 50000
+    interactions = 5000
 
     agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
@@ -51,20 +51,11 @@ if __name__ == '__main__':
     # payouts, moves, states = morl_interact_multiple_average(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions=interactions, max_episode_length=150)
 
-    # learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='gibbs')
-    learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='greedy')
+    learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='gibbs')
+    # learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='greedy')
 
     # filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S")
     # pickle.dump((payouts, moves, states, problem, agent), open(filename, "wb"))
-
-    ## Plotting ##
-
-    #plt.ion()
-
-    # figure_file_name = 'fig_runs-' + str(interactions) + "-" + agent.name() + ".png"
-    policy_plot2(problem, learned_policy)
-
-    #plt.ioff()
 
     log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
@@ -77,8 +68,14 @@ if __name__ == '__main__':
     # log.info("scalarization weights (without p, sum 1): %s" % (str(i_morl.solve_sum_1())))
     log.info("scalarization weights (alge): %s" % (str(scalarization_weights_alge)))
 
-    agent2 = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    agent2 = QMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps)
     payouts, moves, states = morl_interact_multiple(agent2, problem, interactions=interactions, max_episode_length=150)
-    # learned_policy2 = PolicyDeepseaFromAgent(problem, agent2, mode='gibbs')
-    learned_policy2 = PolicyDeepseaFromAgent(problem, agent2, mode='greedy')
+    log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
+    learned_policy2 = PolicyDeepseaFromAgent(problem, agent2, mode='gibbs')
+    # learned_policy2 = PolicyDeepseaFromAgent(problem, agent2, mode='greedy')
+
+
+    plt.ion()
+    policy_plot2(problem, learned_policy)
+    plt.ioff()
     policy_plot2(problem, learned_policy2)

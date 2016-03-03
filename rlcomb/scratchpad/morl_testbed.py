@@ -33,9 +33,11 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     problem = Deepsea()
 
-    scalarization_weights = np.array([0.153, 0.847])
+    # scalarization_weights = np.array([0.153, 0.847])
     # scalarization_weights = np.array([0.5, 0.5])
+    scalarization_weights = np.array([1.0, 0.0])
     # scalarization_weights = np.array([0.0, 1.0])
+    # scalarization_weights = np.array([0.9, 0.1])
 
     eps = 0.6
     alfa = 0.3
@@ -54,14 +56,18 @@ if __name__ == '__main__':
     # learned_policy = PolicyDeepseaFromAgent(problem, agent, mode='greedy')
 
     # filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S")
-    # pickle.dump((payouts, moves, states, problem, agent), open(filename, "wb"))
+
 
     ## Plotting ##
 
     #plt.ion()
 
     # figure_file_name = 'fig_runs-' + str(interactions) + "-" + agent.name() + ".png"
-    policy_plot2(problem, learned_policy)
+    titlestring = agent.name()
+    policy_plot2(problem, learned_policy, title=None, filename=titlestring)
+
+    # pickle_file_name = titlestring + '_' + time.strftime("%H%M%S") + '.p'
+    # pickle.dump((payouts, moves, states, problem, agent), open(pickle_file_name, "wb"))
 
     #plt.ioff()
 

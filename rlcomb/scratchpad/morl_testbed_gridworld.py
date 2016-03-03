@@ -31,18 +31,14 @@ import matplotlib.pyplot as plt
 
 
 if __name__ == '__main__':
-    problem = Deepsea()
+    problem = MORLGridworld()
 
-    # scalarization_weights = np.array([0.153, 0.847])
-    # scalarization_weights = np.array([0.5, 0.5])
-    scalarization_weights = np.array([1.0, 0.0])
-    # scalarization_weights = np.array([0.0, 1.0])
-    # scalarization_weights = np.array([0.9, 0.1])
+    scalarization_weights = np.array([0.33, 0.33, 0.33])
 
     eps = 0.6
     alfa = 0.3
     runs = 1
-    interactions = 50000
+    interactions = 5000
 
     agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)

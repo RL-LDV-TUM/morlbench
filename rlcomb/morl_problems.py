@@ -40,7 +40,7 @@ class MORLProblem(SaveableObject):
     def __str__(self):
         return self.__class__.__name__
 
-    def play(self):
+    def play(self, action):
         virtualFunction()
 
 
@@ -144,6 +144,7 @@ class Deepsea(MORLProblem):
 
         self.actions = actions
         self.n_actions = len(self.actions)
+        self.n_actions_print = self.n_actions - 1
 
         self.reward_dimension = 2
         self._extended_reward = extended_reward
@@ -320,6 +321,7 @@ class DeepseaEnergy(Deepsea):
         """
         self._energy = energy
 
+
         self._init_energy = energy
         self.reward_dimension = 3
 
@@ -351,6 +353,9 @@ class MountainCar(MORLProblem):
                 ['state', '_time', 'actions', '_scene'])
 
         self.actions = ('left', 'right', 'none')
+        self.n_actions = 3
+
+        self.n_actions_print = self.n_actions - 1
 
         # Discount Factor
         self.gamma = gamma
@@ -531,12 +536,19 @@ class Gridworld(MORLProblem):
 
         self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
         self.n_actions = len(self.actions)
+        self.n_actions_print = self.n_actions
         self.n_states = size * size
         self._size = size
         self.reward_dimension = self.n_states
 
         self.P = None
         self.R = None
+
+        # Default Map as used in general MORL papers
+        self._scene = np.zeros((size, size))
+        self._scene[0, size-1] = 1
+        self._scene[size-1, 0] = 1
+        self._scene[size-1, size-1] = 1
 
         if not self.P:
             self._construct_p()
@@ -562,7 +574,7 @@ class Gridworld(MORLProblem):
 
     def reset(self):
         self.state = 0
-        self._last_state = 0
+        self.last_state = 0
         self.terminal_state = False
 
     def _get_index(self, position):
@@ -575,11 +587,11 @@ class Gridworld(MORLProblem):
         return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
 
     def _get_reward(self, state):
-        r = np.zeros(self.reward_dimension)
+        r = np.zeros((self.reward_dimension, 1))
         r[state] = 1.0
         return r
 
-    def play(self):
+    def play(self, action):
         pass
 
     @property
@@ -600,7 +612,34 @@ class MORLGridworld(Gridworld):
         self.reward_dimension = 3
 
     def _get_reward(self, state):
-        pass
+        position = self._get_position(state)
+        reward = np.zeros(self.reward_dimension)
+        if self._in_map(position) and self._scene[position] > 0:
+            if state == 9:
+                reward[0] = 1
+            elif state == 90:
+                reward[1] = 1
+            elif state == 99:
+                reward[2] = 1
+        return reward
 
-    def play(self):
-        pass
+    def play(self, action):
+        actions = self.actions
+        state = self.state
+
+        position = self._get_position(state)
+        n_position = position + actions[action]
+
+        if not self._in_map(n_position):
+            self.state = state
+            self.last_state = state
+            reward = self._get_reward(self.state)
+        else:
+            self.last_state = state
+            self.state = self._get_index(n_position)
+            reward = self._get_reward(self.state)
+            if (reward > 0).any():
+                self.terminal_state = True
+
+        return reward
+

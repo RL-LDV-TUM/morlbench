@@ -119,7 +119,7 @@ def _policy_plot2(problem, policy, ax):
                 ax.annotate(problem._scene[y,x], (x, -y), color='black', weight='bold',
                 fontsize=12, ha='center', va='center')
             else:
-                for a in xrange(problem.n_actions-1):
+                for a in xrange(problem.n_actions_print):
                     off1 = problem.actions[a] * 0.15
                     off2 = problem.actions[a] * 0.23
                     pi_val = _pi[problem._get_index((y, x)), a]
@@ -134,7 +134,7 @@ def _policy_plot2(problem, policy, ax):
         y = int(abs(-y))
         y = int(abs(-y))
         if x >= 0 and x <= x_dim-1 and x >= 0 and y <= y_dim-1:
-            for a in xrange(problem.n_actions-1):
+            for a in xrange(problem.n_actions_print):
                 vals = _pi[problem._get_index((y, x)), :]
                 vals = ' '.join('%1.2f' % v for v in vals )
             return 'x=%1.0f, y=%1.0f, values=%s' % (x, y, vals)

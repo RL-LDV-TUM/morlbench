@@ -102,16 +102,27 @@ class Deepsea(MORLProblem):
             # self._scene[9:11, 7] = -100
             # self._scene[10, 8] = -100
             # Rewards of the default map
-            self._scene[1, 0] = 1
-            self._scene[2, 1] = 2
-            self._scene[3, 2] = 3
-            self._scene[4, 3] = 5
-            self._scene[4, 4] = 8
-            self._scene[4, 5] = 16
-            self._scene[7, 6] = 24
-            self._scene[7, 7] = 50
-            self._scene[9, 8] = 74
-            self._scene[10, 9] = 124
+            # self._scene[1, 0] = 1
+            # self._scene[2, 1] = 2
+            # self._scene[3, 2] = 3
+            # self._scene[4, 3] = 5
+            # self._scene[4, 4] = 8
+            # self._scene[4, 5] = 16
+            # self._scene[7, 6] = 24
+            # self._scene[7, 7] = 50
+            # self._scene[9, 8] = 74
+            # self._scene[10, 9] = 124
+
+            self._scene[1, 0] = 1/124.0
+            self._scene[2, 1] = 2/124.0
+            self._scene[3, 2] = 3/124.0
+            self._scene[4, 3] = 5/124.0
+            self._scene[4, 4] = 8/124.0
+            self._scene[4, 5] = 16/124.0
+            self._scene[7, 6] = 24/124.0
+            self._scene[7, 7] = 50/124.0
+            self._scene[9, 8] = 74/124.0
+            self._scene[10, 9] = 124/124.0
 
             # self._scene[1, 0] = 1
             # self._scene[2, 1] = 2
@@ -229,11 +240,11 @@ class Deepsea(MORLProblem):
     def _get_reward(self, state):
         r = np.zeros(self.reward_dimension)
 
-        r[1] = -1.0
-
         if state == self._index_terminal_state:
             r[0] = 0.0
+            r[1] = 0.0
         else:
+            r[1] = -1.0/124.0
             map_value = self._flat_map[state]
             if map_value > 0:
                 r[0] = map_value
@@ -519,7 +530,7 @@ class Gridworld(MORLProblem):
         self.gamma = gamma
 
         self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
-        self.n_actinos = len(self.actions)
+        self.n_actions = len(self.actions)
         self.n_states = size * size
         self._size = size
         self.reward_dimension = self.n_states

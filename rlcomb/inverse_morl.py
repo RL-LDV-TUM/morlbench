@@ -223,7 +223,7 @@ class InverseMORLIRL(InverseMORL):
                     np.eye(n_states * (n_actions - 1)),
                     -np.eye(n_states * (n_actions - 1)),
                     np.vstack([-v[i, j, :].reshape(1, -1) for i in range(n_states)
-                                                         for j in range(n_actions - 1)])]),
+                                                          for j in range(n_actions - 1)])]),
                 # np.hstack([
                 #     np.zeros((1, x_size - D)),
                 #     np.ones((1, D))
@@ -237,7 +237,7 @@ class InverseMORLIRL(InverseMORL):
                 # np.ones((1, 1))
             ])
         # p-Function
-        n = 2
+        n = 2.0
         bottom_row = np.vstack([
                         np.hstack([
                             np.ones((n_actions - 1, 1)).dot(np.eye(1, n_states, l)),

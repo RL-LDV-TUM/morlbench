@@ -222,7 +222,7 @@ class InverseMORLIRL(InverseMORL):
                     np.zeros((n_states * (n_actions - 1), n_states)),
                     np.eye(n_states * (n_actions - 1)),
                     -np.eye(n_states * (n_actions - 1)),
-                    np.vstack([v[i, j, :].reshape(1, -1) for i in range(n_states)
+                    np.vstack([-v[i, j, :].reshape(1, -1) for i in range(n_states)
                                                          for j in range(n_actions - 1)])]),
                 # np.hstack([
                 #     np.zeros((1, x_size - D)),

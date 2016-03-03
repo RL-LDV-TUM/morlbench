@@ -58,7 +58,9 @@ def _heatmap_matplot(problem, states, ax):
 
     for y in xrange(y_dim):
         for x in xrange(x_dim):
-            ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
+            #ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
+            ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
+                                           fc=mycmap(norm(heatmap_shaped[y, x]))))
 
             if problem._scene[y, x] < 0:
                 ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1, facecolor='black'))
@@ -103,7 +105,8 @@ def _policy_plot2(problem, policy, ax):
 
     _pi = policy.get_pi()
 
-    mycmap = plt.get_cmap("YlOrRd")
+    #mycmap = plt.get_cmap("YlOrRd")
+    mycmap = plt.get_cmap("Reds")
     #norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
 
     for y in xrange(y_dim):
@@ -112,16 +115,17 @@ def _policy_plot2(problem, policy, ax):
                 ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1, facecolor='black'))
             elif problem._scene[y,x] > 0:
                 ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
-                                               facecolor='none', edgecolor='red', linestyle='dotted'))
+                                               facecolor='none', edgecolor='grey', linestyle='dashed', lw=3))
                 ax.annotate(problem._scene[y,x], (x, -y), color='black', weight='bold',
                 fontsize=12, ha='center', va='center')
             else:
                 for a in xrange(problem.n_actions-1):
                     off1 = problem.actions[a] * 0.15
                     off2 = problem.actions[a] * 0.23
-                    ax.add_patch(patches.FancyArrow(x+off1[1], -y-off1[0], off2[1], -off2[0],
+                    pi_val = _pi[problem._get_index((y, x)), a]
+                    ax.add_patch(patches.FancyArrow(x+off1[1], -y-off1[0], off2[1]*pi_val, -off2[0]*pi_val,
                                                     width=0.3, head_width=0.3, head_length=0.1, lw=0,
-                                                    fc=mycmap(_pi[problem._get_index((y, x)), a])))
+                                                    fc=mycmap(pi_val)))
 
     ax.add_patch(patches.Rectangle((-0.5, -y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
 
@@ -188,10 +192,21 @@ def policy_heat_plot(problem, policy, states, title=None, filename=None):
 
     _policy_plot2(problem, policy, ax)
 
-    # plt.figure(fig1.number)
-    # fig1.sca(plt.gca())
-    # plt.axes()
-    # fig2.show()
+    if not filename:
+        filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S" + '.pdf')
+    else:
+        filename += '_' + time.strftime("%H%M%S") + '.pdf'
+
+    if not title:
+        plt.savefig(filename, format='pdf', bbox_inches='tight')
+        title = 'Policy Plot'
+    else:
+        fig.suptitle(title, fontsize=14, fontweight='bold')
+
+    plt.savefig(filename, format='pdf', bbox_inches='tight')
+
+    plt.show()
+
     plt.show()
 
 
@@ -381,7 +396,7 @@ def heatmap_plotly():
 if __name__ == '__main__':
     problem = Deepsea()
 
-    payouts, moves, states, problem, agent = pickle.load(open("scalQ_e0.7a0.3W=[1.0, 0.0]_114301.p"))
+    payouts, moves, states, problem, agent = pickle.load(open("scalQ_e0.6a0.3W=[1.0, 0.0]_144251.p"))
 
     #policy = PolicyDeepseaExpert(problem, task='T2')
 

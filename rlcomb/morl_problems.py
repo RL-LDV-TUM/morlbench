@@ -519,7 +519,7 @@ class Gridworld(MORLProblem):
         self.gamma = gamma
 
         self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
-        self.n_actinos = len(self.actions)
+        self.n_actions = len(self.actions)
         self.n_states = size * size
         self._size = size
         self.reward_dimension = self.n_states

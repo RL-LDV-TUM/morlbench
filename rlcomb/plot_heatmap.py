@@ -19,6 +19,8 @@ import numpy as np
 
 from morl_policies import *
 
+fSize = 20
+
 def heatmap_matplot(problem, states):
 
     fig = plt.figure()
@@ -118,7 +120,7 @@ def _policy_plot2(problem, policy, ax):
                 ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
                                                facecolor='none', edgecolor='grey', linestyle='dashed', lw=3))
                 ax.annotate(problem._scene[y,x], (x, -y), color='black', weight='bold',
-                            fontsize=12, ha='center', va='center')
+                            fontsize=fSize, ha='center', va='center')
             else:
                 for a in xrange(problem.n_actions_print):
                     off1 = problem.actions[a] * 0.15
@@ -154,10 +156,10 @@ def _policy_plot2(problem, policy, ax):
 
     ticks_offset = 1
     plt.yticks(range(-y_dim+ticks_offset,0+ticks_offset),
-               tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))))
+               tuple(map(str, range(y_dim-ticks_offset, 0-ticks_offset, -1))), fontsize=fSize)
 
     plt.xticks(range(0, x_dim),
-               tuple(map(str, range(0, x_dim, 1))))
+               tuple(map(str, range(0, x_dim, 1))), fontsize=fSize)
     ax.xaxis.set_label_position('top')
     ax.xaxis.set_ticks_position('top') # the rest is the same
     ax.margins(0.0)

@@ -30,7 +30,7 @@ def heatmap_matplot(problem, states):
 
     _heatmap_matplot(problem, states, ax)
 
-    plt.show()
+    # plt.show()
 
 
 def _heatmap_matplot(problem, states, ax):
@@ -189,7 +189,7 @@ def policy_plot2(problem, policy, title=None, filename=None):
 
     plt.savefig(filename, format='pdf', bbox_inches='tight')
 
-    plt.show()
+    # plt.show()
 
 
 def policy_heat_plot(problem, policy, states, title=None, filename=None):
@@ -216,9 +216,8 @@ def policy_heat_plot(problem, policy, states, title=None, filename=None):
 
     plt.savefig(filename, format='pdf', bbox_inches='tight')
 
-    plt.show()
+    # plt.show()
 
-    plt.show()
 
 
 def policy_plot(problem, policy, filename=None):
@@ -290,7 +289,7 @@ def policy_plot(problem, policy, filename=None):
     plt.title('Policy Plot')
     plt.savefig(filename, bbox_inches='tight')
 
-    plt.show()
+    # plt.show()
 
 
 def transition_map(problem, states, moves):
@@ -370,7 +369,7 @@ def transition_map(problem, states, moves):
 
     ax.format_coord = format_coord
     plt.title('Transition Plot')
-    plt.show()
+    # plt.show()
 
 def heatmap_plotly():
 #     py.sign_in('xtra', 'jut0nmg713')

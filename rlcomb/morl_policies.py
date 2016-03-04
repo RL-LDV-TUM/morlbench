@@ -347,12 +347,16 @@ class PolicyFromAgent(Policy):
         for i in xrange(self._problem.n_states):
             if mode == 'gibbs':
                 # gibbs
-                a_dist = agent.get_learned_action_distribution(i)
+                a_dist = agent.get_learned_action_gibbs_distribution(i)
                 self._pi[i, :] = a_dist
-            else:
+            elif mode == 'greedy':
                 # greedy
                 a = agent.get_learned_action(i)
                 self._pi[i, a] = 1.0
+            else:
+                # default - normalized to one
+                a_dist = agent.get_learned_action_distribution(i)
+                self._pi[i, :] = a_dist
 
 
 class PolicyGridworld(Policy):

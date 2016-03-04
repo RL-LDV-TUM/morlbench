@@ -51,6 +51,7 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
                                       pgbar.Bar(), ' ', pgbar.ETA()], maxval=interactions)
     pbar.start()
     for i in xrange(interactions):
+
         rewards = []
         actions = []
         tmp_states = []

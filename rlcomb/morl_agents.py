@@ -191,9 +191,16 @@ class SARSAMorlAgent(MorlAgent):
     def get_learned_action(self, state):
         return self._Q[state, :].argmax()
 
-    def get_learned_action_distribution(self, state):
+    def get_learned_action_gibbs_distribution(self, state):
         tau = 2.0
         tmp = np.exp(self._Q[state, :] / tau)
+        tsum = tmp.sum()
+        dist = tmp / tsum
+        return dist.ravel()
+
+    def get_learned_action_distribution(self, state):
+        tau = 0.6
+        tmp = np.exp(np.dot(self._Q[state, :], self._scalarization_weights) / tau)
         tsum = tmp.sum()
         dist = tmp / tsum
         return dist.ravel()
@@ -334,8 +341,8 @@ class QMorlAgent(MorlAgent):
     def get_learned_action(self, state):
         return np.dot(self._Q[state, :], self._scalarization_weights).argmax()
 
-    def get_learned_action_distribution(self, state):
-        tau = 2.0
+    def get_learned_action_gibbs_distribution(self, state):
+        tau = 0.6
         tmp = np.exp(np.dot(self._Q[state, :], self._scalarization_weights) / tau)
         tsum = tmp.sum()
         dist = tmp / tsum
@@ -344,6 +351,13 @@ class QMorlAgent(MorlAgent):
         # action_value = action_value.ravel()
         # action_value /= action_value.sum()
         # return action_value
+
+    def get_learned_action_distribution(self, state):
+        tau = 0.2
+        tmp = np.exp(np.dot(self._Q[state, :], self._scalarization_weights) / tau)
+        tsum = tmp.sum()
+        dist = tmp / tsum
+        return dist.ravel()
 
     def reset(self):
         """
@@ -410,7 +424,6 @@ class PreScalarizedQMorlAgent(MorlAgent):
         objectives
         :return:
         """
-
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
 
         self._Q[last_state, action] += self._alpha * \
@@ -432,8 +445,15 @@ class PreScalarizedQMorlAgent(MorlAgent):
     def get_learned_action(self, state):
         return self._Q[state, :].argmax()
 
+    def get_learned_action_gibbs_distribution(self, state):
+        tau = 1.0
+        tmp = np.exp(self._Q[state, :] / tau)
+        tsum = tmp.sum()
+        dist = tmp / tsum
+        return dist.ravel()
+
     def get_learned_action_distribution(self, state):
-        tau = 2.0
+        tau = 0.1
         tmp = np.exp(self._Q[state, :] / tau)
         tsum = tmp.sum()
         dist = tmp / tsum

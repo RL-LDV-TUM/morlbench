@@ -33,7 +33,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
 
     runs = 10
-    expName = "Exp1-W10-0-0-1_run_"
+    expName = "Exp3-W0-0-20-1_run_"
     saved_weights = []
     plt.ion()
 
@@ -42,12 +42,12 @@ if __name__ == '__main__':
         # problem = MORLGridworld()
         problem = MORLGridworldTime()
 
-        scalarization_weights = np.array([10.0, 0.0, 0.0, 1.0])
+        scalarization_weights = np.array([0.0, 0.0, 20.0, 1.0])
 
         eps = 0.4
         alfa = 0.3
 
-        interactions = 1000000
+        interactions = 100000
 
         # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)

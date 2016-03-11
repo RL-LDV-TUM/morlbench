@@ -16,7 +16,7 @@ import cPickle as pickle
 log.basicConfig(level=log.INFO)
 
 
-from morl_problems import Deepsea, MORLGridworld, MORLGridworldTime
+from morl_problems import Deepsea, MORLGridworld, MORLGridworldTime, MORLGridworldStatic
 from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent
 from morl_policies import PolicyFromAgent, PolicyGridworld
 from inverse_morl import InverseMORLIRL
@@ -32,12 +32,12 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     # problem = MORLGridworld()
-    problem = MORLGridworld()
+    problem = MORLGridworldStatic()
 
     # scalarization_weights = np.array([0.0, 0.0, 3.0, 0.1])
 
-    eps = 0.4
-    alfa = 0.7
+    eps = 0.5
+    alfa = 0.6
     runs = 1
     interactions = 500000
 
@@ -54,8 +54,8 @@ if __name__ == '__main__':
     # learned_policy = PolicyFromAgent(problem, agent, mode=None)
     # learned_policy = PolicyFromAgent(problem, agent, mode='greedy')
     # learned_policy = PolicyGridworld(problem, policy='DIAGONAL')
-    learned_policy = PolicyGridworld(problem, policy='RIGHT')
-    # learned_policy = PolicyGridworld(problem, policy='DOWN')
+    # learned_policy = PolicyGridworld(problem, policy='RIGHT')
+    learned_policy = PolicyGridworld(problem, policy='DOWN')
 
     # filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S")
 
@@ -67,13 +67,13 @@ if __name__ == '__main__':
     log.info("scalarization weights (alge): %s" % (str(scalarization_weights_alge)))
     #
     #
-    problem2 = MORLGridworld()
+    problem2 = MORLGridworldStatic()
     agent2 = PreScalarizedQMorlAgent(problem2, scalarization_weights_alge, alpha=alfa, epsilon=eps)
     payouts2, moves2, states2 = morl_interact_multiple(agent2, problem2, interactions=interactions, max_episode_length=150)
     log.info('Average Payout: %s' % (str(payouts2.mean(axis=0))))
 
-    # learned_policy2 = PolicyFromAgent(problem2, agent2, mode='gibbs')
-    learned_policy2 = PolicyFromAgent(problem2, agent2, mode=None)
+    #learned_policy2 = PolicyFromAgent(problem2, agent2, mode='gibbs')
+    learned_policy2 = PolicyFromAgent(problem2, agent2, mode='greedy')
 
     ## Plotting ##
 

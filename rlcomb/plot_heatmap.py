@@ -176,6 +176,8 @@ def policy_plot2(problem, policy, title=None, filename=None):
 
     _policy_plot2(problem, policy, ax)
 
+    ax.tick_params(axis='x', labelsize=fSize)
+
     if not filename:
         filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S" + '.pdf')
     else:
@@ -185,7 +187,7 @@ def policy_plot2(problem, policy, title=None, filename=None):
         plt.savefig(filename, format='pdf', bbox_inches='tight')
         title = 'Policy Plot'
     else:
-        fig.suptitle(title, fontsize=14, fontweight='bold')
+        fig.suptitle(title, fontsize=fSize, fontweight='bold')
 
     plt.savefig(filename, format='pdf', bbox_inches='tight')
 
@@ -212,7 +214,7 @@ def policy_heat_plot(problem, policy, states, title=None, filename=None):
         plt.savefig(filename, format='pdf', bbox_inches='tight')
         title = 'Policy Plot'
     else:
-        fig.suptitle(title, fontsize=14, fontweight='bold')
+        fig.suptitle(title, fontsize=fSize, fontweight='bold')
 
     plt.savefig(filename, format='pdf', bbox_inches='tight')
 

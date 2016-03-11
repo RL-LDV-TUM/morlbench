@@ -735,3 +735,68 @@ class MORLGridworldTime(Gridworld):
 
         return reward
 
+class MORLGridworldStatic(Gridworld):
+    """
+    Multiobjective gridworld.
+    """
+    def __init__(self, size=10, gamma=0.9):
+        self.gamma = gamma
+
+        self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        self.n_actions = len(self.actions)
+        self.n_actions_print = self.n_actions
+        self.n_states = size * size
+        self.n_states_print = self.n_states
+        self._size = size
+        self.reward_dimension = 4
+
+        self.P = None
+        self.R = None
+
+        # Default Map as used in general MORL papers
+        self._scene = np.zeros((size, size))
+        self._scene[0, size-1] = 1
+        self._scene[size-1, 0] = 1
+        self._scene[size-1, size-1] = 1
+
+        if not self.P:
+            self._construct_p()
+
+        if not self.R:
+            self._construct_r()
+
+        self.reset()
+
+    def _get_reward(self, state):
+        position = self._get_position(state)
+        reward = np.zeros(self.reward_dimension)
+        if self._in_map(position) and self._scene[position] > 0:
+            if state == 9:
+                reward[0] = 1
+            elif state == 90:
+                reward[1] = 1
+            elif state == 99:
+                reward[2] = 1
+        reward[-1] = -0.1
+        return reward
+
+    def play(self, action):
+        actions = self.actions
+        state = self.state
+
+        position = self._get_position(state)
+        n_position = position + actions[action]
+
+        if not self._in_map(n_position):
+            self.state = state
+            self.last_state = state
+            reward = self._get_reward(self.state)
+        else:
+            self.last_state = state
+            self.state = self._get_index(n_position)
+            reward = self._get_reward(self.state)
+            if (reward > 0).any():
+                self.terminal_state = True
+
+        return reward
+

@@ -4,6 +4,8 @@
 Created on Nov 19, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
+@author: Johannes Feldmaier <johannes.feldmaier@tum.de>
+
 """
 
 from helpers import SaveableObject, loadMatrixIfExists, virtualFunction
@@ -79,19 +81,35 @@ class Deepsea(MORLProblem):
 
         if actions is None:
             # Default actions
-            actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]), np.array([0, 0]))
             # actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]))
+            actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+            # if an idle action is required
+            # actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]), np.array([0, 0]))
 
         if scene is None:
-            # Default Map as used in general MORL papers
+            # Empty _scene array - no ground
             self._scene = np.zeros((11, 10))
+
+            # Default Map as used in general MORL papers
             self._scene[2:11, 0] = -100
             self._scene[3:11, 1] = -100
             self._scene[4:11, 2] = -100
             self._scene[5:11, 3:6] = -100
             self._scene[8:11, 6:8] = -100
             self._scene[10, 8] = -100
+            # Rewards of the default map
+            self._scene[1, 0] = 1
+            self._scene[2, 1] = 2
+            self._scene[3, 2] = 3
+            self._scene[4, 3] = 5
+            self._scene[4, 4] = 8
+            self._scene[4, 5] = 16
+            self._scene[7, 6] = 24
+            self._scene[7, 7] = 50
+            self._scene[9, 8] = 74
+            self._scene[10, 9] = 124
 
+            # Diagonal Map
             # self._scene[2:11, 0] = -100
             # self._scene[3:11, 1] = -100
             # self._scene[4:11, 2] = -100
@@ -101,41 +119,18 @@ class Deepsea(MORLProblem):
             # self._scene[8:11, 6] = -100
             # self._scene[9:11, 7] = -100
             # self._scene[10, 8] = -100
-            # Rewards of the default map
-            # self._scene[1, 0] = 1
-            # self._scene[2, 1] = 2
-            # self._scene[3, 2] = 3
-            # self._scene[4, 3] = 5
-            # self._scene[4, 4] = 8
-            # self._scene[4, 5] = 16
-            # self._scene[7, 6] = 24
-            # self._scene[7, 7] = 50
-            # self._scene[9, 8] = 74
-            # self._scene[10, 9] = 124
 
-            self._scene[1, 0] = 1/124.0
-            self._scene[2, 1] = 2/124.0
-            self._scene[3, 2] = 3/124.0
-            self._scene[4, 3] = 5/124.0
-            self._scene[4, 4] = 8/124.0
-            self._scene[4, 5] = 16/124.0
-            self._scene[7, 6] = 24/124.0
-            self._scene[7, 7] = 50/124.0
-            self._scene[9, 8] = 74/124.0
-            self._scene[10, 9] = 124/124.0
-
-            # self._scene[1, 0] = 1
-            # self._scene[2, 1] = 2
-            # self._scene[3, 2] = 3
-            # self._scene[4, 3] = 5
-            # self._scene[5, 4] = 8
-            # self._scene[6, 5] = 16
-            # self._scene[7, 6] = 24
-            # self._scene[8, 7] = 50
-            # self._scene[9, 8] = 74
-            # self._scene[10, 9] = 124
-            self.P = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_P.pickle'))
-            self.R = loadMatrixIfExists(os.path.join('defaults', str(self) + '_default_R.pickle'))
+            # Normalized reward
+            # self._scene[1, 0] = 1/124.0
+            # self._scene[2, 1] = 2/124.0
+            # self._scene[3, 2] = 3/124.0
+            # self._scene[4, 3] = 5/124.0
+            # self._scene[4, 4] = 8/124.0
+            # self._scene[4, 5] = 16/124.0
+            # self._scene[7, 6] = 24/124.0
+            # self._scene[7, 7] = 50/124.0
+            # self._scene[9, 8] = 74/124.0
+            # self._scene[10, 9] = 124/124.0
 
         self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
 
@@ -236,8 +231,12 @@ class Deepsea(MORLProblem):
         return not ((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or
                     (position[1] > self._scene.shape[1] - 1))
 
-    def print_map(self):
-        plt.imshow(self._scene, interpolation='none')
+    def print_map(self, pos=None):
+        tmp = self._scene
+        if pos:
+            tmp[tuple(pos)] = tmp.max() * 2.0
+        plt.imshow(self._scene, interpolation='nearest')
+        plt.show()
 
     def _get_reward(self, state):
         r = np.zeros(self.reward_dimension)
@@ -605,6 +604,7 @@ class Gridworld(MORLProblem):
     def scene_y_dim(self):
         return self._size
 
+
 class MORLGridworld(Gridworld):
     """
     Multiobjective gridworld.
@@ -734,6 +734,7 @@ class MORLGridworldTime(Gridworld):
                 self.terminal_state = True
 
         return reward
+
 
 class MORLGridworldStatic(Gridworld):
     """

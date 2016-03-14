@@ -39,7 +39,7 @@ if __name__ == '__main__':
     eps = 0.4
     alfa = 0.3
     runs = 1
-    interactions = 100000
+    interactions = 10000
 
     # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)

@@ -81,8 +81,8 @@ class Deepsea(MORLProblem):
 
         if actions is None:
             # Default actions
-            # actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]))
-            actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+            # actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+            actions = (np.array([0, 1]), np.array([1, 0]), np.array([0, -1]), np.array([-1, 0]))
             # if an idle action is required
             # actions = (np.array([-1, 0]), np.array([1, 0]), np.array([0, 1]), np.array([0, -1]), np.array([0, 0]))
 
@@ -140,7 +140,7 @@ class Deepsea(MORLProblem):
 
         self.actions = actions
         self.n_actions = len(self.actions)
-        self.n_actions_print = self.n_actions - 1
+        self.n_actions_print = self.n_actions
 
         self.reward_dimension = 2
         self._extended_reward = extended_reward
@@ -245,7 +245,7 @@ class Deepsea(MORLProblem):
             r[0] = 0.0
             r[1] = 0.0
         else:
-            r[1] = -1.0/124.0
+            r[1] = -1.0
             map_value = self._flat_map[state]
             if map_value > 0:
                 r[0] = map_value
@@ -280,8 +280,9 @@ class Deepsea(MORLProblem):
 
         last_position = np.copy(self._position)  # numpy arrays are mutable -> must be copied
 
-        if my_debug: log.debug('Position before: ' + str(self._position) + ' moving ' + str(self.actions[action]) +
-                               ' (last pos: ' + str(last_position) + ')')
+        if self.terminal_state:
+            self.last_state = self.state
+            return self._get_reward(self.state)
 
         if self.treasure_state:
             self.last_state = self.state
@@ -292,7 +293,8 @@ class Deepsea(MORLProblem):
         if self._in_map(self._position + self.actions[action]):
             self._position += self.actions[action]
             map_value = self._flat_map[self._get_index(self._position)]
-            if my_debug: log.debug('moved by' + str(self.actions[action]) + '(last pos: ' + str(last_position) + ')')
+            if my_debug: log.debug('Moved from pos ' + str(last_position) + ' by ' + str(self.actions[action]) +
+                                   ' to pos: ' + str(self._position) + ')')
             if map_value < 0:
                 self._position = last_position
                 if my_debug: log.debug('Ground touched!')
@@ -302,7 +304,7 @@ class Deepsea(MORLProblem):
             else:
                 if my_debug: log.debug('Normal state!')
         else:
-            if my_debug: log.debug('Move not allowed!')
+            if my_debug: log.debug('Move not allowed! -> out of map')
 
         if my_debug: log.debug('New position: ' + str(self._position))
 
@@ -580,10 +582,11 @@ class Gridworld(MORLProblem):
         self.terminal_state = False
 
     def _get_index(self, position):
-        return position[1] * self.scene_x_dim + position[0]
+        # return position[1] * self.scene_x_dim + position[0]
+        return position[0] * self.scene_x_dim + position[1]
 
     def _get_position(self, index):
-        return index % self.scene_x_dim, index // self.scene_y_dim
+        return index // self.scene_y_dim, index % self.scene_x_dim
 
     def _in_map(self, pos):
         return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
@@ -612,7 +615,8 @@ class MORLGridworld(Gridworld):
     def __init__(self, size=10, gamma=0.9):
         self.gamma = gamma
 
-        self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        # self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        self.actions = (np.array([0, 1]), np.array([1, 0]), np.array([0, -1]), np.array([-1, 0]))
         self.n_actions = len(self.actions)
         self.n_actions_print = self.n_actions
         self.n_states = size * size
@@ -677,7 +681,8 @@ class MORLGridworldTime(Gridworld):
     def __init__(self, size=10, gamma=0.9):
         self.gamma = gamma
 
-        self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        # self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        self.actions = (np.array([0, 1]), np.array([1, 0]), np.array([0, -1]), np.array([-1, 0]))
         self.n_actions = len(self.actions)
         self.n_actions_print = self.n_actions
         self.n_states = size * size
@@ -690,7 +695,8 @@ class MORLGridworldTime(Gridworld):
 
         # Default Map as used in general MORL papers
         self._scene = np.zeros((size, size))
-        self._scene[0, size-1] = 1
+        # self._scene[0, size-1] = 1
+        self._scene[1,7] = 1
         self._scene[size-1, 0] = 1
         self._scene[size-1, size-1] = 1
 
@@ -706,7 +712,7 @@ class MORLGridworldTime(Gridworld):
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
         if self._in_map(position) and self._scene[position] > 0:
-            if state == 9:
+            if state == 17:
                 reward[0] = 1
             elif state == 90:
                 reward[1] = 1

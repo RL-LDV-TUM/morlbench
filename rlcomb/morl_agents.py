@@ -504,6 +504,9 @@ class FixedPolicyAgent(MorlAgent):
     def restore(self):
         pass
 
+    def get_learned_action_gibbs_distribution(self, state):
+        return self._policy._pi[state, :]
+
 
 class NFQAgent(MorlAgent):
     """

@@ -8,9 +8,6 @@ import cPickle as pickle
 from morl_problems import Deepsea
 import time
 
-# import plotly.plotly as py
-# import plotly.graph_objs as go
-
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import matplotlib.colors as colors
@@ -19,6 +16,7 @@ import numpy as np
 
 from morl_policies import *
 
+# Font Size
 fSize = 20
 
 def heatmap_matplot(problem, states):
@@ -44,8 +42,7 @@ def _heatmap_matplot(problem, states, ax):
 
     x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
 
-    # Initialization of empty heatmap (-1 -> terminal state)
-
+    # Initialization of empty heatmap (without terminal state)
     heatmap = np.zeros(problem.n_states_print)
 
     # Count states per episode and sum them up
@@ -64,13 +61,13 @@ def _heatmap_matplot(problem, states, ax):
             #ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
             ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
                                            fc=mycmap(norm(heatmap_shaped[y, x]))))
-
+            # Plot Ground
             if problem._scene[y, x] < 0:
                 ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1, facecolor='black'))
-
+            # Mark reward fields
             if problem._scene[y, x] > 0:
                 ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
-                                               facecolor='none', edgecolor='red', linestyle='dotted'))
+                                               facecolor='none', edgecolor='grey', linestyle='dotted'))
 
     ax.add_patch(patches.Rectangle((-0.5, -y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
 
@@ -115,28 +112,28 @@ def _policy_plot2(problem, policy, ax):
     for y in xrange(y_dim):
         for x in xrange(x_dim):
             if problem._scene[y,x] < 0:
-                ax.add_patch(patches.Rectangle((x-1.5, -y-0.5), 1, 1, facecolor='black'))
+                # Plot Ground
+                ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1, facecolor='black'))
             elif problem._scene[y,x] > 0:
+                # Mark reward fields
                 ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
                                                facecolor='none', edgecolor='grey', linestyle='dashed', lw=3))
+                # Reward labels
                 ax.annotate(problem._scene[y,x], (x, -y), color='black', weight='bold',
-                            fontsize=fSize, ha='center', va='center')
+                            fontsize=fSize/2, ha='center', va='center')
             else:
+                # Policy arrows
                 for a in xrange(problem.n_actions_print):
+                    # Arrow offsets from position center
                     off1 = problem.actions[a] * 0.15
                     off2 = problem.actions[a] * 0.23
 
-                    # for gridworld
-                    pi_val = _pi[problem._get_index((x, y)), a]
+                    pi_val = _pi[problem._get_index((y, x)), a]
                     if pi_val > 0:
-                        ax.add_patch(patches.FancyArrow(x+off1[0], -y-off1[1], off2[0]*pi_val, -off2[1]*pi_val,
+                        # NOTE: actions are in row-major order and plotting happens in x-y-coordinates
+                        ax.add_patch(patches.FancyArrow(x+off1[1], -y-off1[0], off2[1]*pi_val, -off2[0]*pi_val,
                                                         width=0.3, head_width=0.3, head_length=0.1, lw=0,
                                                         fc=mycmap(pi_val)))
-                    # for deepsea:
-                    # pi_val = _pi[problem._get_index((y, x)), a]
-                    # ax.add_patch(patches.FancyArrow(x+off1[1], -y-off1[0], off2[1]*pi_val, -off2[0]*pi_val,
-                    #                                 width=0.3, head_width=0.3, head_length=0.1, lw=0,
-                    #                                 fc=mycmap(pi_val)))
 
     ax.add_patch(patches.Rectangle((-0.5, -y_dim+0.5), x_dim, y_dim, facecolor='none', lw=2))
 

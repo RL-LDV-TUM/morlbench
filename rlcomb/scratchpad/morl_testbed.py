@@ -17,7 +17,7 @@ log.basicConfig(level=log.INFO)
 
 
 from morl_problems import Deepsea, MORLGridworld
-from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent
+from morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent, FixedPolicyAgent
 from morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyFromAgent, PolicyDeepseaExpert
 from inverse_morl import InverseMORL
 from plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
@@ -42,9 +42,11 @@ if __name__ == '__main__':
     eps = 0.6
     alfa = 0.3
     runs = 1
-    interactions = 50000
+    interactions = 50
 
-    agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    det_policy = PolicyDeepseaDeterministic(problem, policy='P1')
+    agent = FixedPolicyAgent(problem, det_policy)
+    # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)

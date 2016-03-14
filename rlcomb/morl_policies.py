@@ -95,15 +95,15 @@ class PolicyDeepseaDeterministic(Policy):
     A deterministic example policy for the deepsea scenario.
     """
     # to the 24
-    _P1 = {0:   2,
+    _P1 = {0:   0,
            1:   1,
-           11:  2,
+           11:  0,
            12:  1,
-           22:  2,
+           22:  0,
            23:  1,
-           33:  2,
-           34:  2,
-           35:  2,
+           33:  0,
+           34:  0,
+           35:  0,
            36:  1,
            46:  1,
            56:  1,
@@ -113,15 +113,15 @@ class PolicyDeepseaDeterministic(Policy):
     _P2 = {0:   1
            }
     # flat to the right, then down to 124
-    _P3 = {0:   2,
-           1:   2,
-           2:   2,
-           3:   2,
-           4:   2,
-           5:   2,
-           6:   2,
-           7:   2,
-           8:   2,
+    _P3 = {0:   0,
+           1:   0,
+           2:   0,
+           3:   0,
+           4:   0,
+           5:   0,
+           6:   0,
+           7:   0,
+           8:   0,
            9:   1,
            19:   1,
            29:   1,
@@ -134,20 +134,20 @@ class PolicyDeepseaDeterministic(Policy):
            99:   1,
            }
     # first flat then down to 3
-    _P4 = {0:   2,
-           1:   2,
+    _P4 = {0:   0,
+           1:   0,
            2:   1,
            12:  1,
            22:  1
            }
     # diagonal to 8
-    _P5 = {0:   2,
+    _P5 = {0:   0,
            1:   1,
-           11:  2,
+           11:  0,
            12:  1,
-           22:  2,
+           22:  0,
            23:  1,
-           33:  2,
+           33:  0,
            34:  1
            }
 
@@ -175,8 +175,8 @@ class PolicyDeepseaDeterministic(Policy):
             if i in transition_dict:
                 self._pi[i, transition_dict[i]] = 1.0
             else:
-                # self._pi[i, :] = 1.0 / self._problem.n_actions
-                self._pi[i, -1] = 1.0
+                self._pi[i, :] = 1.0 / self._problem.n_actions
+                # self._pi[i, -1] = 1.0 # set 1 for idle action
 
 
 class PolicyDeepseaExpert(Policy):

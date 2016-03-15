@@ -12,8 +12,8 @@ import sys
 
 import cPickle as pickle
 
-log.basicConfig(level=log.DEBUG)
-#log.basicConfig(level=log.INFO)
+# log.basicConfig(level=log.DEBUG)
+log.basicConfig(level=log.INFO)
 
 
 from morl_problems import Deepsea
@@ -30,19 +30,21 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
     problem = Deepsea(extended_reward=False)
     reward_dimension = problem.reward_dimension
-    scalarization_weights = np.zeros(reward_dimension)
+    scalarization_weights_groundtruth = np.zeros(reward_dimension)
+    scalarization_weights_groundtruth = np.array([0.4, 0.6])
 
-    eps = 0.95
-    interactions = 1000
+    eps = 0.6
+    interactions = 500000
 
-    # agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=0.3, epsilon=eps)
-    # payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
+    agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=0.3, epsilon=eps)
+    payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
 
-    policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
+    # policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
     # policy_human = PolicyDeepseaExpert(problem, task='T3')
     # policy_optimal = PolicyDeepseaRandom(problem)
-    # policy_optimal = PolicyFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
-    # policy_plot(problem, policy_optimal)
+    policy_optimal = PolicyFromAgent(problem=problem, agent=agent_optimal, mode='greedy')
+    policy_plot2(problem, policy_optimal)
+    # policy_plot2(problem, policy_human)
 
     i_morl = InverseMORLIRL(problem, policy_optimal)
     # scalarization_weights = i_morl.solvep()
@@ -67,9 +69,9 @@ if __name__ == '__main__':
     alfa = 0.1
     interactions = 10000
 
-    # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
+    # agent = QMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps)
+    agent = PreScalarizedQMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps)
+    # agent = SARSALambdaMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps, lmbda=0.9)
 
     payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
 

@@ -430,7 +430,7 @@ class PreScalarizedQMorlAgent(MorlAgent):
                                   (scalar_reward + self._gamma * np.amax(self._Q[state, :]) - self._Q[
                                       last_state, action])
 
-        if my_debug: log.debug(' Q: %s' % (str(self._Q[state, :, :])))
+        if my_debug: log.debug(' Q: %s' % (str(self._Q[state, :])))
 
     def decide(self, t, state):
         if random.random() < self._epsilon:

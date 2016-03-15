@@ -183,7 +183,7 @@ class PolicyDeepseaExpert(Policy):
     """
     Human expert policy for the deepsea scenario
     """
-                  # state:   up,   do,   ri,   le,
+          # state:   up,   do,   ri,   le,
     _T1 = {     0:  (0.00, 0.00, 1.00, 0.00),
                 1:  (0.00, 0.10, 0.90, 0.00),
                 2:  (0.00, 0.22, 0.78, 0.00),

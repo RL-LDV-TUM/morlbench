@@ -44,8 +44,9 @@ if __name__ == '__main__':
     runs = 1
     interactions = 50
 
-    det_policy = PolicyDeepseaDeterministic(problem, policy='P1')
-    agent = FixedPolicyAgent(problem, det_policy)
+    exp_policy = PolicyDeepseaExpert(problem, task='T2')
+    # det_policy = PolicyDeepseaDeterministic(problem, policy='P1')
+    agent = FixedPolicyAgent(problem, exp_policy)
     # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)

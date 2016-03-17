@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # scalarization_weights = np.array([0.153, 0.847])
     # scalarization_weights = np.array([0.4, 0.2])
     # scalarization_weights = np.array([1.0, 0.0])
-    scalarization_weights = np.array([0.0, 1.0])
+    scalarization_weights = np.array([0.8, 0.2])
 
     eps = 0.6
     alfa = 0.3

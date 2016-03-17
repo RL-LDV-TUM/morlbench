@@ -19,6 +19,7 @@ from morl_policies import *
 # Font Size
 fSize = 20
 
+
 def heatmap_matplot(problem, states):
 
     fig = plt.figure()
@@ -62,7 +63,7 @@ def _heatmap_matplot(problem, states, ax):
 
     for y in xrange(y_dim):
         for x in xrange(x_dim):
-            #ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
+            #  ax.scatter(x, -y, s=100, color=mycmap(norm(heatmap_shaped[y, x])), cmap=mycmap)
             ax.add_patch(patches.Rectangle((x-0.5, -y-0.5), 1, 1,
                                            fc=mycmap(norm(heatmap_shaped[y, x]))))
             # Plot Ground
@@ -101,17 +102,15 @@ def _heatmap_matplot(problem, states, ax):
     return ax
 
 
-
-
 def _policy_plot2(problem, policy, ax):
 
     x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
 
     _pi = policy.get_pi()
 
-    #mycmap = plt.get_cmap("YlOrRd")
+    #  mycmap = plt.get_cmap("YlOrRd")
     mycmap = plt.get_cmap("Reds")
-    #norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
+    #  norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
 
     for y in xrange(y_dim):
         for x in xrange(x_dim):

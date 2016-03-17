@@ -44,7 +44,7 @@ if __name__ == '__main__':
     eps = 0.6
     alfa = 0.3
     runs = 1
-    interactions = 50000
+    interactions = 50
     episode_length = 150
 
     # Select a learning agent:

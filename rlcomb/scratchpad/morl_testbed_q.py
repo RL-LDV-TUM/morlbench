@@ -33,9 +33,9 @@ if __name__ == '__main__':
     problem = Deepsea()
 
     # Define scalarization weights
-    # scalarization_weights = np.array([0.153, 0.847]) # go to reward 50
+    scalarization_weights = np.array([0.153, 0.847]) # go to reward 50
     # scalarization_weights = np.array([0.13, 0.87]) # go to reward 16
-    scalarization_weights = np.array([0.1, 0.9]) # go to reward 16
+    # scalarization_weights = np.array([0.1, 0.9]) # go to reward 16
     # scalarization_weights = np.array([0.5, 0.5])
     # scalarization_weights = np.array([1.0, 0.0])
     # scalarization_weights = np.array([0.0, 1.0])
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     eps = 0.6
     alfa = 0.3
     runs = 1
-    interactions = 50
+    interactions = 50000
     episode_length = 150
 
     # Select a learning agent:

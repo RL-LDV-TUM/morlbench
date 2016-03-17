@@ -310,7 +310,8 @@ class Deepsea(MORLProblem):
             self.terminal_state = True
             return self._get_reward(self.state)
 
-        if self._in_map(self._position + self.actions[action]):
+        # check if in map and if the following state is a ground (valid) state (index = -1)
+        if self._in_map(self._position + self.actions[action]) and self._get_index(self._position + self.actions[action]) >= 0:
             self._position += self.actions[action]
             map_value = self._flat_map[self._get_index(self._position), 2]
             if my_debug: log.debug('Moved from pos ' + str(last_position) + ' by ' + str(self.actions[action]) +

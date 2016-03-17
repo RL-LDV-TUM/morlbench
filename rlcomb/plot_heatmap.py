@@ -43,18 +43,22 @@ def _heatmap_matplot(problem, states, ax):
     x_dim, y_dim = problem.scene_x_dim, problem.scene_y_dim
 
     # Initialization of empty heatmap (without terminal state)
-    heatmap = np.zeros(problem.n_states_print)
+    heatmap_count = np.zeros(problem.n_states_print)
+
+    heatmap_shaped = np.zeros_like(problem._scene)
 
     # Count states per episode and sum them up
     for i in xrange(states.size):
         z = np.bincount(states[i])
-        heatmap[:len(z)] += z
+        heatmap_count[:len(z)] += z
 
     # Shape the linearized heatmap according to the problem geometry
-    heatmap_shaped = heatmap.reshape(problem._scene.shape)
+    for i, val in enumerate(heatmap_count):
+        pos = problem._get_position(i)
+        heatmap_shaped[pos[0], pos[1]] = val
 
     mycmap = plt.get_cmap("YlOrRd")
-    norm = colors.Normalize(vmin=min(heatmap), vmax=max(heatmap))
+    norm = colors.Normalize(vmin=min(heatmap_count), vmax=max(heatmap_count))
 
     for y in xrange(y_dim):
         for x in xrange(x_dim):

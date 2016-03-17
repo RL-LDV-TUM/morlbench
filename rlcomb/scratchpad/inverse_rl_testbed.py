@@ -33,10 +33,12 @@ if __name__ == '__main__':
     scalarization_weights_groundtruth = np.zeros(reward_dimension)
     scalarization_weights_groundtruth = np.array([0.4, 0.6])
 
-    eps = 0.6
-    interactions = 500000
+    eps = 0.4
+    alfa = 0.3
 
-    agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=0.3, epsilon=eps)
+    interactions = 50000
+
+    agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=alfa, epsilon=eps)
     payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
 
     # policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
@@ -55,33 +57,21 @@ if __name__ == '__main__':
     # log.info("scalarization weights (without p, sum 1): %s" % (str(i_morl.solve_sum_1())))
     log.info("scalarization weights (alge): %s" % (str(scalarization_weights_alge)))
 
-    # tmp = np.dot(problem.R, scalarization_weights_alge)
-    # tmp = np.dot(scalarization_weights, problem.R.T)
-
-    sys.exit(0)
-
-    # i_morl = InverseMORL(problem, policy)
-    # scalarization_weights = i_morl.solve()
-    # scalarization_weights = np.array([0.153, 0.847])
-    # scalarization_weights = np.array([0.2, 0.8])
-
-    eps = 0.9
-    alfa = 0.1
-    interactions = 10000
+    problem2 = Deepsea(extended_reward=False)
 
     # agent = QMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps)
-    agent = PreScalarizedQMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps)
+    agent2 = PreScalarizedQMorlAgent(problem2, scalarization_weights_alge, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps, lmbda=0.9)
 
-    payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
+    payouts2, moves2, states2 = morl_interact_multiple(agent2, problem2, interactions, max_episode_length=150)
 
     #plt.ion()
 
     #transition_map(problem, states, moves)
-    learned_policy = PolicyFromAgent(problem, agent, mode='gibbs')
+    learned_policy = PolicyFromAgent(problem2, agent2, mode='gibbs')
     #heatmap_matplot(problem, states)
 
-    policy_plot2(problem, learned_policy)
+    policy_plot2(problem2, learned_policy)
 
     #plt.ioff()
 

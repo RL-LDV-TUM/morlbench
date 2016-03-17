@@ -305,6 +305,18 @@ class PolicyDeepseaExpert(Policy):
             57: (	0.00	,	1.00	,	0.00	,	0.00	),
             67: (	0.00	,	1.00	,	0.00	,	0.00	)}
 
+    _state_map = {0: 0, 1: 1, 2: 2, 3: 3, 4: 4, 5: 5, 6: 6, 7: 7, 8: 8, 9: 9,
+                  10: 10, 11: 11, 12: 12, 13: 13, 14: 14, 15: 15, 16: 16, 17: 17, 18: 18, 19: 19,
+                  21: 20, 22: 21, 23: 22, 24: 23, 25: 24, 26: 25, 27: 26, 28: 27, 29: 28,
+                  32: 29, 33: 30, 34: 31, 35: 32, 36: 33, 37: 34, 38: 35, 39: 36,
+                  43: 37, 44: 38, 45: 39, 46: 40, 47: 41, 48: 42, 49: 43,
+                  56: 44, 57: 45, 58: 46, 59: 47,
+                  66: 48, 67: 49, 68: 50, 69: 51,
+                  76: 52, 77: 53, 78: 54, 79: 55,
+                  88: 56, 89: 57,
+                  98: 58, 99: 59,
+                  109: 60}
+
     def __init__(self, problem, task='T1'):
         super(PolicyDeepseaExpert, self).__init__(problem)
 
@@ -327,7 +339,7 @@ class PolicyDeepseaExpert(Policy):
         # with its probanilities for the individual actions
         for i, vals in pi_dict.iteritems():
             for action, val in enumerate(vals):
-                self._pi[i, action] = val
+                self._pi[self._state_map[i], action] = val
 
 
 

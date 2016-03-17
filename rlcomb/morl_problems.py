@@ -132,9 +132,16 @@ class Deepsea(MORLProblem):
             # self._scene[9, 8] = 74/124.0
             # self._scene[10, 9] = 124/124.0
 
-        self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
+        # old flat map including ground states
+        # self._flat_map = np.ravel(self._scene, order='C')  # flat map with C-style order (column-first)
+        # self.n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1  # +1 for terminal state
 
-        self.n_states = (self._scene.shape[0] * self._scene.shape[1]) + 1  # +1 for terminal state
+        self._flat_map = np.argwhere(self._scene>=0)  # get all indices greater than zero
+        # get all elements greater than zero and stack them to the corresponding index
+        self._flat_map = np.column_stack((self._flat_map,  self._scene[self._scene >= 0]))
+        self.n_states = len(self._flat_map) + 1  # +1 for terminal state
+
+
         self.n_states_print = self.n_states - 1
         self._index_terminal_state = self.n_states - 1
 
@@ -165,31 +172,32 @@ class Deepsea(MORLProblem):
             for j in xrange(self._scene.shape[1]):
                 pos = (i, j)
                 pos_index = self._get_index(pos)
-                for a in xrange(self.n_actions - 1):  # for all action except the last -> idle action
-                    n_pos = pos + self.actions[a]
-                    n_pos_index = self._get_index(n_pos)
+                if pos_index >= 0:  # update p only if it is a valid state
+                    for a in xrange(self.n_actions):  # for all action except the last -> idle action
+                        n_pos = pos + self.actions[a]
+                        n_pos_index = self._get_index(n_pos)
 
-                    if self._in_map(n_pos) and self._flat_map[pos_index] == 0:  # we are in the map and no special state
-                        if self._flat_map[n_pos_index] >= 0:  # normal or reward _next_ state
-                            self.P[pos_index, a, n_pos_index] = 1.0
-                        elif self._flat_map[n_pos_index] < 0:  # we go directly into the ground
-                            self.P[pos_index, a, pos_index] = 1.0  # stay at position
+                        if self._in_map(n_pos) and self._flat_map[pos_index, 2] == 0 and n_pos_index >= 0:  # we are in the map and no special state
+                            if self._flat_map[n_pos_index, 2] >= 0:  # normal or reward _next_ state
+                                self.P[pos_index, a, n_pos_index] = 1.0
+                            elif self._flat_map[n_pos_index, 2] < 0:  # we go directly into the ground
+                                self.P[pos_index, a, pos_index] = 1.0  # stay at position
+                            else:
+                                raise ValueError('Sollte nicht vorkommen (state: %i)!', pos_index)
+                        # state must be a ground or reward state -> special transition
+                        elif self._flat_map[pos_index, 2] < 0:  # current state is ground -> we stay there
+                            self.P[pos_index, a, pos_index] = 1.0
+                        elif self._flat_map[pos_index, 2] > 0:  # reward state -> we transfer to the terminal state
+                            self.P[pos_index, a, self._index_terminal_state] = 1.0
                         else:
-                            raise ValueError('Sollte nicht vorkommen (state: %i)!', pos_index)
-                    # state must be a ground or reward state -> special transition
-                    elif self._flat_map[pos_index] < 0:  # current state is ground -> we stay there
-                        self.P[pos_index, a, pos_index] = 1.0
-                    elif self._flat_map[pos_index] > 0:  # reward state -> we transfer to the terminal state
-                        self.P[pos_index, a, self._index_terminal_state] = 1.0
-                    else:
-                        # we are out of the map and stay in our state
-                        self.P[pos_index, a, pos_index] = 1.0
+                            # we are out of the map and stay in our state
+                            self.P[pos_index, a, pos_index] = 1.0
 
-                    # idle action -> we always stay in our state except for reward states -> terminal state
-                    if self._flat_map[pos_index] > 0:
-                        self.P[pos_index, -1, self._index_terminal_state] = 1.0
-                    else:
-                        self.P[pos_index, -1, pos_index] = 1.0
+                        # idle action -> we always stay in our state except for reward states -> terminal state
+                        # if self._flat_map[pos_index, 2] > 0:
+                        #     self.P[pos_index, -1, self._index_terminal_state] = 1.0
+                        # else:
+                        #     self.P[pos_index, -1, pos_index] = 1.0
         # stay in terminal state forever
         self.P[-1, :, -1] = 1.0
 
@@ -215,17 +223,29 @@ class Deepsea(MORLProblem):
 
     def _get_index(self, position):
         if self._in_map(position):
-            return np.ravel_multi_index(position, self._scene.shape)
+            # return np.ravel_multi_index(position, self._scene.shape)
+            index = np.argwhere((self._flat_map[:, [0, 1]] == position).all(-1))
+            if index.size:
+                return np.asscalar(index)
+            else:
+                return -1
+                if my_debug: log.debug('Invalid position ' + str(position) + '-> out of valid map')
         else:
             if my_debug: log.debug('Error: Position out of map!')
             return -1
 
     def _get_position(self, index):
-        if index < (self._scene.shape[0] * self._scene.shape[1]):
-            return np.unravel_index(index, self._scene.shape)
+        if index < self.n_states - 1:
+            return self._flat_map[index, [0, 1]]
         else:
             if my_debug: log.debug('Error: Index out of list!')
             return -1
+
+        # if index < (self._scene.shape[0] * self._scene.shape[1]):
+        #     return np.unravel_index(index, self._scene.shape)
+        # else:
+        #     if my_debug: log.debug('Error: Index out of list!')
+        #     return -1
 
     def _in_map(self, position):
         return not ((position[0] < 0) or (position[0] > self._scene.shape[0] - 1) or (position[1] < 0) or
@@ -246,7 +266,7 @@ class Deepsea(MORLProblem):
             r[1] = 0.0
         else:
             r[1] = -1.0
-            map_value = self._flat_map[state]
+            map_value = self._flat_map[state, 2]
             if map_value > 0:
                 r[0] = map_value
             elif map_value < 0:
@@ -292,7 +312,7 @@ class Deepsea(MORLProblem):
 
         if self._in_map(self._position + self.actions[action]):
             self._position += self.actions[action]
-            map_value = self._flat_map[self._get_index(self._position)]
+            map_value = self._flat_map[self._get_index(self._position), 2]
             if my_debug: log.debug('Moved from pos ' + str(last_position) + ' by ' + str(self.actions[action]) +
                                    ' to pos: ' + str(self._position) + ')')
             if map_value < 0:

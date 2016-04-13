@@ -1,2 +1,4 @@
 *.pyc
 .metadata
+RL_Framework.egg-info
+.idea

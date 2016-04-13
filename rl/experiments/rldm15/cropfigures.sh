@@ -1,0 +1,9 @@
+#!/bin/bash
+
+pdfcrop figure_1_a_one_vs_twoboxing.pdf
+pdfcrop figure_1_b_combined_newcomb_sarsa_avg_eu_learned_action.pdf
+pdfcrop figure_1_c_combined_newcomb_sarsa_avg_eu_payout.pdf
+pdfcrop figure_2_a_defect_vs_cooperate_payout.pdf
+pdfcrop figure_2_b_defect_vs_cooperate_total_payout.pdf
+pdfcrop figure_2_c_combined_pd_sarsa_avg_payout_normal.pdf
+pdfcrop figure_2_d_combined_pd_sarsa_avg_payout_modified.pdf

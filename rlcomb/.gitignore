@@ -1,9 +1,0 @@
-*.png
-*.pyc
-.project
-.pydevproject
-*.pdf
-*.pickle
-.metadata/
-.idea/
-.ipynb_checkpoints/

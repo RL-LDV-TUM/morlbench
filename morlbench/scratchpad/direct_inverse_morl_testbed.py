@@ -16,13 +16,13 @@ import cPickle as pickle
 log.basicConfig(level=log.INFO)
 
 
-from rl.morl_problems import Deepsea
-from rl.morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent
-from rl.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyFromAgent, PolicyDeepseaExpert
-from rl.inverse_morl import InverseMORLDirect
-from rl.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
-from rl.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
-from rl.experiment_helpers import morl_interact_multiple, morl_interact_multiple_average
+from morlbench.morl_problems import Deepsea
+from morlbench.morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent
+from morlbench.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyFromAgent, PolicyDeepseaExpert
+from morlbench.inverse_morl import InverseMORLDirect
+from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
+from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
+from morlbench.experiment_helpers import morl_interact_multiple, morl_interact_multiple_average
 
 import pickle
 import time

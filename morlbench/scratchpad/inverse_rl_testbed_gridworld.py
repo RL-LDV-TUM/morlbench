@@ -16,9 +16,9 @@ log.basicConfig(level=log.DEBUG)
 #log.basicConfig(level=log.INFO)
 
 
-from rl.morl_problems import Gridworld
-from rl.morl_policies import PolicyGridworldExample
-from rl.inverse_morl import InverseMORLIRL
+from morlbench.morl_problems import Gridworld
+from morlbench.morl_policies import PolicyGridworldExample
+from morlbench.inverse_morl import InverseMORLIRL
 
 
 if __name__ == '__main__':

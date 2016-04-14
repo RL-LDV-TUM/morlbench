@@ -11,9 +11,9 @@ import numpy as np
 
 log.basicConfig(level=log.DEBUG)
 
-from rl.problems import Newcomb
-from rl.agents import OneBoxNewcombAgent, TwoBoxNewcombAgent, SARSANewcombAgent
-from rl.experiment_helpers import interact_multiple
+from morlbench.problems import Newcomb
+from morlbench.agents import OneBoxNewcombAgent, TwoBoxNewcombAgent, SARSANewcombAgent
+from morlbench.experiment_helpers import interact_multiple
 
 
 if __name__ == '__main__':

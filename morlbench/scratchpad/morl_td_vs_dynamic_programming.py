@@ -15,11 +15,11 @@ import cPickle as pickle
 #log.basicConfig(level=log.DEBUG)
 log.basicConfig(level=log.INFO)
 
-from rl.morl_problems import Deepsea
-from rl.morl_agents import TDMorlAgent
-from rl.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministicExample01
-from rl.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
-from rl.experiment_helpers import morl_interact_multiple
+from morlbench.morl_problems import Deepsea
+from morlbench.morl_agents import TDMorlAgent
+from morlbench.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministicExample01
+from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
+from morlbench.experiment_helpers import morl_interact_multiple
 
 
 if __name__ == '__main__':

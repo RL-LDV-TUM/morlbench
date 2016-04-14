@@ -1,0 +1,679 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>agents &mdash; Reinforcment Learning Framework 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Reinforcment Learning Framework 1.0.0 documentation" href="../doc.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for agents</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">Created on Nov 19, 2012</span>
+
+<span class="sd">@author: Dominik Meyer &lt;meyerd@mytum.de&gt;</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<span class="kn">from</span> <span class="nn">helpers</span> <span class="kn">import</span> <span class="n">virtualFunction</span><span class="p">,</span> <span class="n">SaveableObject</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">logging</span> <span class="kn">as</span> <span class="nn">log</span>
+
+<span class="c1"># log.basicConfig(level=log.DEBUG)</span>
+
+
+<div class="viewcode-block" id="NewcombAgent"><a class="viewcode-back" href="../code.html#agents.NewcombAgent">[docs]</a><span class="k">class</span> <span class="nc">NewcombAgent</span><span class="p">(</span><span class="n">SaveableObject</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A agent that should interface with a Newcomb problem.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">newcomb_problem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize the Agent with the Newcomb</span>
+<span class="sd">        problem, it will be faced with.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newcomb_problem: The already initialized and</span>
+<span class="sd">            correctly parametrized problem.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">NewcombAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">([])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">newcomb_problem</span> <span class="o">=</span> <span class="n">newcomb_problem</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+
+<div class="viewcode-block" id="NewcombAgent.decide"><a class="viewcode-back" href="../code.html#agents.NewcombAgent.decide">[docs]</a>    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Decide which action to take in interaction</span>
+<span class="sd">        cycle t.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t: Interaction cycle we are currently in</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        action: The action to do next</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">virtualFunction</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="NewcombAgent.learn"><a class="viewcode-back" href="../code.html#agents.NewcombAgent.learn">[docs]</a>    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Learn from the last interaction, if we have</span>
+<span class="sd">        a dynamically learning agent.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t: int</span>
+<span class="sd">            Interaction cycle.</span>
+<span class="sd">        action: int</span>
+<span class="sd">            Last action</span>
+<span class="sd">        payout: float</span>
+<span class="sd">            Last recevied payout.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">virtualFunction</span><span class="p">()</span></div></div>
+
+
+<div class="viewcode-block" id="OneBoxNewcombAgent"><a class="viewcode-back" href="../code.html#agents.OneBoxNewcombAgent">[docs]</a><span class="k">class</span> <span class="nc">OneBoxNewcombAgent</span><span class="p">(</span><span class="n">NewcombAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A Newcomb Agent, that always chooses one boxing.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">OneBoxNewcombAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="TwoBoxNewcombAgent"><a class="viewcode-back" href="../code.html#agents.TwoBoxNewcombAgent">[docs]</a><span class="k">class</span> <span class="nc">TwoBoxNewcombAgent</span><span class="p">(</span><span class="n">NewcombAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A Newcomb Agent, that always chooses two boxing.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">TwoBoxNewcombAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="EUNewcombAgent"><a class="viewcode-back" href="../code.html#agents.EUNewcombAgent">[docs]</a><span class="k">class</span> <span class="nc">EUNewcombAgent</span><span class="p">(</span><span class="n">NewcombAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A Newcomb Agent, that decides according to the</span>
+<span class="sd">    calcuated expected utility. We assume, that the</span>
+<span class="sd">    agent has access to the prediction accuracy of</span>
+<span class="sd">    the superhuman intelligence.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EUNewcombAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">n_actions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newcomb_problem</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">newcomb_problem</span><span class="o">.</span><span class="n">predictor_accuracy</span>
+        <span class="n">payouts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">newcomb_problem</span><span class="o">.</span><span class="n">payouts</span>
+        <span class="n">utility</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_actions</span><span class="p">)</span>
+<span class="c1">#         for a in xrange(n_actions):</span>
+<span class="c1">#             # TODO; fix for more than 2 actions</span>
+<span class="c1">#             utility[a] += accuracy * payouts[a][0] + (1.0 - accuracy) * \</span>
+<span class="c1">#                 payouts[a][1]</span>
+        <span class="n">utility</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">accuracy</span> <span class="o">*</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">accuracy</span><span class="p">)</span> <span class="o">*</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">utility</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">accuracy</span><span class="p">)</span> <span class="o">*</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">accuracy</span> <span class="o">*</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">utility</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+    <span class="k">def</span> <span class="nf">get_learned_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decide</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="SARSANewcombAgent"><a class="viewcode-back" href="../code.html#agents.SARSANewcombAgent">[docs]</a><span class="k">class</span> <span class="nc">SARSANewcombAgent</span><span class="p">(</span><span class="n">NewcombAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A Newcomb agent, that uses RL to decide which</span>
+<span class="sd">    boxing to do next.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize the Reinforcement Learning Newcomb</span>
+<span class="sd">        Agent with the probleme description and alpha,</span>
+<span class="sd">        the learning rate.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        problem: A Newcomb problem</span>
+<span class="sd">        alpha: real, the learning rate in each</span>
+<span class="sd">            SARSA update step</span>
+<span class="sd">        gamma: real, [0, 1) RL discount factor</span>
+<span class="sd">        epsilon: real, [0, 1] the epsilon factor for</span>
+<span class="sd">            the epsilon greedy action selection strategy</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SARSANewcombAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+        <span class="c1"># the Q function is only one dimensional, since</span>
+        <span class="c1"># we can only be in one state and choose from</span>
+        <span class="c1"># two actions in the newcomb problem.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newcomb_problem</span><span class="o">.</span><span class="n">actions</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_action</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_payout</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c1">#     def interact_multiple(self, n=1):</span>
+<span class="c1">#         &#39;&#39;&#39;</span>
+<span class="c1">#         Interact n times with the problem and return</span>
+<span class="c1">#         the array of payouts.</span>
+<span class="c1">#         &#39;&#39;&#39;</span>
+<span class="c1">#         log.info(&#39;Playing %i interactions ... &#39; % (n))</span>
+<span class="c1">#         payouts = []</span>
+<span class="c1">#         self.last_payout = 0</span>
+<span class="c1">#         self.last_action = 0</span>
+<span class="c1">#         for t in xrange(n):</span>
+<span class="c1">#             action, payout = self.interact(t)</span>
+<span class="c1">#             payouts.append(payout)</span>
+<span class="c1">#             log.debug(&#39; step %05i: action: %i, payout: %i&#39; %</span>
+<span class="c1">#                       (t, action, payout))</span>
+<span class="c1">#         return np.array(payouts)</span>
+<span class="c1"># </span>
+<span class="c1">#     def interact(self, t):</span>
+<span class="c1">#         &#39;&#39;&#39;</span>
+<span class="c1">#         Interact only once with the given Newcomb problem.</span>
+<span class="c1">#         Maintain last payouts and actions internally.</span>
+<span class="c1">#         &#39;&#39;&#39;</span>
+<span class="c1">#         action = self._decide(t)</span>
+<span class="c1">#         payout = self.newcomb_problem.play(action)</span>
+
+<div class="viewcode-block" id="SARSANewcombAgent.learn"><a class="viewcode-back" href="../code.html#agents.SARSANewcombAgent.learn">[docs]</a>    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Learn on the last interaction specified by the</span>
+<span class="sd">        action and the payout received.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_learn</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_action</span><span class="p">,</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">last_payout</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_action</span> <span class="o">=</span> <span class="n">action</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_payout</span> <span class="o">=</span> <span class="n">payout</span></div>
+
+    <span class="k">def</span> <span class="nf">_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">last_action</span><span class="p">,</span> <span class="n">last_payout</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">last_action</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> \
+            <span class="p">(</span><span class="n">payout</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">last_action</span><span class="p">])</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; Q: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)))</span>
+
+    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">:</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  took greedy action </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">action</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newcomb_problem</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   took random action </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+    <span class="k">def</span> <span class="nf">get_learned_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="AVGQNewcombAgent"><a class="viewcode-back" href="../code.html#agents.AVGQNewcombAgent">[docs]</a><span class="k">class</span> <span class="nc">AVGQNewcombAgent</span><span class="p">(</span><span class="n">SARSANewcombAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A Newcomb agent, that does not use the SARSA, but instead</span>
+<span class="sd">    the incremental average Q update rule.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AVGQNewcombAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">last_action</span><span class="p">,</span> <span class="n">last_payout</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_times</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">payout</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span></div>
+
+
+<div class="viewcode-block" id="UCB1NewcombAgent"><a class="viewcode-back" href="../code.html#agents.UCB1NewcombAgent">[docs]</a><span class="k">class</span> <span class="nc">UCB1NewcombAgent</span><span class="p">(</span><span class="n">NewcombAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A Newcomb agent, that uses UCB1 to decide which</span>
+<span class="sd">    boxing to do next, as described in</span>
+<span class="sd">    http://www.cs.mcgill.ca/~vkules/bandits.pdf</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize the UCB1 Newcomb</span>
+<span class="sd">        Agent with the problem description.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        problem: A Newcomb problem</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">UCB1NewcombAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># the mu function is only one dimensional, since</span>
+        <span class="c1"># we can only be in one state and choose from</span>
+        <span class="c1"># two actions in the newcomb problem.</span>
+        <span class="c1"># We will maintain the empirical means in the</span>
+        <span class="c1"># vector mu and the number of plays for each</span>
+        <span class="c1"># arms in the vector n</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newcomb_problem</span><span class="o">.</span><span class="n">actions</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">newcomb_problem</span><span class="o">.</span><span class="n">actions</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_interactions</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">total_interactions</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">payout</span> <span class="o">-</span>
+                                                         <span class="bp">self</span><span class="o">.</span><span class="n">mu</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_action</span> <span class="o">=</span> <span class="n">action</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_payout</span> <span class="o">=</span> <span class="n">payout</span>
+
+    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mu</span> <span class="o">+</span>
+                           <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">((</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">total_interactions</span><span class="p">))</span> <span class="o">/</span>
+                                   <span class="bp">self</span><span class="o">.</span><span class="n">n</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+    <span class="k">def</span> <span class="nf">get_learned_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decide</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PrisonerAgent"><a class="viewcode-back" href="../code.html#agents.PrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">PrisonerAgent</span><span class="p">(</span><span class="n">SaveableObject</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A agent that should interface with a Prisoner&#39;s dilemma problem.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pd</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize the Agent with the Prisoner&#39;s</span>
+<span class="sd">        dilemma, it will be faced with.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        newcomb_problem: The already initialized and</span>
+<span class="sd">            correctly parametrized problem.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">PrisonerAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">([])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">pd</span> <span class="o">=</span> <span class="n">pd</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+
+<div class="viewcode-block" id="PrisonerAgent.decide"><a class="viewcode-back" href="../code.html#agents.PrisonerAgent.decide">[docs]</a>    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Decide which action to take in interaction</span>
+<span class="sd">        cycle t.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t: Interaction cycle we are currently in</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        action: The action to do next</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">virtualFunction</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="PrisonerAgent.learn"><a class="viewcode-back" href="../code.html#agents.PrisonerAgent.learn">[docs]</a>    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Learn from the last interaction, if we have</span>
+<span class="sd">        a dynamically learning agent.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        t: int</span>
+<span class="sd">            Interaction cycle.</span>
+<span class="sd">        action: int</span>
+<span class="sd">            Last action</span>
+<span class="sd">        payout: float</span>
+<span class="sd">            Last recevied payout.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="n">virtualFunction</span><span class="p">()</span></div>
+
+    <span class="k">def</span> <span class="nf">get_learned_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">decide</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DefectPrisonerAgent"><a class="viewcode-back" href="../code.html#agents.DefectPrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">DefectPrisonerAgent</span><span class="p">(</span><span class="n">PrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent, that always defects.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="CooperatePrisonerAgent"><a class="viewcode-back" href="../code.html#agents.CooperatePrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">CooperatePrisonerAgent</span><span class="p">(</span><span class="n">PrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent that always cooperates.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="ProbabilisticPrisonerAgent"><a class="viewcode-back" href="../code.html#agents.ProbabilisticPrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">ProbabilisticPrisonerAgent</span><span class="p">(</span><span class="n">PrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent, that is able to play the probabilistic</span>
+<span class="sd">    version of the PD.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="DefectProbabilisticPrisonerAgent"><a class="viewcode-back" href="../code.html#agents.DefectProbabilisticPrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">DefectProbabilisticPrisonerAgent</span><span class="p">(</span><span class="n">ProbabilisticPrisonerAgent</span><span class="p">,</span>
+                                       <span class="n">DefectPrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent that always defects.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="CooperateProbabilisticPrisonerAgent"><a class="viewcode-back" href="../code.html#agents.CooperateProbabilisticPrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">CooperateProbabilisticPrisonerAgent</span><span class="p">(</span><span class="n">ProbabilisticPrisonerAgent</span><span class="p">,</span>
+                                          <span class="n">CooperatePrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent that always cooperates.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="SARSAPrisonerAgent"><a class="viewcode-back" href="../code.html#agents.SARSAPrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">SARSAPrisonerAgent</span><span class="p">(</span><span class="n">ProbabilisticPrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent, that decides according to a SARSA</span>
+<span class="sd">    RL learning stragey.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pd</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">gamma</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">epsilon</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize the Reinforcement Learning PD</span>
+<span class="sd">        Agent with the probleme description and alpha,</span>
+<span class="sd">        the learning rate.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pd: A PD problem</span>
+<span class="sd">        alpha: real, the learning rate in each</span>
+<span class="sd">            SARSA update step</span>
+<span class="sd">        gamma: real, [0, 1) RL discount factor</span>
+<span class="sd">        epsilon: real, [0, 1] the epsilon factor for</span>
+<span class="sd">            the epsilon greedy action selection strategy</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SARSAPrisonerAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">pd</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">=</span> <span class="n">alpha</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">=</span> <span class="n">gamma</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span> <span class="o">=</span> <span class="n">epsilon</span>
+        <span class="c1"># the Q function is only one dimensional, since</span>
+        <span class="c1"># we can only be in one state and choose from</span>
+        <span class="c1"># two actions in the newcomb problem.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">actions</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_action</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_payout</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span> <span class="o">+</span> \
+            <span class="s2">&quot;(alpha=</span><span class="si">%f</span><span class="s2">, gamma=</span><span class="si">%f</span><span class="s2">, epsilon=</span><span class="si">%f</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">alpha</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span><span class="p">,</span>
+                                                  <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SARSAPrisonerAgent.decide"><a class="viewcode-back" href="../code.html#agents.SARSAPrisonerAgent.decide">[docs]</a>    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Alternative interface to interact with multiple</span>
+<span class="sd">        PD agents. Use in conjunction with `learn&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decide</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="SARSAPrisonerAgent.learn"><a class="viewcode-back" href="../code.html#agents.SARSAPrisonerAgent.learn">[docs]</a>    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Learn from interaction.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        action: int</span>
+<span class="sd">            The action that lead to the payout.</span>
+<span class="sd">        payout: float</span>
+<span class="sd">            Payout from the problem for this agent.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">last_action</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> \
+            <span class="p">(</span><span class="n">payout</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">last_action</span><span class="p">])</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; Q: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)))</span>
+<span class="c1">#         print &#39; Q: %s&#39; % (str(self.Q))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_action</span> <span class="o">=</span> <span class="n">action</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_payout</span> <span class="o">=</span> <span class="n">payout</span></div>
+
+    <span class="k">def</span> <span class="nf">_decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">:</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  took greedy action </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">action</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   took random action </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+    <span class="k">def</span> <span class="nf">get_learned_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="SARSALastActionsPrisonerAgent"><a class="viewcode-back" href="../code.html#agents.SARSALastActionsPrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">SARSALastActionsPrisonerAgent</span><span class="p">(</span><span class="n">SARSAPrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent, that decides according to a SARSA</span>
+<span class="sd">    RL learning stragey. It knows the last own action</span>
+<span class="sd">    and the last action of the opponent and takes this</span>
+<span class="sd">    as the state.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">SARSALastActionsPrisonerAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="c1"># the Q function is two dimensional,</span>
+        <span class="c1"># where the two dimensions are in</span>
+        <span class="c1"># the dimension of states</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_opponent_action</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="c1"># TODO: expand whole framework for flexibility with states</span>
+        <span class="n">opponent_action</span> <span class="o">=</span> <span class="n">action</span>
+        <span class="k">if</span> <span class="n">payout</span> <span class="o">&gt;=</span> <span class="mf">5.0</span><span class="p">:</span>
+            <span class="n">opponent_action</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">payout</span> <span class="o">&lt;=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">opponent_action</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">last_action</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_opponent_action</span><span class="p">]</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">alpha</span> <span class="o">*</span> \
+            <span class="p">(</span><span class="n">payout</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">action</span><span class="p">,</span> <span class="n">opponent_action</span><span class="p">]</span> <span class="o">-</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">last_action</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_opponent_action</span><span class="p">])</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; Q: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_action</span> <span class="o">=</span> <span class="n">action</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_opponent_action</span> <span class="o">=</span> <span class="n">opponent_action</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_payout</span> <span class="o">=</span> <span class="n">payout</span>
+
+    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">()</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">epsilon</span><span class="p">:</span>
+            <span class="n">action</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[:,</span> <span class="bp">self</span><span class="o">.</span><span class="n">last_opponent_action</span><span class="p">]</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+            <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;  took greedy action </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">action</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_actions</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;   took random action </span><span class="si">%i</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+    <span class="k">def</span> <span class="nf">get_learned_action</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">floor_divide</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span> <span class="o">+</span> <span class="p">(</span><span class="n">m</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="AVGQPrisonerAgent"><a class="viewcode-back" href="../code.html#agents.AVGQPrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">AVGQPrisonerAgent</span><span class="p">(</span><span class="n">SARSAPrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent, that decides according to a AVGQ</span>
+<span class="sd">    RL learning stragey.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize the AVGQ PD</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AVGQPrisonerAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)</span>
+
+<div class="viewcode-block" id="AVGQPrisonerAgent.learn"><a class="viewcode-back" href="../code.html#agents.AVGQPrisonerAgent.learn">[docs]</a>    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Learn from interaction.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        action: int</span>
+<span class="sd">            The action that lead to the payout.</span>
+<span class="sd">        payout: float</span>
+<span class="sd">            Payout from the problem for this agent.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_times</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">payout</span> <span class="o">-</span>
+                                                              <span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">[</span><span class="n">action</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_times</span><span class="p">[</span><span class="n">action</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">log</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39; Q: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">Q</span><span class="p">)))</span>
+<span class="c1">#         print &#39; Q: %s&#39; % (str(self.Q))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_action</span> <span class="o">=</span> <span class="n">action</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">last_payout</span> <span class="o">=</span> <span class="n">payout</span></div></div>
+
+
+<div class="viewcode-block" id="EUPrisonerAgent"><a class="viewcode-back" href="../code.html#agents.EUPrisonerAgent">[docs]</a><span class="k">class</span> <span class="nc">EUPrisonerAgent</span><span class="p">(</span><span class="n">ProbabilisticPrisonerAgent</span><span class="p">):</span>
+    <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">    A PD agent, that decides according to expected utility</span>
+<span class="sd">    RL learning stragey.</span>
+<span class="sd">    &#39;&#39;&#39;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pd</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Initialize the EU PD</span>
+<span class="sd">        Agent with the probleme description and alpha,</span>
+<span class="sd">        the learning rate.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pd: A PD problem</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">EUPrisonerAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">pd</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="EUPrisonerAgent.decide"><a class="viewcode-back" href="../code.html#agents.EUPrisonerAgent.decide">[docs]</a>    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">total_payout</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Alternative interface to interact with multiple</span>
+<span class="sd">        PD agents. Use in conjunction with `learn&#39;</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decide</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">total_payout</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="EUPrisonerAgent.learn"><a class="viewcode-back" href="../code.html#agents.EUPrisonerAgent.learn">[docs]</a>    <span class="k">def</span> <span class="nf">learn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">,</span> <span class="n">payout</span><span class="p">):</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">        Learn from interaction.</span>
+
+<span class="sd">        EU does not learn from interaction.</span>
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="k">pass</span></div>
+
+    <span class="k">def</span> <span class="nf">_decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">total_payout</span><span class="p">):</span>
+        <span class="n">n_actions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">actions</span><span class="p">)</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">coop_p</span>
+        <span class="n">payouts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pd</span><span class="o">.</span><span class="n">payouts</span>
+        <span class="n">utility</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_actions</span><span class="p">)</span>
+        <span class="c1"># TODO: make this work for general problems</span>
+        <span class="k">if</span> <span class="n">total_payout</span><span class="p">:</span>
+            <span class="n">utility</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">accuracy</span> <span class="o">*</span> <span class="p">(</span><span class="n">payouts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> \
+                <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">accuracy</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">payouts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">utility</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">accuracy</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">payouts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> \
+                <span class="n">accuracy</span> <span class="o">*</span> <span class="p">(</span><span class="n">payouts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">utility</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">accuracy</span> <span class="o">*</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">accuracy</span><span class="p">)</span> <span class="o">*</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">utility</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">accuracy</span><span class="p">)</span> <span class="o">*</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">accuracy</span> <span class="o">*</span> <span class="n">payouts</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">action</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">utility</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">action</span>
+
+    <span class="k">def</span> <span class="nf">get_learned_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">total_payout</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decide</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">total_payout</span><span class="p">)</span></div>
+
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../doc.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Dominik Meyer, Johannes Feldmaier, Simon Wölzmüller.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

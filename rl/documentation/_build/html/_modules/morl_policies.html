@@ -1,0 +1,488 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>morl_policies &mdash; Reinforcment Learning Framework 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="Reinforcment Learning Framework 1.0.0 documentation" href="../doc.html" />
+    <link rel="up" title="Module code" href="index.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for morl_policies</h1><div class="highlight"><pre>
+<span></span><span class="ch">#!/usr/bin/env python</span>
+<span class="c1"># -*- coding: utf-8 -*-</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Created on Feb 16, 2016</span>
+
+<span class="sd">@author: Dominik Meyer &lt;meyerd@mytum.de&gt;</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">helpers</span> <span class="kn">import</span> <span class="n">SaveableObject</span>
+<span class="kn">from</span> <span class="nn">probability_helpers</span> <span class="kn">import</span> <span class="n">assurePolicyMatrix</span><span class="p">,</span> <span class="n">sampleFromDiscreteDistribution</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">logging</span> <span class="kn">as</span> <span class="nn">log</span>
+
+
+<div class="viewcode-block" id="Policy"><a class="viewcode-back" href="../code.html#morl_policies.Policy">[docs]</a><span class="k">class</span> <span class="nc">Policy</span><span class="p">(</span><span class="n">SaveableObject</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    This is the base class for all problem policies.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initialize the problem base policy</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        :param problem: Initialized Deepsea problem.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="n">Policy</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">([])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span> <span class="o">=</span> <span class="n">problem</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="bp">None</span>
+
+    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span>
+
+<div class="viewcode-block" id="Policy.get_pi"><a class="viewcode-back" href="../code.html#morl_policies.Policy.get_pi">[docs]</a>    <span class="k">def</span> <span class="nf">get_pi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the policy matrix :math:`\Pi` which consists of</span>
+<span class="sd">        m rows, where m is the number of states</span>
+<span class="sd">        of the problem and n columns, where n is the number of actions.</span>
+
+<span class="sd">        :return: :math:`\Pi \in \mathbb{R}^{m \times n}`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span></div>
+
+<div class="viewcode-block" id="Policy.get_pi_a"><a class="viewcode-back" href="../code.html#morl_policies.Policy.get_pi_a">[docs]</a>    <span class="k">def</span> <span class="nf">get_pi_a</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">a</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the a-th column of the policy matrix, this means</span>
+<span class="sd">        the probability distribution for a specific action given a</span>
+<span class="sd">        specific state. m is the number of states.</span>
+
+<span class="sd">        :param a: int action</span>
+<span class="sd">        :return: :math:`\Pi^{a} \in \mathbb{R}^{m \times 1}`</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[:,</span> <span class="n">a</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Policy.decide"><a class="viewcode-back" href="../code.html#morl_policies.Policy.decide">[docs]</a>    <span class="k">def</span> <span class="nf">decide</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Decide which action to take in state.</span>
+<span class="sd">        :param state: Deepsea state tuple.</span>
+<span class="sd">        :return: int action.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">sampleFromDiscreteDistribution</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">state</span><span class="p">,</span> <span class="p">:])</span></div>
+
+<div class="viewcode-block" id="Policy.get_optimal_action"><a class="viewcode-back" href="../code.html#morl_policies.Policy.get_optimal_action">[docs]</a>    <span class="k">def</span> <span class="nf">get_optimal_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">        :param state:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># return the action with the max probability, break ties</span>
+        <span class="c1"># in a random manner</span>
+        <span class="k">return</span> <span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">state</span><span class="p">,</span> <span class="p">:]</span> <span class="o">==</span> <span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">state</span><span class="p">,</span> <span class="p">:]))[</span><span class="mi">0</span><span class="p">])</span></div></div>
+
+
+<div class="viewcode-block" id="PolicyDeepseaRandom"><a class="viewcode-back" href="../code.html#morl_policies.PolicyDeepseaRandom">[docs]</a><span class="k">class</span> <span class="nc">PolicyDeepseaRandom</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A random policy for the Deepsea MORL problem.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PolicyDeepseaRandom</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+        <span class="c1"># randomly initialize policy</span>
+        <span class="c1"># TODO: only put ones to valid actions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_actions</span><span class="p">))</span>
+        <span class="c1"># normalize</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span>
+        <span class="n">assurePolicyMatrix</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="PolicyDeepseaDeterministic"><a class="viewcode-back" href="../code.html#morl_policies.PolicyDeepseaDeterministic">[docs]</a><span class="k">class</span> <span class="nc">PolicyDeepseaDeterministic</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A deterministic example policy for the deepsea scenario.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># to the 24</span>
+    <span class="n">_P1</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">1</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">11</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">12</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">22</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">23</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">33</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">34</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">35</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">36</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">46</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">56</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">66</span><span class="p">:</span>  <span class="mi">1</span>
+           <span class="p">}</span>
+    <span class="c1"># greedy to treasure 1</span>
+    <span class="n">_P2</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span>   <span class="mi">1</span>
+           <span class="p">}</span>
+    <span class="c1"># flat to the right, then down to 124</span>
+    <span class="n">_P3</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">1</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">2</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">3</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">4</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">5</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">6</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">7</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">8</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">9</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">19</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">29</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">39</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">49</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">59</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">69</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">79</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">89</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">99</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="p">}</span>
+    <span class="c1"># first flat then down to 3</span>
+    <span class="n">_P4</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">1</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">2</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">12</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">22</span><span class="p">:</span>  <span class="mi">1</span>
+           <span class="p">}</span>
+    <span class="c1"># diagonal to 8</span>
+    <span class="n">_P5</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span>   <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">1</span><span class="p">:</span>   <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">11</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">12</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">22</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">23</span><span class="p">:</span>  <span class="mi">1</span><span class="p">,</span>
+           <span class="mi">33</span><span class="p">:</span>  <span class="mi">0</span><span class="p">,</span>
+           <span class="mi">34</span><span class="p">:</span>  <span class="mi">1</span>
+           <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s1">&#39;P1&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PolicyDeepseaDeterministic</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_actions</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">policy</span> <span class="o">==</span> <span class="s1">&#39;P1&#39;</span><span class="p">:</span>
+            <span class="n">transition_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P1</span>
+        <span class="k">elif</span> <span class="n">policy</span> <span class="o">==</span><span class="s1">&#39;P2&#39;</span><span class="p">:</span>
+            <span class="n">transition_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P2</span>
+        <span class="k">elif</span> <span class="n">policy</span> <span class="o">==</span><span class="s1">&#39;P3&#39;</span><span class="p">:</span>
+            <span class="n">transition_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P3</span>
+        <span class="k">elif</span> <span class="n">policy</span> <span class="o">==</span><span class="s1">&#39;P4&#39;</span><span class="p">:</span>
+            <span class="n">transition_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P4</span>
+        <span class="k">elif</span> <span class="n">policy</span> <span class="o">==</span><span class="s1">&#39;P5&#39;</span><span class="p">:</span>
+            <span class="n">transition_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_P5</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Given Policy does not exist&#39;</span><span class="p">)</span>
+
+        <span class="c1"># fill pi for all states with 1/n_actions except for the ones in</span>
+        <span class="c1"># transition_dict</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">transition_dict</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">transition_dict</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_actions</span></div>
+                <span class="c1"># self._pi[i, -1] = 1.0 # set 1 for idle action</span>
+
+
+<div class="viewcode-block" id="PolicyDeepseaExpert"><a class="viewcode-back" href="../code.html#morl_policies.PolicyDeepseaExpert">[docs]</a><span class="k">class</span> <span class="nc">PolicyDeepseaExpert</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Human expert policy for the deepsea scenario</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+          <span class="c1"># state:   ri,   do,   le,   up,</span>
+    <span class="n">_T1</span> <span class="o">=</span> <span class="p">{</span>	<span class="mi">0</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">1</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.90</span>	<span class="p">,</span>	<span class="mf">0.10</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">2</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.78</span>	<span class="p">,</span>	<span class="mf">0.22</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">3</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">4</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">5</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.86</span>	<span class="p">,</span>	<span class="mf">0.14</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">6</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">7</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">8</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.67</span>	<span class="p">,</span>	<span class="mf">0.33</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">9</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">11</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">12</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.67</span>	<span class="p">,</span>	<span class="mf">0.33</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">13</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">14</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">15</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">17</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">18</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">19</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">22</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">23</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">24</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">25</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">26</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">27</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.20</span>	<span class="p">,</span>	<span class="mf">0.80</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">28</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">29</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">33</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">34</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">),</span>
+            <span class="mi">35</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">37</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">38</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">39</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">47</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">48</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">49</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">57</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">58</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">59</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">67</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">68</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">69</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">78</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">79</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">88</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">89</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">99</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">)}</span>
+
+    <span class="c1"># T2 -&gt; risky captain</span>
+            <span class="c1"># state:   ri,   do,   le,   up,</span>
+    <span class="n">_T2</span> <span class="o">=</span> <span class="p">{</span>	<span class="mi">0</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">1</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.90</span>	<span class="p">,</span>	<span class="mf">0.10</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">2</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.89</span>	<span class="p">,</span>	<span class="mf">0.11</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">3</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">4</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">5</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">6</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">7</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.88</span>	<span class="p">,</span>	<span class="mf">0.12</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">8</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.71</span>	<span class="p">,</span>	<span class="mf">0.29</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">9</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">11</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">12</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">13</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">14</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">17</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">18</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">19</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">22</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">23</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">24</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">25</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">26</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">27</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">28</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">29</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">36</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">37</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">38</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">39</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">46</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">47</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">48</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">49</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">56</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">57</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">58</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.33</span>	<span class="p">,</span>	<span class="mf">0.67</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">59</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">66</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">67</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.50</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">68</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.33</span>	<span class="p">,</span>	<span class="mf">0.67</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">69</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">78</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">79</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">88</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">89</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">99</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">)}</span>
+
+    <span class="c1"># T3 -&gt; defensive captain</span>
+           <span class="c1"># state:   ri,   do,   le,   up,</span>
+    <span class="n">_T3</span> <span class="o">=</span> <span class="p">{</span>	<span class="mi">0</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">1</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">2</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.90</span>	<span class="p">,</span>	<span class="mf">0.10</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">3</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.89</span>	<span class="p">,</span>	<span class="mf">0.11</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">4</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">5</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.38</span>	<span class="p">,</span>	<span class="mf">0.62</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">6</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">7</span><span class="p">:</span>  <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">12</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">13</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">15</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">17</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">22</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">23</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">25</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">27</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">33</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">35</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">37</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">47</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">57</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">),</span>
+            <span class="mi">67</span><span class="p">:</span> <span class="p">(</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">1.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">,</span>	<span class="mf">0.00</span>	<span class="p">)}</span>
+
+    <span class="n">_state_map</span> <span class="o">=</span> <span class="p">{</span><span class="mi">0</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">:</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">:</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">:</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">:</span> <span class="mi">9</span><span class="p">,</span>
+                  <span class="mi">10</span><span class="p">:</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">:</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">:</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">:</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">14</span><span class="p">:</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">:</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">17</span><span class="p">:</span> <span class="mi">17</span><span class="p">,</span> <span class="mi">18</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span> <span class="mi">19</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span>
+                  <span class="mi">21</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">22</span><span class="p">:</span> <span class="mi">21</span><span class="p">,</span> <span class="mi">23</span><span class="p">:</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">24</span><span class="p">:</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">25</span><span class="p">:</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">26</span><span class="p">:</span> <span class="mi">25</span><span class="p">,</span> <span class="mi">27</span><span class="p">:</span> <span class="mi">26</span><span class="p">,</span> <span class="mi">28</span><span class="p">:</span> <span class="mi">27</span><span class="p">,</span> <span class="mi">29</span><span class="p">:</span> <span class="mi">28</span><span class="p">,</span>
+                  <span class="mi">32</span><span class="p">:</span> <span class="mi">29</span><span class="p">,</span> <span class="mi">33</span><span class="p">:</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">34</span><span class="p">:</span> <span class="mi">31</span><span class="p">,</span> <span class="mi">35</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">36</span><span class="p">:</span> <span class="mi">33</span><span class="p">,</span> <span class="mi">37</span><span class="p">:</span> <span class="mi">34</span><span class="p">,</span> <span class="mi">38</span><span class="p">:</span> <span class="mi">35</span><span class="p">,</span> <span class="mi">39</span><span class="p">:</span> <span class="mi">36</span><span class="p">,</span>
+                  <span class="mi">43</span><span class="p">:</span> <span class="mi">37</span><span class="p">,</span> <span class="mi">44</span><span class="p">:</span> <span class="mi">38</span><span class="p">,</span> <span class="mi">45</span><span class="p">:</span> <span class="mi">39</span><span class="p">,</span> <span class="mi">46</span><span class="p">:</span> <span class="mi">40</span><span class="p">,</span> <span class="mi">47</span><span class="p">:</span> <span class="mi">41</span><span class="p">,</span> <span class="mi">48</span><span class="p">:</span> <span class="mi">42</span><span class="p">,</span> <span class="mi">49</span><span class="p">:</span> <span class="mi">43</span><span class="p">,</span>
+                  <span class="mi">56</span><span class="p">:</span> <span class="mi">44</span><span class="p">,</span> <span class="mi">57</span><span class="p">:</span> <span class="mi">45</span><span class="p">,</span> <span class="mi">58</span><span class="p">:</span> <span class="mi">46</span><span class="p">,</span> <span class="mi">59</span><span class="p">:</span> <span class="mi">47</span><span class="p">,</span>
+                  <span class="mi">66</span><span class="p">:</span> <span class="mi">48</span><span class="p">,</span> <span class="mi">67</span><span class="p">:</span> <span class="mi">49</span><span class="p">,</span> <span class="mi">68</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">69</span><span class="p">:</span> <span class="mi">51</span><span class="p">,</span>
+                  <span class="mi">76</span><span class="p">:</span> <span class="mi">52</span><span class="p">,</span> <span class="mi">77</span><span class="p">:</span> <span class="mi">53</span><span class="p">,</span> <span class="mi">78</span><span class="p">:</span> <span class="mi">54</span><span class="p">,</span> <span class="mi">79</span><span class="p">:</span> <span class="mi">55</span><span class="p">,</span>
+                  <span class="mi">88</span><span class="p">:</span> <span class="mi">56</span><span class="p">,</span> <span class="mi">89</span><span class="p">:</span> <span class="mi">57</span><span class="p">,</span>
+                  <span class="mi">98</span><span class="p">:</span> <span class="mi">58</span><span class="p">,</span> <span class="mi">99</span><span class="p">:</span> <span class="mi">59</span><span class="p">,</span>
+                  <span class="mi">109</span><span class="p">:</span> <span class="mi">60</span><span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s1">&#39;T1&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PolicyDeepseaExpert</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+        <span class="c1"># self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))</span>
+
+        <span class="c1"># fill pi for all states with 1/n_actions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_actions</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_actions</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;T1&#39;</span><span class="p">:</span>
+            <span class="n">pi_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T1</span>
+        <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;T2&#39;</span><span class="p">:</span>
+            <span class="n">pi_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T2</span>
+        <span class="k">elif</span> <span class="n">task</span> <span class="o">==</span> <span class="s1">&#39;T3&#39;</span><span class="p">:</span>
+            <span class="n">pi_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_T3</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Given Task Policy does not exist&#39;</span><span class="p">)</span>
+
+        <span class="c1"># fill pi for all states given in the corresponding transition_dict</span>
+        <span class="c1"># with its probanilities for the individual actions</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="n">pi_dict</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="k">for</span> <span class="n">action</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_state_map</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">action</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span></div>
+
+
+
+
+<div class="viewcode-block" id="PolicyFromAgent"><a class="viewcode-back" href="../code.html#morl_policies.PolicyFromAgent">[docs]</a><span class="k">class</span> <span class="nc">PolicyFromAgent</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Derive a greedy policy from a trained agent.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">agent</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;gibbs&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PolicyFromAgent</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_agent</span> <span class="o">=</span> <span class="n">agent</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_actions</span><span class="p">))</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;gibbs&#39;</span><span class="p">:</span>
+                <span class="c1"># gibbs</span>
+                <span class="n">a_dist</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_learned_action_gibbs_distribution</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">a_dist</span>
+            <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;greedy&#39;</span><span class="p">:</span>
+                <span class="c1"># greedy</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_learned_action</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">a</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># default - normalized to one</span>
+                <span class="n">a_dist</span> <span class="o">=</span> <span class="n">agent</span><span class="o">.</span><span class="n">get_learned_action_distribution</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">a_dist</span></div>
+
+
+<div class="viewcode-block" id="PolicyGridworld"><a class="viewcode-back" href="../code.html#morl_policies.PolicyGridworld">[docs]</a><span class="k">class</span> <span class="nc">PolicyGridworld</span><span class="p">(</span><span class="n">Policy</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Optimal policy for the gridworld is to go diagonal from the upper left</span>
+<span class="sd">    to the lower right.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">,</span> <span class="n">policy</span><span class="o">=</span><span class="s1">&#39;DIAGONAL&#39;</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">PolicyGridworld</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="n">problem</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_actions</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">policy</span> <span class="o">==</span> <span class="s1">&#39;DIAGONAL&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">):</span>
+                <span class="c1"># TODO: this is a private function and should be refactored</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">_get_position</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">y</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">elif</span> <span class="n">policy</span> <span class="o">==</span> <span class="s1">&#39;DOWN&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">):</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">_get_position</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="c1"># TODO: check if this only works for square worlds or also in general!</span>
+                <span class="k">if</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">scene_x_dim</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+        <span class="k">elif</span> <span class="n">policy</span> <span class="o">==</span> <span class="s1">&#39;RIGHT&#39;</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">xrange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">n_states</span><span class="p">):</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">y</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">_get_position</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_problem</span><span class="o">.</span><span class="n">scene_x_dim</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_pi</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper"><div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../doc.html">Documentation overview</a><ul>
+  <li><a href="index.html">Module code</a><ul>
+  </ul></li>
+  </ul></li>
+</ul>
+</div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Dominik Meyer, Johannes Feldmaier, Simon Wölzmüller.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

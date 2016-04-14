@@ -1,11 +1,11 @@
-Classic RL Agents
+RL Agents
 =================
 
 .. automodule:: agents
    :members:
 
 
-Classic RL Problems
+RL Problems
 ===================
 
 .. automodule:: problems

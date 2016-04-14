@@ -55,7 +55,7 @@ source_suffix = '.rst'
 master_doc = 'doc'
 
 # General information about the project.
-project = u'Reinforcment Learning Framework'
+project = u'MORLBench'
 copyright = u'2016, Dominik Meyer, Johannes Feldmaier, Simon Wölzmüller'
 author = u'Dominik Meyer, Johannes Feldmaier, Simon Wölzmüller'
 

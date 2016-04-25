@@ -181,11 +181,13 @@ class SARSAMorlAgent(MorlAgent):
     def decide(self, t, state):
         if random.random() < self._epsilon:
             action = random.choice(np.where(self._Q[state, :] == max(self._Q[state, :]))[0])
-            #action = self._Q[state, :].argmax()
-            if my_debug: log.debug('  took greedy action %i' % (action))
+            # action = self._Q[state, :].argmax()
+            if my_debug:
+                log.debug('  took greedy action %i' % (action))
             return action
         action = random.randint(0, self._morl_problem.n_actions - 1)
-        if my_debug: log.debug('   took random action %i' % (action))
+        if my_debug:
+            log.debug('   took random action %i' % (action))
         return action
 
     def get_learned_action(self, state):
@@ -210,7 +212,7 @@ class SARSAMorlAgent(MorlAgent):
         resets the current agent! Be careful and save learned Q matrix first!
         """
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
-        self._last_action = random.randint(0,self._morl_problem.n_actions-1)
+        self._last_action = random.randint(0, self._morl_problem.n_actions-1)
 
     def save(self):
         self._Q_save.append(self._Q)
@@ -235,7 +237,8 @@ class SARSALambdaMorlAgent(SARSAMorlAgent):
         self._e_save = []
 
     def name(self):
-        return "SARSALambda_" + str(self._lmbda) + "e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._scalarization_weights.ravel().tolist().__str__()
+        return "SARSALambda_" + str(self._lmbda) + "e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" +\
+               self._scalarization_weights.ravel().tolist().__str__()
 
     def _learn(self, t, last_state, last_action, action, reward, state):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
@@ -250,7 +253,7 @@ class SARSALambdaMorlAgent(SARSAMorlAgent):
         resets the current agent! Be careful and save learned Q matrix and the eligibility traces first!
         """
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
-        self._last_action = random.randint(0,self._morl_problem.n_actions-1)
+        self._last_action = random.randint(0, self._morl_problem.n_actions-1)
         self._e = np.zeros_like(self._Q)
 
     def save(self):
@@ -261,11 +264,11 @@ class SARSALambdaMorlAgent(SARSAMorlAgent):
         tmp = np.zeros_like(self._Q)
         for i in self._Q_save:
             tmp += i
-        self._Q = np.divide(tmp,self._Q_save.__len__())
+        self._Q = np.divide(tmp, self._Q_save.__len__())
         tmp = np.zeros_like(self._Q)
         for i in self._e_save:
             tmp += i
-        self._e = np.divide(tmp,self._e_save.__len__())
+        self._e = np.divide(tmp, self._e_save.__len__())
 
 
 class QMorlAgent(MorlAgent):
@@ -306,7 +309,8 @@ class QMorlAgent(MorlAgent):
         self._Q_save = []
 
     def name(self):
-        return "scalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._scalarization_weights.ravel().tolist().__str__()
+        return "scalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" +\
+               self._scalarization_weights.ravel().tolist().__str__()
 
     def learn(self, t, last_state, action, reward, state):
         self._learn(0, last_state, action, reward, state)
@@ -321,21 +325,23 @@ class QMorlAgent(MorlAgent):
 
         # scalar_reward = np.dot(self._scalarization_weights.T, reward)
 
-        self._Q[last_state, action] += self._alpha * \
-                                  (reward + self._gamma * np.amax(self._Q[state, :], axis=0) - self._Q[
-                                      last_state, action])
+        self._Q[last_state, action] += self._alpha *\
+            (reward + self._gamma * np.amax(self._Q[state, :], axis=0) - self._Q[last_state, action])
 
-        if my_debug: log.debug(' Q: %s' % (str(self._Q[state, :, :])))
+        if my_debug:
+            log.debug(' Q: %s' % (str(self._Q[state, :, :])))
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
             weighted_q = np.dot(self._Q[state, :], self._scalarization_weights)
             action = random.choice(np.where(weighted_q == max(weighted_q))[0])
 
-            if my_debug: log.debug('  took greedy action %i' % action)
+            if my_debug:
+                log.debug('  took greedy action %i' % action)
             return action
         action = random.randint(0, self._morl_problem.n_actions - 1)
-        if my_debug: log.debug('   took random action %i' % action)
+        if my_debug:
+            log.debug('   took random action %i' % action)
         return action
 
     def get_learned_action(self, state):
@@ -374,8 +380,7 @@ class QMorlAgent(MorlAgent):
         tmp = np.zeros(self._Q.shape)
         for i in self._Q_save:
             tmp += i
-        self._Q = np.divide(tmp,self._Q_save.__len__())
-
+        self._Q = np.divide(tmp, self._Q_save.__len__())
 
 
 class PreScalarizedQMorlAgent(MorlAgent):
@@ -407,13 +412,14 @@ class PreScalarizedQMorlAgent(MorlAgent):
 
         self._Q = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
         self._Q_save = []
-        self._last_action = random.randint(0,problem.n_actions-1)
+        self._last_action = random.randint(0, problem.n_actions-1)
 
     def name(self):
-        return "preScalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._scalarization_weights.ravel().tolist().__str__()
+        return "preScalQ_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" +\
+               self._scalarization_weights.ravel().tolist().__str__()
 
     def learn(self, t, last_state, action, reward, state):
-        #self._learn(0, last_state, self._last_action, reward, state)
+        # self._learn(0, last_state, self._last_action, reward, state)
         self._learn(0, last_state, action, reward, state)
         # Update last action after learning
         self._last_action = action
@@ -430,7 +436,8 @@ class PreScalarizedQMorlAgent(MorlAgent):
                                   (scalar_reward + self._gamma * np.amax(self._Q[state, :]) - self._Q[
                                       last_state, action])
 
-        if my_debug: log.debug(' Q: %s' % (str(self._Q[state, :])))
+        if my_debug:
+            log.debug(' Q: %s' % (str(self._Q[state, :])))
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
@@ -473,7 +480,7 @@ class PreScalarizedQMorlAgent(MorlAgent):
         tmp = np.zeros(self._Q.shape)
         for i in self._Q_save:
             tmp += i
-        self._Q = np.divide(tmp,self._Q_save.__len__())
+        self._Q = np.divide(tmp, self._Q_save.__len__())
 
 
 class FixedPolicyAgent(MorlAgent):
@@ -551,7 +558,6 @@ class NFQAgent(MorlAgent):
                                   [0, self._morl_problem.n_actions]],
                                  [20, 20, len(self._scalarization_weights)])
 
-
     def learn(self, t, action, reward, state):
         self._learn(0, self._last_state, self._last_action,
                     self._last_reward, action, reward, state)
@@ -564,9 +570,8 @@ class NFQAgent(MorlAgent):
         self._transistion_history.append([last_state, action, state])
 
         # Generate training set
-        #self._train_history.append([last_state, last_action])
+        # self._train_history.append([last_state, last_action])
         self._train_history.append(np.hstack([np.array(self._morl_problem._get_position(last_state)), last_action]))
-
 
         Q_vals = []
         for i in xrange(self._morl_problem.n_actions):
@@ -574,11 +579,8 @@ class NFQAgent(MorlAgent):
             tmp = np.hstack([np.array(self._morl_problem._get_position(state)), i])
             Q_vals.append(self._net.sim(np.array([tmp])))
 
-
-
         tar_tmp = (reward + self._gamma * np.amax(Q_vals, axis=0))
         self._goal_hist.append(tar_tmp)
-
 
         # cost function (minimum time controller)
         # costs = 0.01
@@ -600,8 +602,8 @@ class NFQAgent(MorlAgent):
 
         inp = np.array(self._train_history)
         tar = np.array(self._goal_hist)
-        #tar = tar.reshape(len(tar), 1)
-        tar = tar.reshape(len(tar), 2) # TODO: fix me for arbitrary reward dimensions
+        # tar = tar.reshape(len(tar), 1)
+        tar = tar.reshape(len(tar), 2)  # TODO: fix me for arbitrary reward dimensions
 
         # Train network
         # error = self._net.train.train_rprop(input, target, epochs=500, show=100, goal=0.02)
@@ -611,7 +613,6 @@ class NFQAgent(MorlAgent):
         if self._morl_problem.terminal_state:
             self._train_history = []  # input history for NN (s,a)
             self._goal_hist = []  # goal history
-
 
     def decide(self, t, state):
         # epsilon greedy
@@ -629,6 +630,104 @@ class NFQAgent(MorlAgent):
         else:
             action = random.randint(0, self._morl_problem.n_actions - 1)
 
-        if my_debug: log.debug('Decided for action %i in state %i.', action, state)
+        if my_debug:
+            log.debug('Decided for action %i in state %i.', action, state)
 
         return action
+
+
+class MORLChebyshevAgent(MorlAgent):
+    """
+    This class is an Agent that uses chebyshev scalarization method in Q-iteration
+    Contains a Q-Value table with additional parameter o <-- (Objective)
+    """
+    def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, **kwargs):
+        """
+        initializes MORL Agent
+        :param morl_problem: a Problem inheriting MORLProblem Class
+        :param scalarization_weights: vector for weighted sum of q values, weight on important objectives
+        :param alpha: learning rate
+        :param epsilon: for epsilon greedy action selection
+        :param tau: small constant addition for z point, that is used as reference and optimized during learning
+        :param kwargs: some additional arguments
+        :return:
+        """
+        super(MORLChebyshevAgent, self).__init__(morl_problem, **kwargs)
+        # create Q-value table
+        self._Q = np.empty((self._morl_problem.reward_dimension, self._morl_problem.n_states,
+                            self._morl_problem.n_actions))
+
+        # parameter for Q-learning algorithm
+        self._alpha = alpha
+        # parameter for greedy strategy
+        self._epsilon = epsilon
+
+        # small constant training addition value for the z point
+        self._tau = tau
+        # create reference point for each objective used for chebyshev scalarization adapted on each step
+        self._z = np.zeros(self._morl_problem.reward_dimension)
+
+        # weight vector
+        self._w = scalarization_weights
+        self._last_action = random.randint(0, morl_problem.n_actions-1)
+
+    def decide(self, t, state):
+        """
+        This function decides using a epsilon greedy algorithm and chebishev scalarizing function.
+
+        :param state: the state the agent is at the moment
+        :return: action the agent chose
+        """
+        # epsilon greedy action selection:
+        if random.random() < self._epsilon:
+            # state -> quality list
+            sq_list = []
+            # explore all actions
+            for acts in xrange(self._morl_problem.n_actions):
+                # create objective vector
+                obj = [x for x in self._Q[:, state, acts]]
+                # scalarize the Q-values using chebychev metric
+                sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
+                # store that value into the list
+                sq_list.append(sq)
+            # chosen action is the one with greatest sq value
+            action = sq_list.index(max(sq_list))
+
+        else:
+            # otherwise choose randomly over action space
+            action = random.randint(0, self._morl_problem.n_actions - 1)
+
+        if my_debug:
+            # log the decided action
+            log.debug('Decided for action %i in state %i.', action, state)
+
+        return action
+
+    def learn(self, t, last_state, action, reward, state):
+        # access private function
+        self._learn(0, last_state, action, reward, state)
+        #  store last action after learning
+        self._last_action = action
+
+    def _learn(self, t, last_state, action, reward, state):
+        """
+        learn like they do in Van Moeffart/Drugan/Nowé paper about scalarization
+        :return:
+        """
+        # explore best action to chose
+        new_state = self.decide(0, state)
+        # update rule for every objective
+        for objective in range(self._morl_problem.reward_dimension):
+            self._Q[objective, last_state, action] += self._alpha * \
+                (reward[objective] + self._gamma * new_state - self._Q[objective, last_state, action])
+            # store z value
+            self._z[objective] = self._Q[objective, :, :].max() + self._tau
+
+        if my_debug:
+            log.debug(' Q: %s' % (str(self._Q[state, :])))
+
+    def get_learned_action(self, state):
+        return self.decide(0, state)
+
+    def name(self):
+        return "chebishev_Q_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()

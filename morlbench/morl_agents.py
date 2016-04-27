@@ -654,9 +654,8 @@ class MORLChebyshevAgent(MorlAgent):
         """
         super(MORLChebyshevAgent, self).__init__(morl_problem, **kwargs)
         # create Q-value table
-        self._Q = np.empty((self._morl_problem.reward_dimension, self._morl_problem.n_states,
-                            self._morl_problem.n_actions))
-
+        self.q_shape = (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension)
+        self._Q = np.zeros(self.q_shape)
         # parameter for Q-learning algorithm
         self._alpha = alpha
         # parameter for greedy strategy
@@ -678,6 +677,7 @@ class MORLChebyshevAgent(MorlAgent):
         :param state: the state the agent is at the moment
         :return: action the agent chose
         """
+
         # epsilon greedy action selection:
         if random.random() < self._epsilon:
             # state -> quality list
@@ -685,7 +685,7 @@ class MORLChebyshevAgent(MorlAgent):
             # explore all actions
             for acts in xrange(self._morl_problem.n_actions):
                 # create objective vector
-                obj = [x for x in self._Q[:, state, acts]]
+                obj = [x for x in self._Q[state, acts, :]]
                 # scalarize the Q-values using chebychev metric
                 sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
                 # store that value into the list
@@ -705,7 +705,7 @@ class MORLChebyshevAgent(MorlAgent):
 
     def learn(self, t, last_state, action, reward, state):
         # access private function
-        self._learn(0, last_state, action, reward, state)
+        self._learn(t, last_state, action, reward, state)
         #  store last action after learning
         self._last_action = action
 
@@ -715,19 +715,42 @@ class MORLChebyshevAgent(MorlAgent):
         :return:
         """
         # explore best action to chose
-        new_state = self.decide(0, state)
+        new_state = self.decide(t, state)
         # update rule for every objective
         for objective in range(self._morl_problem.reward_dimension):
-            self._Q[objective, last_state, action] += self._alpha * \
-                (reward[objective] + self._gamma * new_state - self._Q[objective, last_state, action])
+            # advanced bellman equation
+            self._Q[last_state, action, objective] += self._alpha * \
+                (reward[objective] + self._gamma * self._Q[state, new_state, objective] -
+                 self._Q[last_state, action, objective])
             # store z value
-            self._z[objective] = self._Q[objective, :, :].max() + self._tau
+            self._z[objective] = self._Q[:, :, objective].max() + self._tau
 
         if my_debug:
             log.debug(' Q: %s' % (str(self._Q[state, :])))
 
     def get_learned_action(self, state):
-        return self.decide(0, state)
+        """
+        uses epsilon greedy and weighted scalarisation for action selection
+        :param state: state the agent is
+        :return: action to do next
+        """
+        # get action out of max q value of n_objective-dimensional matrix
+        if random.random() < self._epsilon:
+            return np.dot(self._Q[state, :], self._w).argmax()
+        else:
+            return random.randint(0, self._morl_problem.n_actions-1)
+
+    def get_learned_action_gibbs_distribution(self, state):
+        """
+        uses gibbs distribution to decide which action to do next
+        :param state: given state the agent is atm
+        :return: an array of actions to do next, with probability
+        """
+        tau = 0.6
+        tmp = np.exp(np.dot(self._Q[state, :], self._w) / tau)
+        tsum = tmp.sum()
+        dist = tmp / tsum
+        return dist.ravel()
 
     def name(self):
         return "chebishev_Q_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()

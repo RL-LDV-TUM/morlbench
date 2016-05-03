@@ -11,6 +11,7 @@ from helpers import virtualFunction, SaveableObject
 import numpy as np
 import random
 import logging as log
+from hv import HyperVolume
 
 try:
     # import neurolab only if it exists in case it is not used and not installed
@@ -640,6 +641,7 @@ class MORLChebyshevAgent(MorlAgent):
     """
     This class is an Agent that uses chebyshev scalarization method in Q-iteration
     Contains a Q-Value table with additional parameter o <-- (Objective)
+    @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
     def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, **kwargs):
         """
@@ -673,34 +675,20 @@ class MORLChebyshevAgent(MorlAgent):
     def decide(self, t, state):
         """
         This function decides using a epsilon greedy algorithm and chebishev scalarizing function.
-
         :param state: the state the agent is at the moment
+        :param t: iteration
         :return: action the agent chose
         """
-
         # epsilon greedy action selection:
         if random.random() < self._epsilon:
-            # state -> quality list
-            sq_list = []
-            # explore all actions
-            for acts in xrange(self._morl_problem.n_actions):
-                # create objective vector
-                obj = [x for x in self._Q[state, acts, :]]
-                # scalarize the Q-values using chebychev metric
-                sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
-                # store that value into the list
-                sq_list.append(sq)
-            # chosen action is the one with greatest sq value
-            action = sq_list.index(max(sq_list))
-
+            # greedy action selection:
+            action = self._greedy_sel(state)
         else:
             # otherwise choose randomly over action space
             action = random.randint(0, self._morl_problem.n_actions - 1)
-
         if my_debug:
             # log the decided action
             log.debug('Decided for action %i in state %i.', action, state)
-
         return action
 
     def learn(self, t, last_state, action, reward, state):
@@ -714,19 +702,15 @@ class MORLChebyshevAgent(MorlAgent):
         learn like they do in Van Moeffart/Drugan/Nowé paper about scalarization
         :return:
         """
-        # explore best action to chose
-        new_state = self.decide(t, state)
+        new_action = self._greedy_sel(state)
         # update rule for every objective
         for objective in range(self._morl_problem.reward_dimension):
             # advanced bellman equation
             self._Q[last_state, action, objective] += self._alpha * \
-                (reward[objective] + self._gamma * self._Q[state, new_state, objective] -
+                (reward[objective] + self._gamma * self._Q[state, new_action, objective] -
                  self._Q[last_state, action, objective])
             # store z value
             self._z[objective] = self._Q[:, :, objective].max() + self._tau
-
-        if my_debug:
-            log.debug(' Q: %s' % (str(self._Q[state, :])))
 
     def get_learned_action(self, state):
         """
@@ -736,7 +720,11 @@ class MORLChebyshevAgent(MorlAgent):
         """
         # get action out of max q value of n_objective-dimensional matrix
         if random.random() < self._epsilon:
-            return np.dot(self._Q[state, :], self._w).argmax()
+            # dot product with weights
+            weighted_q = np.dot(self._Q[state, :], self._w)
+            # the first of maximum list (if more are available)
+            action = random.choice(np.where(weighted_q == max(weighted_q))[0])
+            return action
         else:
             return random.randint(0, self._morl_problem.n_actions-1)
 
@@ -754,3 +742,114 @@ class MORLChebyshevAgent(MorlAgent):
 
     def name(self):
         return "chebishev_Q_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()
+
+    def _greedy_sel(self, state):
+        # state -> quality list
+        sq_list = []
+        # explore all actions
+        for acts in xrange(self._morl_problem.n_actions):
+            # create value vector for objectives
+            obj = [x for x in self._Q[state, acts, :]]
+            # scalarize the Q-values using chebyshev metric
+            sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
+            # store that value into the list
+            sq_list.append(sq)
+        # chosen action is the one with greatest sq value
+        new_action = random.choice(np.where(sq_list == max(sq_list))[0])
+        return new_action
+
+
+class MORLHVBAgent(MorlAgent):
+    """
+    this class is implemenation of hypervolume based MORL agent,
+    the reference point (ref) is used for quality evaluation of
+    state-action pairs depending on problem set.
+    @author: Simon Wölzmüller <ga35voz@mytum.de>
+    """
+    def __init__(self, morl_problem, alpha, epsilon, ref,  **kwargs):
+        """
+        initializes agent with params used for Q-learning and greedy decision
+        :param morl_problem:
+        :param alpha: learning rate for q learning bellman equation
+        :param: epsilon: probability of epsilon greedy algorithm
+        :param: ref: reference point for hypervolume calculation
+        :return:
+        """
+        super(MORLHVBAgent, self).__init__(morl_problem, **kwargs)
+        # create Q-value table
+        self.q_shape = (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension)
+        self._Q = np.zeros(self.q_shape)
+        # parameter for Q-learning algorithm
+        self._alpha = alpha
+        # parameter for greedy strategy
+        self._epsilon = epsilon
+        # hv calculator
+        self.hv_calculator = HyperVolume(ref)
+        # list of recent q values in learning
+        self.l = []
+        # init last action
+        self._last_action = random.randint(0, morl_problem.n_actions-1)
+
+    def decide(self, state):
+        # epsilon greedy hypervolume based action selection:
+        if random.random() < self._epsilon:
+            # greedy action selection:
+            action = self._greedy_sel(state)
+        else:
+            # otherwise choose randomly over action space
+            action = random.randint(0, self._morl_problem.n_actions - 1)
+
+        if my_debug:
+            # log the decided action
+            log.debug('Decided for action %i in state %i.', action, state)
+
+        return action
+
+    def learn(self, t, last_state, action, reward, state):
+        """
+        this function is an adaption of the hvb q learning algorithm from van moeffart/drugan/nowé
+        :param t: count of iterations
+        :param last_state: last state before transition to this state
+        :param action: action to chose after this state found by HVBgreedy
+        :param reward: reward received from this action for every objective
+        :param state: state we're currently being in
+        :return:
+        """
+        # access private function
+        self._learn(t, last_state, action, reward, state)
+        #  store last action after learning
+        self._last_action = action
+
+    def _learn(self, t, last_state, action, reward, state):
+        # store Qvalue for every objective in state->action transition
+        o = self._Q[state, action, :]
+        self.l.append(o)
+        # greedy action selection
+        new_action = self._greedy_sel(state)
+        # update q values
+        for objective in range(self._morl_problem.reward_dimension):
+            # advanced bellman equation
+            self._Q[last_state, action, objective] += self._alpha * \
+                (reward[objective] + self._gamma * self._Q[state, new_action, objective] -
+                 self._Q[last_state, action, objective])
+
+    def _greedy_sel(self, state):
+        volumes = []
+        for act in xrange(self._morl_problem.n_actions):
+            # create value vector concerning each objective
+            obj = self._Q[state, act, :]
+            # store l list in local copy:
+            l_set = self.l
+            l_set.append(obj)
+            # compute hypervolume with objective vector and self._l
+            front=get_front(l_set)
+            vol = self.hv_calculator.compute()
+            # append to other volumes
+            volumes.append(vol)
+        # best action has biggest hypervolume
+        new_action = random.choice(np.where(volumes == max(volumes))[0])
+        return new_action
+
+    def name(self):
+        return "HVB_Q" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()
+

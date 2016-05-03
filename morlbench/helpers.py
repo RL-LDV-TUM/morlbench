@@ -98,3 +98,75 @@ class SaveableObject(object):
         state = pickle.load(f)
         f.close()
         self.__dict__.update(state)
+
+
+class HyperVolumeCalculator:
+    """
+    this class computes hypervolumes, it is an adaption on the paper: "An improved dimension sweep algorithm
+    for the hypervolume indicator (Fonseca,Paquete,Ibanez)
+    """
+    def __init__(self, ref_point, point_set):
+        """
+        initializes calculator
+        :param ref_point: reference point which the volume is referred to
+        :return: value of hypervolume
+        """
+        self.ref_point = ref_point
+        self.point_set = self.extract_front(point_set)
+
+    def extract_front(self, given_points):
+        """
+        searches pareto front of given point set
+        :param given_points: all points, array of arrays(d-dimensional)
+        :return: array of arrays(d-dimensional) pareto points
+        """
+        dimensions = given_points.shape[1]
+        # no sense for 1 dimension
+        if dimensions == 1:
+            return 0
+        # special algorithm for 2 dimensions
+        if dimensions == 2:
+            front = self.pareto_front_2_dim(given_points)
+        # for all other dimensions
+        if dimensions > 2:
+            front = self.pareto_front_d_dim(given_points)
+        return front
+
+    def pareto_front_2_dim(self, points):
+        """
+        this function extracts pareto front from 2 dim data set
+        recipe adapted on Jamie Bull (MIT)
+        :param points: 2d - data - set
+        :return: pareto front
+        """
+        # sort first dimension
+        points = points[points[:, 0].argsort()][::-1]
+        # add the first dimension(yet sorted)
+        pareto_front = []
+        pareto_front.append([points[0][0], points[0][1]])
+        # test other dimension in pairs
+        for pair in points[1:]:
+            # append point to pareto front if it dominates other points
+            if pair[1] >= pareto_front[-1][1]:
+                pareto_front.append([pair[0], pair[1]])
+        return pareto_front[:]
+
+    def pareto_front_d_dim(self, points):
+        """
+        this function extracts pareto front from d dimensional data set
+        recipe adapted on Jamie Bull (MIT)
+        :param points: d dimensional data points which should be analysed
+        :return: pareto front of the input point set
+        """
+        # sort first dimension:
+        points = points[points[:, 0].argsort()][::-1]
+        # add first dimension to pareto front
+        pareto_front = points[0:1, :]
+        # test next dimension
+        for dimension in points[1:, :]:
+            if sum([dimension[x] > pareto_front[-1][x] for x in xrange(len(dimension))]) >= len(dimension):
+                pareto_front = np.concatenate((pareto_front, [dimension]))
+        return pareto_front
+
+    #TODO: calculate HV!!!
+

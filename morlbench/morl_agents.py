@@ -11,8 +11,7 @@ from helpers import virtualFunction, SaveableObject
 import numpy as np
 import random
 import logging as log
-from hv import HyperVolume
-
+from helpers import HyperVolumeCalculator
 try:
     # import neurolab only if it exists in case it is not used and not installed
     # such that the other agents still work
@@ -22,6 +21,7 @@ except ImportError, e:
 
 # log.basicConfig(level=if my_debug: log.debug)
 my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
+
 
 class MorlAgent(SaveableObject):
     """
@@ -643,7 +643,7 @@ class MORLChebyshevAgent(MorlAgent):
     Contains a Q-Value table with additional parameter o <-- (Objective)
     @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
-    def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, **kwargs):
+    def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, ref_point, **kwargs):
         """
         initializes MORL Agent
         :param morl_problem: a Problem inheriting MORLProblem Class
@@ -670,7 +670,12 @@ class MORLChebyshevAgent(MorlAgent):
 
         # weight vector
         self._w = scalarization_weights
+        # last action is stored
         self._last_action = random.randint(0, morl_problem.n_actions-1)
+        # hypervolume calculator
+        self.hv_calculator = HyperVolumeCalculator(ref_point)
+        # stores q values
+        self.l =[]
 
     def decide(self, t, state):
         """
@@ -756,6 +761,9 @@ class MORLChebyshevAgent(MorlAgent):
             sq_list.append(sq)
         # chosen action is the one with greatest sq value
         new_action = random.choice(np.where(sq_list == max(sq_list))[0])
+        # store hv
+        self.l.append([x for x in self._Q[state, max(enumerate(sq_list), key=lambda i: i[1])[0], :]])
+        self.max_vol = self.hv_calculator.compute_hv(self.l)
         return new_action
 
 
@@ -779,18 +787,22 @@ class MORLHVBAgent(MorlAgent):
         # create Q-value table
         self.q_shape = (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension)
         self._Q = np.zeros(self.q_shape)
-        # parameter for Q-learning algorithm
+        # self._Q = np.random.randint(0, 100, self.q_shape)
+
+        # learning rate for Q-learning algorithm
         self._alpha = alpha
-        # parameter for greedy strategy
+        # parameter for epsilon greedy strategy
         self._epsilon = epsilon
         # hv calculator
-        self.hv_calculator = HyperVolume(ref)
-        # list of recent q values in learning
-        self.l = []
+        self.hv_calculator = HyperVolumeCalculator(ref)
         # init last action
         self._last_action = random.randint(0, morl_problem.n_actions-1)
+        # storage for max volumes
+        self.max_volumes = []
+        # storage for q values
+        self.l = []
 
-    def decide(self, state):
+    def decide(self, t, state):
         # epsilon greedy hypervolume based action selection:
         if random.random() < self._epsilon:
             # greedy action selection:
@@ -821,35 +833,57 @@ class MORLHVBAgent(MorlAgent):
         self._last_action = action
 
     def _learn(self, t, last_state, action, reward, state):
-        # store Qvalue for every objective in state->action transition
-        o = self._Q[state, action, :]
-        self.l.append(o)
-        # greedy action selection
-        new_action = self._greedy_sel(state)
+        # append new q values to list
+        self.l.append(self._Q[state, action, :])
         # update q values
         for objective in range(self._morl_problem.reward_dimension):
             # advanced bellman equation
             self._Q[last_state, action, objective] += self._alpha * \
-                (reward[objective] + self._gamma * self._Q[state, new_action, objective] -
+                (reward[objective] + self._gamma * self._Q[state, self._greedy_sel(state), objective] -
                  self._Q[last_state, action, objective])
 
     def _greedy_sel(self, state):
         volumes = []
         for act in xrange(self._morl_problem.n_actions):
-            # create value vector concerning each objective
-            obj = self._Q[state, act, :]
-            # store l list in local copy:
-            l_set = self.l
-            l_set.append(obj)
-            # compute hypervolume with objective vector and self._l
-            front=get_front(l_set)
-            vol = self.hv_calculator.compute()
+            # store l list in local copy TODO: maybe there is a better array type!
+            l_set = []
+            # append list on local copy
+            if len(self.l):
+                l_set.append(self.l)
+            # append new opjective vector
+            l_set.append(self._Q[state, act, :])
             # append to other volumes
-            volumes.append(vol)
+            volumes.append(self.hv_calculator.compute_hv(l_set))
         # best action has biggest hypervolume
-        new_action = random.choice(np.where(volumes == max(volumes))[0])
+        new_action = volumes.index(max(volumes))
+        self.max_volumes.append(max(volumes))
         return new_action
 
     def name(self):
         return "HVB_Q" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()
+
+    def get_learned_action(self, state):
+        """
+        uses epsilon greedy and hvb action selection
+        :param state: state the agent is
+        :return: action to do next
+        """
+        # get action out of max q value of n_objective-dimensional matrix
+        if random.random() < self._epsilon:
+
+            return self._greedy_sel(state)
+        else:
+            return random.randint(0, self._morl_problem.n_actions-1)
+
+    def get_learned_action_gibbs_distribution(self, state):
+        """
+        uses gibbs distribution to decide which action to do next
+        :param state: given state the agent is atm
+        :return: an array of actions to do next, with probability
+        """
+        tau = 0.6
+        tmp = np.exp(np.dot(self._Q[state, :], self._w) / tau)
+        tsum = tmp.sum()
+        dist = tmp / tsum
+        return dist.ravel()
 

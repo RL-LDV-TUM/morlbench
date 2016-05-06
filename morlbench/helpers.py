@@ -14,8 +14,8 @@ functions that didn't fit in any other place.
 import cPickle as pickle
 from os.path import isfile
 import numpy as np
-
-
+from inspyred.ec.analysis import hypervolume
+import operator
 def virtualFunction():
     raise RuntimeError('Virtual function not implemented.')
 
@@ -102,17 +102,18 @@ class SaveableObject(object):
 
 class HyperVolumeCalculator:
     """
-    this class computes hypervolumes, it is an adaption on the paper: "An improved dimension sweep algorithm
-    for the hypervolume indicator (Fonseca,Paquete,Ibanez)
+    this class computes hypervolumes
+    @author Simon Wölzmüller <ga35voz@mytum.de>
+
     """
-    def __init__(self, ref_point, point_set):
+    def __init__(self, ref_point):
         """
         initializes calculator
         :param ref_point: reference point which the volume is referred to
         :return: value of hypervolume
         """
         self.ref_point = ref_point
-        self.point_set = self.extract_front(point_set)
+        self.list = []
 
     def extract_front(self, given_points):
         """
@@ -120,53 +121,82 @@ class HyperVolumeCalculator:
         :param given_points: all points, array of arrays(d-dimensional)
         :return: array of arrays(d-dimensional) pareto points
         """
-        dimensions = given_points.shape[1]
+        dimensions = len(self.ref_point)
         # no sense for 1 dimension
         if dimensions == 1:
             return 0
         # special algorithm for 2 dimensions
         if dimensions == 2:
             front = self.pareto_front_2_dim(given_points)
+            return front
         # for all other dimensions
         if dimensions > 2:
             front = self.pareto_front_d_dim(given_points)
-        return front
+            return front
 
     def pareto_front_2_dim(self, points):
         """
         this function extracts pareto front from 2 dim data set
-        recipe adapted on Jamie Bull (MIT)
         :param points: 2d - data - set
         :return: pareto front
         """
         # sort first dimension
-        points = points[points[:, 0].argsort()][::-1]
+        points = np.vstack((points))
+        points = sorted(points, key=lambda x: x[0])
+        points = points[::-1]
         # add the first dimension(yet sorted)
         pareto_front = []
-        pareto_front.append([points[0][0], points[0][1]])
+        pareto_front.append(points[0])
         # test other dimension in pairs
         for pair in points[1:]:
             # append point to pareto front if it dominates other points
             if pair[1] >= pareto_front[-1][1]:
-                pareto_front.append([pair[0], pair[1]])
-        return pareto_front[:]
+                pareto_front.append(pair)
+        return pareto_front
 
     def pareto_front_d_dim(self, points):
         """
         this function extracts pareto front from d dimensional data set
-        recipe adapted on Jamie Bull (MIT)
         :param points: d dimensional data points which should be analysed
         :return: pareto front of the input point set
         """
         # sort first dimension:
-        points = points[points[:, 0].argsort()][::-1]
-        # add first dimension to pareto front
-        pareto_front = points[0:1, :]
-        # test next dimension
-        for dimension in points[1:, :]:
-            if sum([dimension[x] > pareto_front[-1][x] for x in xrange(len(dimension))]) >= len(dimension):
-                pareto_front = np.concatenate((pareto_front, [dimension]))
+        points = sorted(points, key=operator.itemgetter(0))
+        # add first point to pareto front
+        pareto_front = points[0:1][:]
+        # test next point
+        for point in points[1:][:]:
+            if sum([point[x] >= pareto_front[-1][x] for x in xrange(len(point))]) == len(point):
+                pareto_front = np.concatenate((pareto_front, [point]))
         return pareto_front
 
-    #TODO: calculate HV!!!
+    def compute_hv(self, point_set):
+        """
+        computes hypervolume, before it searches pareto front and selects points that are dominating refpoint
+        :param point_set:
+        :return:
+        """
+
+        def dominates(point, other):
+            for i in xrange(len(point)):
+                if point[i] > other[i]:
+                    return False
+            return True
+
+        # reference point
+        reference_point = self.ref_point
+        # rel point
+        relevant_points = self.extract_front(point_set)
+        if not relevant_points:
+            return 0.0
+
+        if reference_point:
+            for point in relevant_points:
+                # only consider points that dominate the reference point
+                if dominates(point, reference_point):
+                    relevant_points.append(point)
+
+        # compute the hypervolume
+        hyper_volume = hypervolume(relevant_points, self.ref_point)
+        return hyper_volume
 

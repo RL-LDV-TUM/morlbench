@@ -6,12 +6,11 @@ Created on Nov 19, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 """
 
-from helpers import virtualFunction, SaveableObject
+from helpers import virtualFunction, SaveableObject, HyperVolumeCalculator
 
 import numpy as np
 import random
 import logging as log
-from helpers import HyperVolumeCalculator
 try:
     # import neurolab only if it exists in case it is not used and not installed
     # such that the other agents still work
@@ -771,14 +770,14 @@ class MORLHVBAgent(MorlAgent):
     """
     this class is implemenation of hypervolume based MORL agent,
     the reference point (ref) is used for quality evaluation of
-    state-action pairs depending on problem set.
+    state-action lists depending on problem set.
     @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
-    def __init__(self, morl_problem, alpha, epsilon, ref,  **kwargs):
+    def __init__(self, morl_problem, alpha, epsilon, ref, scal_weights,  **kwargs):
         """
         initializes agent with params used for Q-learning and greedy decision
         :param morl_problem:
-        :param alpha: learning rate for q learning bellman equation
+        :param alpha: learning rate for q learning
         :param: epsilon: probability of epsilon greedy algorithm
         :param: ref: reference point for hypervolume calculation
         :return:
@@ -800,7 +799,9 @@ class MORLHVBAgent(MorlAgent):
         # storage for max volumes
         self.max_volumes = []
         # storage for q values
-        self.l = []
+        self._l = []
+        # weights for objectives
+        self._w = scal_weights
 
     def decide(self, t, state):
         # epsilon greedy hypervolume based action selection:
@@ -834,22 +835,29 @@ class MORLHVBAgent(MorlAgent):
 
     def _learn(self, t, last_state, action, reward, state):
         # append new q values to list
-        self.l.append(self._Q[state, action, :])
+        np.append(self._l, self._Q[state, action, :])
+        self._l = self.hv_calculator.extract_front(self._l)
+        new_action = self._greedy_sel(state)
         # update q values
         for objective in range(self._morl_problem.reward_dimension):
             # advanced bellman equation
             self._Q[last_state, action, objective] += self._alpha * \
-                (reward[objective] + self._gamma * self._Q[state, self._greedy_sel(state), objective] -
+                (reward[objective] + self._gamma * self._Q[state, new_action, objective] -
                  self._Q[last_state, action, objective])
 
     def _greedy_sel(self, state):
+        """
+        action selection strategy based on hypervolume indicator
+        :param state:
+        :return:
+        """
         volumes = []
         for act in xrange(self._morl_problem.n_actions):
-            # store l list in local copy TODO: maybe there is a better array type!
+            # store l list in local copy
             l_set = []
             # append list on local copy
-            if len(self.l):
-                l_set.append(self.l)
+            if len(self._l):
+                l_set.append(self._l)
             # append new opjective vector
             l_set.append(self._Q[state, act, :])
             # append to other volumes
@@ -860,7 +868,22 @@ class MORLHVBAgent(MorlAgent):
         return new_action
 
     def name(self):
-        return "HVB_Q" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()
+        return "HVB_Q" + str(self._epsilon) + "a" + str(self._alpha)
+
+    def get_learned_action_distribution(self, state):
+        """
+        scalarized greedy action selection
+        :param state: state we're being in
+        :return:
+        """
+        if random.random() < self._epsilon:
+            # dot product with weights
+            weighted_q = np.dot(self._Q[state, :], self._w)
+            # the first of maximum list (if more are available)
+            action = random.choice(np.where(weighted_q == max(weighted_q))[0])
+            return action
+        else:
+            return random.randint(0, self._morl_problem.n_actions-1)
 
     def get_learned_action(self, state):
         """
@@ -870,7 +893,6 @@ class MORLHVBAgent(MorlAgent):
         """
         # get action out of max q value of n_objective-dimensional matrix
         if random.random() < self._epsilon:
-
             return self._greedy_sel(state)
         else:
             return random.randint(0, self._morl_problem.n_actions-1)
@@ -887,3 +909,12 @@ class MORLHVBAgent(MorlAgent):
         dist = tmp / tsum
         return dist.ravel()
 
+
+class DynMultiCritAverageRewardAgent(MorlAgent):
+    def __init__(self):
+        pass
+    def decide(self):
+        pass
+
+    def _learn(self, state, action):
+        pass

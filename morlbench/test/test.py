@@ -16,7 +16,7 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
-from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent
+from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent, DynMultiCritAverageRewardAgent
 from morlbench.morl_problems import MORLProblem, Deepsea, MORLGridworld
 from morlbench.experiment_helpers import morl_interact_multiple
 from morlbench.helpers import HyperVolumeCalculator
@@ -25,6 +25,7 @@ from morlbench.helpers import HyperVolumeCalculator
 class TestMORLChebishevAgent(unittest2.TestCase):
 
     def setUp(self):
+
         self.problem = MORLGridworld()
         self.scalarization_weights = np.zeros(self.problem.reward_dimension)
         self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],
@@ -33,12 +34,12 @@ class TestMORLChebishevAgent(unittest2.TestCase):
         self.agent = MORLChebyshevAgent(self.problem, self.scalarization_weights, alpha=0.3, epsilon=0.4, tau=self.tau)
         self.interactions = 100
 
-'''
+
 class TestLearning(TestMORLChebishevAgent):
 
     def runTest(self):
-        # self.runInteractions()
-        # self.runSelection()
+        self.runInteractions()
+        self.runSelection()
         pass
 
     def runSelection(self):
@@ -50,15 +51,13 @@ class TestLearning(TestMORLChebishevAgent):
                                                         max_episode_length=150)
         print("TEST: interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " + str(states[:]) + '\n')
 
-'''
-
 
 class TestMORLHVBAgent(unittest2.TestCase):
 
     def setUp(self):
-        self.problem = Deepsea()
-        self.agent = MORLHVBAgent(self.problem, alpha=0.5, epsilon=0.6, ref=[-25.0, -5.0])
-        self.interactions = 50
+        self.problem = MORLGridworld()
+        self.agent = MORLHVBAgent(self.problem, alpha=0.6, epsilon=0.6, ref=[-2.0, -2.0, -2.0], scal_weights=[0.5, 0.5])
+        self.interactions = 200
 
 
 class TestLearning(TestMORLHVBAgent):
@@ -76,11 +75,12 @@ class TestLearning(TestMORLHVBAgent):
     def runInteractions(self):
         payouts, moves, states = morl_interact_multiple(self.agent, self.problem, self.interactions,
                                                         max_episode_length=150)
-        print("TEST(HVB): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " + str(states[:]) + '\n')
+        print("TEST(HVB): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
+              str(states[:]) + '\n')
 
     def show_stats(self):
         a_list = self.agent.max_volumes
-        solution = 1
+        solution = len(a_list)/self.interactions
         u = []
         if len(a_list) % solution:
             for i in range(len(a_list) % solution):
@@ -92,13 +92,17 @@ class TestLearning(TestMORLHVBAgent):
         x = np.arange((len(a_list)/solution)-len(a_list) % solution)
         plt.plot(x, u, 'r')
         plt.axis([0-0.1*len(u), len(u), 0, 1.1*max(u)])
+        plt.xlabel('step')
+        plt.ylabel('hypervolume')
         plt.show()
 
-'''
+
 class TestHyperVolumeCalculator(unittest2.TestCase):
     def setUp(self):
-        self.ref_point2d = [0.4, 0.4]
+        # create refpoints
+        self.ref_point2d = [0.1, 0.1]
         self.ref_point3d = [0.1, 0.1, 0.1]
+        # data set / random points between 0/0 - 1/1
         self.set2d = np.zeros((20, 2))
         self.set3d = np.zeros((100, 3))
         for i in range(20):
@@ -107,7 +111,7 @@ class TestHyperVolumeCalculator(unittest2.TestCase):
         for i in range(100):
             for u in range(3):
                 self.set3d[i, u] = random.random()
-
+        # initialize calculator
         self.hv_2d_calc = HyperVolumeCalculator(self.ref_point2d)
         self.hv_3d_calc = HyperVolumeCalculator(self.ref_point3d)
 
@@ -115,7 +119,7 @@ class TestHyperVolumeCalculator(unittest2.TestCase):
 class TestCalculation(TestHyperVolumeCalculator):
     def runTest(self):
         # self.runPareto()
-        # self.runCompute()
+        #self.runCompute()
         pass
 
     def runPareto(self):
@@ -153,6 +157,11 @@ class TestCalculation(TestHyperVolumeCalculator):
 
     def runCompute(self):
         hv = self.hv_2d_calc.compute_hv(self.set2d)
-        #hv3d = self.hv_3d_calc.compute_hv(self.set3d)
+        # hv3d = self.hv_3d_calc.compute_hv(self.set3d)
         print hv
-        #print hv3d'''
+
+'''
+class TestDynMultiCritAverageRewardAgent(unittest2.TestCase):
+    def setUp(self):
+        self.agent = DynMultiCritAverageRewardAgent()
+        '''

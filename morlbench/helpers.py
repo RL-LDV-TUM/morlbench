@@ -15,7 +15,7 @@ import cPickle as pickle
 from os.path import isfile
 import numpy as np
 from inspyred.ec.analysis import hypervolume
-import operator
+import math
 def virtualFunction():
     raise RuntimeError('Virtual function not implemented.')
 
@@ -142,8 +142,7 @@ class HyperVolumeCalculator:
         """
         # sort first dimension
         points = np.vstack((points))
-        points = sorted(points, key=lambda x: x[0])
-        points = points[::-1]
+        points = sorted(points, key=lambda x: x[0])[::-1]
         # add the first dimension(yet sorted)
         pareto_front = []
         pareto_front.append(points[0])
@@ -161,14 +160,18 @@ class HyperVolumeCalculator:
         :return: pareto front of the input point set
         """
         # sort first dimension:
-        points = sorted(points, key=operator.itemgetter(0))
-        # add first point to pareto front
-        pareto_front = points[0:1][:]
-        # test next point
-        for point in points[1:][:]:
-            if sum([point[x] >= pareto_front[-1][x] for x in xrange(len(point))]) == len(point):
-                pareto_front = np.concatenate((pareto_front, [point]))
-        return pareto_front
+        if points:
+            points = np.vstack((points))
+            points = sorted(points, key=lambda y: y[0])[::-1]
+            # add first point to pareto front
+            pareto_front = points[0:1][:]
+            # test next point
+            for point in points[1:][:]:
+                if sum([point[x] >= pareto_front[-1][x] for x in xrange(len(point))]) == len(point):
+                    pareto_front = np.concatenate((pareto_front, [point]))
+            return pareto_front
+        else:
+            return points
 
     def compute_hv(self, point_set):
         """
@@ -177,26 +180,72 @@ class HyperVolumeCalculator:
         :return:
         """
 
-        def dominates(point, other):
-            for i in xrange(len(point)):
-                if point[i] > other[i]:
-                    return False
-            return True
+        def dominates(p, q, k=None):
+            if k is None:
+                k = len(p)
+            d = True
+            while d and k < len(p):
+                d = not (q[k] > p[k])
+                k += 1
+            return d
+
+        def insert(p, k, pl):
+            ql = []
+            while pl and pl[0][k] > p[k]:
+                ql.append(pl[0])
+                pl = pl[1:]
+            ql.append(p)
+            while pl:
+                if not dominates(p, pl[0], k):
+                    ql.append(pl[0])
+                pl = pl[1:]
+            return ql
+
+        def slice(pl, k, ref):
+            p = pl[0]
+            pl = pl[1:]
+            ql = []
+            s = []
+            while pl:
+                ql = insert(p, k + 1, ql)
+                p_prime = pl[0]
+                s.append((math.fabs(p[k] - p_prime[k]), ql))
+                p = p_prime
+                pl = pl[1:]
+            ql = insert(p, k + 1, ql)
+            s.append((math.fabs(p[k] - ref[k]), ql))
+            return s
 
         # reference point
         reference_point = self.ref_point
         # rel point
         relevant_points = self.extract_front(point_set)
-        if not relevant_points:
+        if len(relevant_points) == 0:
             return 0.0
 
         if reference_point:
             for point in relevant_points:
                 # only consider points that dominate the reference point
-                if dominates(point, reference_point):
-                    relevant_points.append(point)
+                if dominates(point, reference_point, None):
+                    np.append(relevant_points, point)
 
         # compute the hypervolume
-        hyper_volume = hypervolume(relevant_points, self.ref_point)
-        return hyper_volume
+        ps = relevant_points
+        ref = self.ref_point
+        n = min([len(p) for p in ps])
+        if ref is None:
+            ref = [max(ps, key=lambda x: x[o])[o] for o in range(n)]
+        pl = ps[:]
+        pl = sorted(pl, key=lambda q: q[0])[::-1]
+        s = [(1, pl)]
+        for k in range(n - 1):
+            s_prime = []
+            for x, ql in s:
+                for x_prime, ql_prime in slice(ql, k, ref):
+                    s_prime.append((x * x_prime, ql_prime))
+            s = s_prime
+        vol = 0
+        for x, ql in s:
+            vol = vol + x * math.fabs(ql[0][n - 1] - ref[n - 1])
+        return vol
 

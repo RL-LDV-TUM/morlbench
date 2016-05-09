@@ -22,66 +22,49 @@ from morlbench.experiment_helpers import morl_interact_multiple
 from morlbench.helpers import HyperVolumeCalculator
 
 
-class TestMORLChebishevAgent(unittest2.TestCase):
+class TestAgents(unittest2.TestCase):
 
     def setUp(self):
 
-        self.problem = MORLGridworld()
-        self.scalarization_weights = np.zeros(self.problem.reward_dimension)
+        self.gridworldproblem = MORLGridworld()
+        self.scalarization_weights = np.zeros(self.gridworldproblem.reward_dimension)
         self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],
-                                                   len(self.scalarization_weights))
+                                          len(self.scalarization_weights))
         self.tau = np.mean(self.scalarization_weights)
-        self.agent = MORLChebyshevAgent(self.problem, self.scalarization_weights, alpha=0.3, epsilon=0.4, tau=self.tau)
+        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [20.0, 20.0, 20.0], alpha=0.3, epsilon=0.4, tau=self.tau, ref_point=[-15.0, -15.0, -15.0])
+        self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=0.9, epsilon=0.1, ref=[-5.0, -5.0, -5.0], scal_weights=[200.0, 10.0])
         self.interactions = 100
 
 
-class TestLearning(TestMORLChebishevAgent):
+class TestLearning(TestAgents):
 
     def runTest(self):
-        self.runInteractions()
-        self.runSelection()
-        pass
-
-    def runSelection(self):
-        new_state = self.agent.decide(0, 3)
-        print 'TEST: decision-from state 3-action:'+str(new_state)
-
-    def runInteractions(self):
-        payouts, moves, states = morl_interact_multiple(self.agent, self.problem, self.interactions,
-                                                        max_episode_length=150)
-        print("TEST: interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " + str(states[:]) + '\n')
-
-
-class TestMORLHVBAgent(unittest2.TestCase):
-
-    def setUp(self):
-        self.problem = MORLGridworld()
-        self.agent = MORLHVBAgent(self.problem, alpha=0.6, epsilon=0.6, ref=[-2.0, -2.0, -2.0], scal_weights=[0.5, 0.5])
-        self.interactions = 200
-
-
-class TestLearning(TestMORLHVBAgent):
-
-    def runTest(self):
-
         self.runInteractions()
         self.runSelection()
         self.show_stats()
 
     def runSelection(self):
-        new_state = self.agent.decide(0, 3)
-        print 'TEST(HVB): decision-from state 3-action:'+str(new_state)
+        new_state = self.chebyagent.decide(0, 3)
+        print 'TEST(cheby): decision-from state 3-action:'+str(new_state)
+
+        new_state2 = self.hvbagent.decide(0, 3)
+        print 'TEST(hvb): decision-from state 3-action:'+str(new_state2)
 
     def runInteractions(self):
-        payouts, moves, states = morl_interact_multiple(self.agent, self.problem, self.interactions,
+        payouts, moves, states = morl_interact_multiple(self.chebyagent, self.gridworldproblem, self.interactions,
                                                         max_episode_length=150)
-        print("TEST(HVB): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
-              str(states[:]) + '\n')
+        print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " + str(states[:]) + '\n')
+
+        payouts2, moves2, states2 = morl_interact_multiple(self.hvbagent, self.gridworldproblem, self.interactions,
+                                                        max_episode_length=150)
+        print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
+              str(states2[:]) + '\n')
 
     def show_stats(self):
-        a_list = self.agent.max_volumes
+        plt.figure(0)
+        a_list = self.chebyagent.max_volumes
         solution = len(a_list)/self.interactions
-        u = []
+        u = [0]
         if len(a_list) % solution:
             for i in range(len(a_list) % solution):
                 del a_list[len(a_list)-1]
@@ -89,8 +72,26 @@ class TestLearning(TestMORLHVBAgent):
         while z < len(a_list):
             u.append(np.mean(a_list[z:z+solution]))
             z += solution
-        x = np.arange((len(a_list)/solution)-len(a_list) % solution)
-        plt.plot(x, u, 'r')
+        x = np.arange(((len(a_list)/solution)-len(a_list) % solution)+1)
+        plt.subplot(211)
+        plt.plot(x, u, 'r', label='chebishev')
+        plt.axis([0-0.1*len(u), len(u), 0, 1.1*max(u)])
+        plt.xlabel('step')
+        plt.ylabel('hypervolume')
+
+        v_list = self.hvbagent.max_volumes
+        solution = len(v_list)/self.interactions
+        u = [0]
+        if len(v_list) % solution:
+            for i in range(len(v_list) % solution):
+                del v_list[len(v_list)-1]
+        z = 0
+        while z < len(v_list):
+            u.append(np.mean(v_list[z:z+solution]))
+            z += solution
+        x = np.arange(((len(v_list)/solution)-len(v_list) % solution)+1)
+        plt.subplot(212)
+        plt.plot(x, u, 'r', label="hvb")
         plt.axis([0-0.1*len(u), len(u), 0, 1.1*max(u)])
         plt.xlabel('step')
         plt.ylabel('hypervolume')
@@ -118,8 +119,8 @@ class TestHyperVolumeCalculator(unittest2.TestCase):
 
 class TestCalculation(TestHyperVolumeCalculator):
     def runTest(self):
-        # self.runPareto()
-        #self.runCompute()
+        self.runPareto()
+        self.runCompute()
         pass
 
     def runPareto(self):

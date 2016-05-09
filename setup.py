@@ -12,6 +12,9 @@ setup(name='RL Framework',
           'datetime',
           'joblib',
           'neurolab',
-          'cvxopt'
+          'cvxopt',
+          'unittest2',
+          'inspyred',
+          'scipy'
       ]
       )

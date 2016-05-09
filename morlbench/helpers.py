@@ -160,7 +160,7 @@ class HyperVolumeCalculator:
         :return: pareto front of the input point set
         """
         # sort first dimension:
-        if points:
+        if len(points):
             points = np.vstack((points))
             points = sorted(points, key=lambda y: y[0])[::-1]
             # add first point to pareto front
@@ -171,7 +171,7 @@ class HyperVolumeCalculator:
                     pareto_front = np.concatenate((pareto_front, [point]))
             return pareto_front
         else:
-            return points
+            return 0
 
     def compute_hv(self, point_set):
         """

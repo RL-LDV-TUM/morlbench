@@ -674,7 +674,8 @@ class MORLChebyshevAgent(MorlAgent):
         # hypervolume calculator
         self.hv_calculator = HyperVolumeCalculator(ref_point)
         # stores q values
-        self.l =[]
+        self.l = []
+        self.max_volumes = []
 
     def decide(self, t, state):
         """
@@ -761,8 +762,8 @@ class MORLChebyshevAgent(MorlAgent):
         # chosen action is the one with greatest sq value
         new_action = random.choice(np.where(sq_list == max(sq_list))[0])
         # store hv
-        self.l.append([x for x in self._Q[state, max(enumerate(sq_list), key=lambda i: i[1])[0], :]])
-        self.max_vol = self.hv_calculator.compute_hv(self.l)
+        z = self.hv_calculator.extract_front(self._z)
+        self.max_volumes.append(self.hv_calculator.compute_hv(z))
         return new_action
 
 
@@ -836,7 +837,8 @@ class MORLHVBAgent(MorlAgent):
     def _learn(self, t, last_state, action, reward, state):
         # append new q values to list
         np.append(self._l, self._Q[state, action, :])
-        self._l = self.hv_calculator.extract_front(self._l)
+        if len(self._l):
+            self._l = self.hv_calculator.extract_front(self._l)
         new_action = self._greedy_sel(state)
         # update q values
         for objective in range(self._morl_problem.reward_dimension):

@@ -25,15 +25,16 @@ from morlbench.helpers import HyperVolumeCalculator
 class TestAgents(unittest2.TestCase):
 
     def setUp(self):
-
         self.gridworldproblem = MORLGridworld()
         self.scalarization_weights = np.zeros(self.gridworldproblem.reward_dimension)
-        self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],
-                                          len(self.scalarization_weights))
+        self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],len(self.scalarization_weights))
         self.tau = np.mean(self.scalarization_weights)
-        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [20.0, 20.0, 20.0], alpha=0.3, epsilon=0.4, tau=self.tau, ref_point=[-15.0, -15.0, -15.0])
-        self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=0.9, epsilon=0.1, ref=[-5.0, -5.0, -5.0], scal_weights=[200.0, 10.0])
-        self.interactions = 100
+        self.ref = [-1.0, -1.0, -1.0]
+        self.alf = 0.6
+        self.eps = 0.6
+        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [1000, 1000, 1000], alpha=self.alf, epsilon=self.eps, tau=self.tau, ref_point=self.ref)
+        self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=self.alf, epsilon=self.eps, ref=self.ref, scal_weights=[1.0, 10.0])
+        self.interactions = 500
 
 
 class TestLearning(TestAgents):
@@ -53,7 +54,8 @@ class TestLearning(TestAgents):
     def runInteractions(self):
         payouts, moves, states = morl_interact_multiple(self.chebyagent, self.gridworldproblem, self.interactions,
                                                         max_episode_length=150)
-        print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " + str(states[:]) + '\n')
+        print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
+              str(states[:]) + '\n')
 
         payouts2, moves2, states2 = morl_interact_multiple(self.hvbagent, self.gridworldproblem, self.interactions,
                                                         max_episode_length=150)
@@ -61,34 +63,39 @@ class TestLearning(TestAgents):
               str(states2[:]) + '\n')
 
     def show_stats(self):
-        plt.figure(0)
+        #plt.figure(0)
         a_list = self.chebyagent.max_volumes
         solution = len(a_list)/self.interactions
-        u = [0]
+        # solution = 1
+        u1 = [0]
         if len(a_list) % solution:
             for i in range(len(a_list) % solution):
                 del a_list[len(a_list)-1]
         z = 0
         while z < len(a_list):
-            u.append(np.mean(a_list[z:z+solution]))
+            u1.append(np.mean(a_list[z:z+solution]))
             z += solution
         x = np.arange(((len(a_list)/solution)-len(a_list) % solution)+1)
-        plt.subplot(211)
-        plt.plot(x, u, 'r', label='chebishev')
-        plt.axis([0-0.1*len(u), len(u), 0, 1.1*max(u)])
-        plt.xlabel('step')
-        plt.ylabel('hypervolume')
-
         v_list = self.hvbagent.max_volumes
         solution = len(v_list)/self.interactions
-        u = [0]
+        u2 = [0]
         if len(v_list) % solution:
             for i in range(len(v_list) % solution):
                 del v_list[len(v_list)-1]
         z = 0
         while z < len(v_list):
-            u.append(np.mean(v_list[z:z+solution]))
+            u2.append(np.mean(v_list[z:z+solution]))
             z += solution
+        del u2[len(u1):]
+        # plt.subplot(211)
+        x1, y1 = u1.index(max(u1)), max(u1)
+        x2, y2 = u2.index(max(u2)), max(u2)
+        plt.plot(x, u1, 'r', x, u2, 'b')
+        plt.axis([0-0.01*len(u1), len(u1), 0, 1.1*max([max(u1), max(u2)])])
+        plt.xlabel('step')
+        plt.ylabel('hypervolume')
+        plt.show()
+        '''
         x = np.arange(((len(v_list)/solution)-len(v_list) % solution)+1)
         plt.subplot(212)
         plt.plot(x, u, 'r', label="hvb")
@@ -96,7 +103,7 @@ class TestLearning(TestAgents):
         plt.xlabel('step')
         plt.ylabel('hypervolume')
         plt.show()
-
+        '''
 
 class TestHyperVolumeCalculator(unittest2.TestCase):
     def setUp(self):
@@ -119,8 +126,8 @@ class TestHyperVolumeCalculator(unittest2.TestCase):
 
 class TestCalculation(TestHyperVolumeCalculator):
     def runTest(self):
-        self.runPareto()
-        self.runCompute()
+        # self.runPareto()
+        # self.runCompute()
         pass
 
     def runPareto(self):

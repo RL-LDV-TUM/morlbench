@@ -13,6 +13,7 @@ functions that didn't fit in any other place.
 
 import cPickle as pickle
 from os.path import isfile
+from operator import itemgetter
 import numpy as np
 from inspyred.ec.analysis import hypervolume
 import math
@@ -141,8 +142,8 @@ class HyperVolumeCalculator:
         :return: pareto front
         """
         # sort first dimension
-        points = np.vstack((points))
-        points = sorted(points, key=lambda x: x[0])[::-1]
+
+        points = sorted(points, key=itemgetter(0))[::-1]
         # add the first dimension(yet sorted)
         pareto_front = []
         pareto_front.append(points[0])

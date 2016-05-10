@@ -661,7 +661,6 @@ class MORLChebyshevAgent(MorlAgent):
         self._alpha = alpha
         # parameter for greedy strategy
         self._epsilon = epsilon
-
         # small constant training addition value for the z point
         self._tau = tau
         # create reference point for each objective used for chebyshev scalarization adapted on each step
@@ -761,9 +760,14 @@ class MORLChebyshevAgent(MorlAgent):
             sq_list.append(sq)
         # chosen action is the one with greatest sq value
         new_action = random.choice(np.where(sq_list == max(sq_list))[0])
+        q = np.array(([x for x in self._Q[state, new_action, :]]))
+        self.l.append(q)
         # store hv
-        z = self.hv_calculator.extract_front(self._z)
-        self.max_volumes.append(self.hv_calculator.compute_hv(z))
+        if len(self.l):
+            l = np.array(self.l)
+            l = self.hv_calculator.extract_front(l)
+            self.l = [x for x in l]
+            self.max_volumes.append(self.hv_calculator.compute_hv(self.l))
         return new_action
 
 
@@ -836,9 +840,11 @@ class MORLHVBAgent(MorlAgent):
 
     def _learn(self, t, last_state, action, reward, state):
         # append new q values to list
-        np.append(self._l, self._Q[state, action, :])
+        self._l.append(np.array([x for x in self._Q[state, action, :]]))
         if len(self._l):
-            self._l = self.hv_calculator.extract_front(self._l)
+            l = np.array(self._l)
+            l = self.hv_calculator.extract_front(l)
+            self._l = [x for x in l]
         new_action = self._greedy_sel(state)
         # update q values
         for objective in range(self._morl_problem.reward_dimension):

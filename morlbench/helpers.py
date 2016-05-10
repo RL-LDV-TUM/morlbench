@@ -142,8 +142,8 @@ class HyperVolumeCalculator:
         :return: pareto front
         """
         # sort first dimension
-
-        points = sorted(points, key=itemgetter(0))[::-1]
+        points = np.vstack((points))
+        points = sorted(points, key=lambda y: y[0])[::-1]
         # add the first dimension(yet sorted)
         pareto_front = []
         pareto_front.append(points[0])

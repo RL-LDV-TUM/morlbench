@@ -28,11 +28,11 @@ class TestAgents(unittest2.TestCase):
         self.gridworldproblem = MORLGridworld()
         self.scalarization_weights = np.zeros(self.gridworldproblem.reward_dimension)
         self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],len(self.scalarization_weights))
-        self.tau = np.mean(self.scalarization_weights)
+        self.tau = 1.0
         self.ref = [-1.0, -1.0, -1.0]
-        self.alf = 0.6
-        self.eps = 0.6
-        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [1000, 1000, 1000], alpha=self.alf, epsilon=self.eps, tau=self.tau, ref_point=self.ref)
+        self.alf = 0.1
+        self.eps = 0.1
+        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [1.0, 1.0, 1.0], alpha=self.alf, epsilon=self.eps, tau=self.tau, ref_point=self.ref)
         self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=self.alf, epsilon=self.eps, ref=self.ref, scal_weights=[1.0, 10.0])
         self.interactions = 500
 
@@ -65,35 +65,51 @@ class TestLearning(TestAgents):
     def show_stats(self):
         #plt.figure(0)
         a_list = self.chebyagent.max_volumes
-        solution = len(a_list)/self.interactions
-        # solution = 1
-        u1 = [0]
-        if len(a_list) % solution:
-            for i in range(len(a_list) % solution):
-                del a_list[len(a_list)-1]
-        z = 0
-        while z < len(a_list):
-            u1.append(np.mean(a_list[z:z+solution]))
-            z += solution
-        x = np.arange(((len(a_list)/solution)-len(a_list) % solution)+1)
         v_list = self.hvbagent.max_volumes
-        solution = len(v_list)/self.interactions
-        u2 = [0]
-        if len(v_list) % solution:
-            for i in range(len(v_list) % solution):
-                del v_list[len(v_list)-1]
-        z = 0
-        while z < len(v_list):
-            u2.append(np.mean(v_list[z:z+solution]))
-            z += solution
-        del u2[len(u1):]
+        #solution = len(a_list)/self.interactions
+        solution = 1
+        if solution != 1:
+            u1 = [0]
+            if len(a_list) % solution:
+                for i in range(len(a_list) % solution):
+                    del a_list[len(a_list)-1]
+            z = 0
+            while z < len(a_list):
+                u1.append(np.mean(a_list[z:z+solution]))
+                z += solution
+            x = np.arange(((len(a_list)/solution)-len(a_list) % solution)+1)
+
+            #solution = len(v_list)/self.interactions
+            u2 = [0]
+            if len(v_list) % solution:
+                for i in range(len(v_list) % solution):
+                    del v_list[len(v_list)-1]
+            z = 0
+            while z < len(v_list):
+                u2.append(np.mean(v_list[z:z+solution]))
+                z += solution
+        else:
+            u1 = [0]
+            u1.extend(a_list)
+            u2 = [0]
+            u2.extend(v_list)
+            x = np.arange(min([len(u1), len(u2)]))
+        if len(u2) > len(u1):
+            del u2[len(u1):]
+        else:
+            del u1[len(u2):]
         # plt.subplot(211)
         x1, y1 = u1.index(max(u1)), max(u1)
         x2, y2 = u2.index(max(u2)), max(u2)
-        plt.plot(x, u1, 'r', x, u2, 'b')
+        paretofront = [max([max(u1),max(u2)]), ]*len(x)
+        plt.plot(x, u1, 'r', label="Chebyshev-Agent")
+        plt.plot(x, u2, 'b', label="HVB-Agent")
+        plt.plot(x, paretofront, 'g--', label="Paretofront")
+        plt.legend(loc='lower right', frameon=False)
         plt.axis([0-0.01*len(u1), len(u1), 0, 1.1*max([max(u1), max(u2)])])
         plt.xlabel('step')
         plt.ylabel('hypervolume')
+        plt.grid(True)
         plt.show()
         '''
         x = np.arange(((len(v_list)/solution)-len(v_list) % solution)+1)

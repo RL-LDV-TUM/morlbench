@@ -176,15 +176,18 @@ class HyperVolumeCalculator:
 
     def compute_hv(self, point_set):
         """
-        computes hypervolume, before it searches pareto front and selects points that are dominating refpoint
-        :param point_set:
-        :return:
+        computes hypervolume. at first it searches pareto front and selects points that are dominating refpoint
+        this function is a slightly adapted version of inspyred lib's hypervolume calculator
+        :param point_set: pareto set of points
+        :return: volume the pareto set expands
         """
 
         def dominates(p, q, k=None):
+            # finds out if some point dominates another
             if k is None:
                 k = len(p)
             d = True
+            # test every dimension
             while d and k < len(p):
                 d = not (q[k] > p[k])
                 k += 1
@@ -219,8 +222,8 @@ class HyperVolumeCalculator:
 
         # reference point
         reference_point = self.ref_point
-        # rel point
-        relevant_points = self.extract_front(point_set)
+        # rel points
+        relevant_points = point_set
         if len(relevant_points) == 0:
             return 0.0
 
@@ -232,20 +235,26 @@ class HyperVolumeCalculator:
 
         # compute the hypervolume
         ps = relevant_points
+        # store reference point
         ref = self.ref_point
+        # find out dimension
         n = min([len(p) for p in ps])
+        # if no reference is given, compute it with given points (max in each dimension)
         if ref is None:
             ref = [max(ps, key=lambda x: x[o])[o] for o in range(n)]
-        pl = ps[:]
+        # sort the points in first dimension and reverse
+        pl = np.vstack(ps[:])
         pl = sorted(pl, key=lambda q: q[0])[::-1]
         s = [(1, pl)]
         for k in range(n - 1):
             s_prime = []
             for x, ql in s:
+                # slice the volume in little volumes
                 for x_prime, ql_prime in slice(ql, k, ref):
                     s_prime.append((x * x_prime, ql_prime))
             s = s_prime
         vol = 0
+        # add the volumes
         for x, ql in s:
             vol = vol + x * math.fabs(ql[0][n - 1] - ref[n - 1])
         return vol

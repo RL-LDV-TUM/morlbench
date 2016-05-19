@@ -17,7 +17,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent, DynMultiCritAverageRewardAgent
-from morlbench.morl_problems import MORLProblem, Deepsea, MORLGridworld
+from morlbench.morl_problems import MORLProblem, Deepsea, MORLGridworld, MORLBurdiansAssProblem
 from morlbench.experiment_helpers import morl_interact_multiple
 from morlbench.helpers import HyperVolumeCalculator
 
@@ -25,16 +25,29 @@ from morlbench.helpers import HyperVolumeCalculator
 class TestAgents(unittest2.TestCase):
 
     def setUp(self):
+        # create Problem
         self.gridworldproblem = MORLGridworld()
+        self.buridansass = MORLBurdiansAssProblem()
+        # create an initialize randomly a weight vector
         self.scalarization_weights = np.zeros(self.gridworldproblem.reward_dimension)
-        self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],len(self.scalarization_weights))
+        self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],
+                                                   len(self.scalarization_weights))
+        # tau is for chebyshev agent
         self.tau = 1.0
+        # ref point is used for Hypervolume calculation
         self.ref = [-1.0, -1.0, -1.0]
+        # learning rate
         self.alf = 0.1
+        # Propability of epsilon greedy selection
         self.eps = 0.1
-        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [1.0, 1.0, 1.0], alpha=self.alf, epsilon=self.eps, tau=self.tau, ref_point=self.ref)
-        self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=self.alf, epsilon=self.eps, ref=self.ref, scal_weights=[1.0, 10.0])
-        self.interactions = 500
+        # create one agent using chebyshev scalarization method
+        self.chebyagent = MORLChebyshevAgent(self.buridansass, [1.0, 1.0, 1.0], alpha=self.alf, epsilon=self.eps,
+                                             tau=self.tau, ref_point=self.ref)
+        # create one agent using Hypervolume based Algorithm
+        self.hvbagent = MORLHVBAgent(self.buridansass,alpha=self.alf, epsilon=self.eps, ref=self.ref,
+                                     scal_weights=[1.0, 10.0])
+        # both agents interact (times):
+        self.interactions = 20
 
 
 class TestLearning(TestAgents):
@@ -43,8 +56,10 @@ class TestLearning(TestAgents):
         self.runInteractions()
         self.runSelection()
         self.show_stats()
+        self.testWeightVariation()
 
     def runSelection(self):
+        # make just one decision for each learned agent, to see if they act the same way
         new_state = self.chebyagent.decide(0, 3)
         print 'TEST(cheby): decision-from state 3-action:'+str(new_state)
 
@@ -52,62 +67,75 @@ class TestLearning(TestAgents):
         print 'TEST(hvb): decision-from state 3-action:'+str(new_state2)
 
     def runInteractions(self):
+        # make the interactions
         payouts, moves, states = morl_interact_multiple(self.chebyagent, self.gridworldproblem, self.interactions,
                                                         max_episode_length=150)
         print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
               str(states[:]) + '\n')
 
         payouts2, moves2, states2 = morl_interact_multiple(self.hvbagent, self.gridworldproblem, self.interactions,
-                                                        max_episode_length=150)
+                                                           max_episode_length=150)
         print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
               str(states2[:]) + '\n')
 
     def show_stats(self):
-        #plt.figure(0)
+        # extract all volumes of each agent
         a_list = self.chebyagent.max_volumes
         v_list = self.hvbagent.max_volumes
-        #solution = len(a_list)/self.interactions
+        # solution = len(a_list)/self.interactions
         solution = 1
+        # data preparation for another solution !=1
         if solution != 1:
+            # nice curve contains (0,0)
             u1 = [0]
-            if len(a_list) % solution:
-                for i in range(len(a_list) % solution):
-                    del a_list[len(a_list)-1]
+            # cut the longer list
+            overlay = len(v_list) % solution
+            if overlay:
+                del a_list[len(a_list)-overlay:]
             z = 0
+            # append mean values
             while z < len(a_list):
                 u1.append(np.mean(a_list[z:z+solution]))
                 z += solution
+            # create x vector
             x = np.arange(((len(a_list)/solution)-len(a_list) % solution)+1)
-
-            #solution = len(v_list)/self.interactions
+            # solution = len(v_list)/self.interactions
             u2 = [0]
-            if len(v_list) % solution:
-                for i in range(len(v_list) % solution):
-                    del v_list[len(v_list)-1]
+            # cut the longer list
+            overlay = len(v_list) % solution
+
+            if overlay:
+                del v_list[len(v_list)-overlay:]
             z = 0
             while z < len(v_list):
                 u2.append(np.mean(v_list[z:z+solution]))
                 z += solution
         else:
+            # just create two lists containing (0,0)
             u1 = [0]
             u1.extend(a_list)
             u2 = [0]
             u2.extend(v_list)
             x = np.arange(min([len(u1), len(u2)]))
+        # cut longer list
         if len(u2) > len(u1):
             del u2[len(u1):]
         else:
             del u1[len(u2):]
-        # plt.subplot(211)
+
+        ##################################
+        #               PLOT             #
+        ##################################
+
         x1, y1 = u1.index(max(u1)), max(u1)
         x2, y2 = u2.index(max(u2)), max(u2)
-        paretofront = [max([max(u1),max(u2)]), ]*len(x)
+        paretofront = [max([max(u1), max(u2)]), ]*len(x)
         plt.plot(x, u1, 'r', label="Chebyshev-Agent")
         plt.plot(x, u2, 'b', label="HVB-Agent")
         plt.plot(x, paretofront, 'g--', label="Paretofront")
         plt.legend(loc='lower right', frameon=False)
         plt.axis([0-0.01*len(u1), len(u1), 0, 1.1*max([max(u1), max(u2)])])
-        plt.xlabel('step')
+        plt.xlabel('interactions')
         plt.ylabel('hypervolume')
         plt.grid(True)
         plt.show()
@@ -120,6 +148,64 @@ class TestLearning(TestAgents):
         plt.ylabel('hypervolume')
         plt.show()
         '''
+
+    def testWeightVariation(self):
+        """
+        this test creates 6 different chebyshev agents whose weights are each different. in the end it compares hvs
+        :return:
+        """
+        # list of agents
+        self.agents = []
+        # list of volumes
+        self.vollist = []
+        # 6 agents with each different weights
+        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [1.0, 0.0, 0.0], alpha=self.alf, epsilon=self.eps,
+                                              tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.0, 1.0, 0.0], alpha=self.alf, epsilon=self.eps,
+                                              tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.5, 0.5, 0.0], alpha=self.alf, epsilon=self.eps,
+                                              tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.0, 0.5, 0.5], alpha=self.alf, epsilon=self.eps,
+                                              tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.5, 0.0, 0.5], alpha=self.alf, epsilon=self.eps,
+                                              tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.33, 0.33, 0.33], alpha=self.alf,
+                                             epsilon=self.eps, tau=self.tau, ref_point=self.ref))
+
+        # interact with each
+        for agent in self.agents:
+            p, a, s = morl_interact_multiple(agent, self.gridworldproblem, self.interactions,
+                                             max_episode_length=150)
+            # store all volumes containing (0,0)
+            maxvol = [0]
+            maxvol.extend(agent.max_volumes)
+            self.vollist.append(maxvol)
+
+        # cut longer lists
+        length = min([len(x) for x in self.vollist])
+        for lists in self.vollist:
+            del lists[length:]
+        # create x vectors
+        x = np.arange(length)
+        # colour vector
+        colours = ['r', 'b', 'g', 'k', 'y', 'm']
+        for lists in self.vollist:
+            # printed name for label
+            weights = self.agents[self.vollist.index(lists)]._w
+            name = 'weights:'
+            for i in range(len(weights)):
+                name += str(weights[i])+'_'
+            # no last underline
+            name = name[:len(name)-1]
+            # plotting
+            plt.plot(x, lists, colours[self.vollist.index(lists)], label=name)
+        # size of axes
+        plt.axis([0-0.01*len(x), len(x), 0, 1.1*max([max(x) for x in self.vollist])])
+        # position the legend
+        plt.legend(loc='lower right', frameon=False)
+        # show!
+        plt.show()
+
 
 class TestHyperVolumeCalculator(unittest2.TestCase):
     def setUp(self):
@@ -142,8 +228,8 @@ class TestHyperVolumeCalculator(unittest2.TestCase):
 
 class TestCalculation(TestHyperVolumeCalculator):
     def runTest(self):
-        # self.runPareto()
-        # self.runCompute()
+        self.runPareto()
+        self.runCompute()
         pass
 
     def runPareto(self):
@@ -156,7 +242,6 @@ class TestCalculation(TestHyperVolumeCalculator):
         plt.plot(self.set2d[:, 0], self.set2d[:, 1], 'ro', pfx, pfy)
         plt.xlabel('1')
         plt.ylabel('2')
-        # print(str(state_distribution.max())+str(state_distribution.argmax()))
         plt.grid(False)
         plt.show()
 
@@ -175,17 +260,74 @@ class TestCalculation(TestHyperVolumeCalculator):
             pf3dz = pf3d[u][2]
             ax.scatter(pf3dx, pf3dy, pf3dz, 'r', marker='^')
         plt.show()
-        #print pf
-        #print self.set3d
-        #print pf3d
 
     def runCompute(self):
         hv = self.hv_2d_calc.compute_hv(self.set2d)
-        # hv3d = self.hv_3d_calc.compute_hv(self.set3d)
+        hv3d = self.hv_3d_calc.compute_hv(self.set3d)
         print hv
+        print hv3d
 
-'''
-class TestDynMultiCritAverageRewardAgent(unittest2.TestCase):
+
+class TestProblems(unittest2.TestCase):
     def setUp(self):
-        self.agent = DynMultiCritAverageRewardAgent()
-        '''
+        self.problem = MORLBurdiansAssProblem()
+
+
+class TestBuridan(TestProblems):
+    def runTest(self):
+        self.testDistance()
+        self.testReward()
+        self.testPlay()
+        self.testFoodstolen()
+
+    def testDistance(self):
+        # tests if the distance is calculated correctly
+        i = 1, 1
+        u = 2, 1
+        dist = self.problem._get_distance(i, u)
+        self.assertEqual(dist, 1.0, 'wrong distance')
+
+    def testReward(self):
+        # tests if the reward of staying in the same position gives zero reward
+        self.problem.reset()
+        reward = self.problem.play(0)
+        reward = tuple([e for e in reward])
+        self.assertTupleEqual(reward, (0, 0, 0), 'wrong reward')
+
+    def testPlay(self):
+        # tests if we get negative hunger reward if we go on 10 steps without eating
+        self.problem.reset()
+        order = [1, 2, 3, 4, 4, 3, 2, 2, 1]
+        for i in order:
+            r = self.problem.play(i)
+        reward = tuple([e for e in r])
+        self.assertTupleEqual(reward, (-1.0, 0.0, -1.0), 'reward of hunger doesn\'t fit')
+
+    def testFoodstolen(self):
+        # sets the stealing probability to 100% and tests if the food is stolen
+        # before set the problem to init state (middle)
+        self.problem.reset()
+        temp = self.problem.steal_probability
+        self.problem.steal_probability = 1
+        # go upwards, beacause we get away from bottom right food visible neighborhood
+        reward = self.problem.play(2)
+        # reward for stealing is second dimension
+        steal_rew = reward[1]
+        self.assertEqual(steal_rew, -0.5, 'no stealing reward')
+
+    def testPrint(self):
+        self.problem.reset()
+        # go down
+        self.problem.play(4)
+        # check on map if he's gone down
+        self.problem.print_map(self.problem._get_position(self.problem.state))
+
+    def testFoodEaten(self):
+        self.problem.reset()
+        # go upwards
+        self.problem.play(2)
+        # and then left
+        self.problem.play(3)
+        # and stay there, to get food reward
+        reward = self.problem.play(0)[0]
+        self.assertEqual(reward, 1.0, 'got wrong food reward')

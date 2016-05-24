@@ -17,7 +17,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent, DynMultiCritAverageRewardAgent
-from morlbench.morl_problems import MORLProblem, Deepsea, MORLGridworld, MORLBurdiansAssProblem
+from morlbench.morl_problems import MORLProblem, Deepsea, MORLGridworld, MORLBurdiansAssProblem, MOPuddleworldProblem
 from morlbench.experiment_helpers import morl_interact_multiple
 from morlbench.helpers import HyperVolumeCalculator
 
@@ -27,27 +27,29 @@ class TestAgents(unittest2.TestCase):
     def setUp(self):
         # create Problem
         self.gridworldproblem = MORLGridworld()
-        self.buridansass = MORLBurdiansAssProblem()
+        self.problem = MOPuddleworldProblem()
         # create an initialize randomly a weight vector
-        self.scalarization_weights = np.zeros(self.gridworldproblem.reward_dimension)
+        self.scalarization_weights = np.zeros(self.problem.reward_dimension)
         self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],
                                                    len(self.scalarization_weights))
         # tau is for chebyshev agent
         self.tau = 1.0
         # ref point is used for Hypervolume calculation
-        self.ref = [-1.0, -1.0, -1.0]
+        self.ref = [-10.0, 0.0, 0.0]
         # learning rate
         self.alf = 0.1
+        self.alfacheb = 0.1
+        self.alfahvb = 0.1
         # Propability of epsilon greedy selection
         self.eps = 0.1
         # create one agent using chebyshev scalarization method
-        self.chebyagent = MORLChebyshevAgent(self.buridansass, [1.0, 1.0, 1.0], alpha=self.alf, epsilon=self.eps,
+        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [1.0, 1.0, 1.0], alpha=self.alfacheb, epsilon=self.eps,
                                              tau=self.tau, ref_point=self.ref)
         # create one agent using Hypervolume based Algorithm
-        self.hvbagent = MORLHVBAgent(self.buridansass,alpha=self.alf, epsilon=self.eps, ref=self.ref,
+        self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=self.alfahvb, epsilon=self.eps, ref=self.ref,
                                      scal_weights=[1.0, 10.0])
         # both agents interact (times):
-        self.interactions = 20
+        self.interactions = 2
 
 
 class TestLearning(TestAgents):
@@ -55,7 +57,6 @@ class TestLearning(TestAgents):
     def runTest(self):
         self.runInteractions()
         self.runSelection()
-        self.show_stats()
         self.testWeightVariation()
 
     def runSelection(self):
@@ -77,77 +78,6 @@ class TestLearning(TestAgents):
                                                            max_episode_length=150)
         print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
               str(states2[:]) + '\n')
-
-    def show_stats(self):
-        # extract all volumes of each agent
-        a_list = self.chebyagent.max_volumes
-        v_list = self.hvbagent.max_volumes
-        # solution = len(a_list)/self.interactions
-        solution = 1
-        # data preparation for another solution !=1
-        if solution != 1:
-            # nice curve contains (0,0)
-            u1 = [0]
-            # cut the longer list
-            overlay = len(v_list) % solution
-            if overlay:
-                del a_list[len(a_list)-overlay:]
-            z = 0
-            # append mean values
-            while z < len(a_list):
-                u1.append(np.mean(a_list[z:z+solution]))
-                z += solution
-            # create x vector
-            x = np.arange(((len(a_list)/solution)-len(a_list) % solution)+1)
-            # solution = len(v_list)/self.interactions
-            u2 = [0]
-            # cut the longer list
-            overlay = len(v_list) % solution
-
-            if overlay:
-                del v_list[len(v_list)-overlay:]
-            z = 0
-            while z < len(v_list):
-                u2.append(np.mean(v_list[z:z+solution]))
-                z += solution
-        else:
-            # just create two lists containing (0,0)
-            u1 = [0]
-            u1.extend(a_list)
-            u2 = [0]
-            u2.extend(v_list)
-            x = np.arange(min([len(u1), len(u2)]))
-        # cut longer list
-        if len(u2) > len(u1):
-            del u2[len(u1):]
-        else:
-            del u1[len(u2):]
-
-        ##################################
-        #               PLOT             #
-        ##################################
-
-        x1, y1 = u1.index(max(u1)), max(u1)
-        x2, y2 = u2.index(max(u2)), max(u2)
-        paretofront = [max([max(u1), max(u2)]), ]*len(x)
-        plt.plot(x, u1, 'r', label="Chebyshev-Agent")
-        plt.plot(x, u2, 'b', label="HVB-Agent")
-        plt.plot(x, paretofront, 'g--', label="Paretofront")
-        plt.legend(loc='lower right', frameon=False)
-        plt.axis([0-0.01*len(u1), len(u1), 0, 1.1*max([max(u1), max(u2)])])
-        plt.xlabel('interactions')
-        plt.ylabel('hypervolume')
-        plt.grid(True)
-        plt.show()
-        '''
-        x = np.arange(((len(v_list)/solution)-len(v_list) % solution)+1)
-        plt.subplot(212)
-        plt.plot(x, u, 'r', label="hvb")
-        plt.axis([0-0.1*len(u), len(u), 0, 1.1*max(u)])
-        plt.xlabel('step')
-        plt.ylabel('hypervolume')
-        plt.show()
-        '''
 
     def testWeightVariation(self):
         """
@@ -193,7 +123,7 @@ class TestLearning(TestAgents):
             # printed name for label
             weights = self.agents[self.vollist.index(lists)]._w
             name = 'weights:'
-            for i in range(len(weights)):
+            for i in xrange(len(weights)):
                 name += str(weights[i])+'_'
             # no last underline
             name = name[:len(name)-1]
@@ -331,3 +261,54 @@ class TestBuridan(TestProblems):
         # and stay there, to get food reward
         reward = self.problem.play(0)[0]
         self.assertEqual(reward, 1.0, 'got wrong food reward')
+
+
+class TestPuddleworld(TestProblems):
+    def setUp(self):
+        self.puddleworldproblem = MOPuddleworldProblem()
+        self.testPuddleScene()
+
+    def testPuddleScene(self):
+        fig, ax = plt.subplots()
+        scene = self.puddleworldproblem._scene
+
+        ax.imshow(scene, interpolation = 'nearest')
+        step = 1.
+        min = 0.
+        rows = scene.shape[0]
+        columns = scene.shape[1]
+        row_arr = np.arange(min, rows)
+        col_arr = np.arange(min, columns)
+        x, y = np.meshgrid(row_arr, col_arr)
+        for col_val, row_val in zip(x.flatten(), y.flatten()):
+            c = int(scene[row_val, col_val])
+            ax.text(col_val, row_val, c, va='center', ha='center')
+
+        # set tick marks for grid
+        # ax.set_xticks(np.arange(min, columns))
+        # ax.set_yticks(np.arange(min, rows))
+        # ax.set_xticklabels([])
+        # ax.set_yticklabels([])
+        # ax.set_xlim(min-step/2, columns-step/2)
+        # ax.set_ylim(min-step/2, rows-step/2)
+        # #ax.grid()
+        plt.show()
+
+    def testPlay(self):
+        self.puddleworldproblem.reset()
+        order = [1]
+        for i in order:
+            r = self.puddleworldproblem.play(i)
+        reward = tuple([e for e in r])
+        self.assertTupleEqual(reward, (-1.0, 0.0), 'reward of going doesn\'t fit')
+
+    def testPuddleReward(self):
+        self.puddleworldproblem.reset()
+        self.puddleworldproblem.state = 28
+
+        r = self.puddleworldproblem.play(3)
+        touched = r[1]
+        r = self.puddleworldproblem.play(3)
+        touched2 = r[1]
+        t = touched, touched2
+        self.assertTupleEqual(t, (-10.0, -20.0), 'puddlereward wrong')

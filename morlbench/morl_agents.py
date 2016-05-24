@@ -674,7 +674,10 @@ class MORLChebyshevAgent(MorlAgent):
         self.hv_calculator = HyperVolumeCalculator(ref_point)
         # stores q values
         self.l = []
+        # storage for volumes per interaction
         self.max_volumes = []
+        # storage for the volumes optained in ONE interaction
+        self.temp_vol = []
 
     def decide(self, t, state):
         """
@@ -708,7 +711,7 @@ class MORLChebyshevAgent(MorlAgent):
         """
         new_action = self._greedy_sel(state)
         # update rule for every objective
-        for objective in range(self._morl_problem.reward_dimension):
+        for objective in xrange(self._morl_problem.reward_dimension):
             # advanced bellman equation
             self._Q[last_state, action, objective] += self._alpha * \
                 (reward[objective] + self._gamma * self._Q[state, new_action, objective] -
@@ -730,6 +733,7 @@ class MORLChebyshevAgent(MorlAgent):
             action = random.choice(np.where(weighted_q == max(weighted_q))[0])
             return action
         else:
+            # otherwise return random selection
             return random.randint(0, self._morl_problem.n_actions-1)
 
     def get_learned_action_gibbs_distribution(self, state):
@@ -762,12 +766,22 @@ class MORLChebyshevAgent(MorlAgent):
         new_action = random.choice(np.where(sq_list == max(sq_list))[0])
         q = np.array(([x for x in self._Q[state, new_action, :]]))
         self.l.append(q)
-        # store hv
+        # store hv, only if self.l is non-empty (only this way worked for me TODO: find elegant way )
         if len(self.l):
+            # catch the list
             l = np.array(self.l)
+            # only the points on front are needed
             l = self.hv_calculator.extract_front(l)
+            # restore it into the member
             self.l = [x for x in l]
-            self.max_volumes.append(self.hv_calculator.compute_hv(self.l))
+            # compute new hypervolume:
+            self.temp_vol.append(self.hv_calculator.compute_hv(self.l))
+            # at the end of an interaction:
+            if self._morl_problem.terminal_state:
+                # store the maximum hypervolume
+                self.max_volumes.append(max(self.temp_vol))
+                # clear the temporary list
+                self.temp_vol = []
         return new_action
 
 
@@ -801,6 +815,8 @@ class MORLHVBAgent(MorlAgent):
         self.hv_calculator = HyperVolumeCalculator(ref)
         # init last action
         self._last_action = random.randint(0, morl_problem.n_actions-1)
+        # storage for temporal volumes one for each interaction
+        self.temp_vol = []
         # storage for max volumes
         self.max_volumes = []
         # storage for q values
@@ -841,13 +857,18 @@ class MORLHVBAgent(MorlAgent):
     def _learn(self, t, last_state, action, reward, state):
         # append new q values to list
         self._l.append(np.array([x for x in self._Q[state, action, :]]))
+        # if there isnt any value yet in the list, dont calculate...
         if len(self._l):
+            # create numpy array, needed by the hv calculator
             l = np.array(self._l)
+            # compute
             l = self.hv_calculator.extract_front(l)
+            # recreate a python list, to allow easier appending
             self._l = [x for x in l]
+        # decide which state we're up to take
         new_action = self._greedy_sel(state)
         # update q values
-        for objective in range(self._morl_problem.reward_dimension):
+        for objective in xrange(self._morl_problem.reward_dimension):
             # advanced bellman equation
             self._Q[last_state, action, objective] += self._alpha * \
                 (reward[objective] + self._gamma * self._Q[state, new_action, objective] -
@@ -872,11 +893,17 @@ class MORLHVBAgent(MorlAgent):
             volumes.append(self.hv_calculator.compute_hv(l_set))
         # best action has biggest hypervolume
         new_action = volumes.index(max(volumes))
-        self.max_volumes.append(max(volumes))
+        self.temp_vol.append(max(volumes))
+        # if the interaction has finished
+        if self._morl_problem.terminal_state:
+            # append the maximum volume to the master volume list
+            self.max_volumes.append(max(self.temp_vol))
+            # clear the temporary list
+            self.temp_vol = []
         return new_action
 
     def name(self):
-        return "HVB_Q" + str(self._epsilon) + "a" + str(self._alpha)
+        return "HVB_Q_" + 'e' + str(self._epsilon) + "a" + str(self._alpha)
 
     def get_learned_action_distribution(self, state):
         """
@@ -921,6 +948,7 @@ class MORLHVBAgent(MorlAgent):
 class DynMultiCritAverageRewardAgent(MorlAgent):
     def __init__(self):
         pass
+
     def decide(self):
         pass
 

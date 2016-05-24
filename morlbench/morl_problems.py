@@ -16,6 +16,8 @@ import matplotlib.pyplot as plt
 from math import cos, sqrt
 import logging as log
 import random
+import time
+
 import os
 
 my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
@@ -847,7 +849,7 @@ class MORLBurdiansAssProblem(MORLProblem):
     hunger means
     """
 
-    def __init__(self, size=3, p=0.2, n_appear=10, gamma = 0.9):
+    def __init__(self, size=3, p=0.9, n_appear=10, gamma=0.9):
 
         self.steal_probability = p
         # available actions: stay                right,             up,                 left,            down
@@ -873,7 +875,7 @@ class MORLBurdiansAssProblem(MORLProblem):
         # at places where the food is: 1
         self._scene[0, 0] = 1
         self._scene[self._size-1, self._size-1] = 1
-        print self._scene
+
         # initial state is the middle (e.g. at 3x3 matrix index 4)
         init = (self._size*self._size)/2
         self.state = init
@@ -891,6 +893,8 @@ class MORLBurdiansAssProblem(MORLProblem):
         self.state = init
         self.last_state = init
         self.terminal_state = False
+        self.count = 0
+        self.hunger = 0
 
     def _get_reward(self, state):
         position = self._get_position(state)
@@ -926,7 +930,7 @@ class MORLBurdiansAssProblem(MORLProblem):
         self.count += 1
         # after 10 steps eventually stolen food is reproduced
         if self.count == self.n_appear:
-            self._scene[0, self._size-1] = 1
+            self._scene[self._size-1, self._size-1] = 1
             self._scene[0, 0] = 1
 
         actions = self.actions
@@ -951,7 +955,6 @@ class MORLBurdiansAssProblem(MORLProblem):
         first = np.array([state1[0], state1[1]])
         second = np.array([state2[0], state2[1]])
         return np.linalg.norm(second-first)
-        pass
 
     def _get_index(self, position):
         return position[0] * self.scene_x_dim + position[1]
@@ -976,3 +979,130 @@ class MORLBurdiansAssProblem(MORLProblem):
             tmp[tuple(pos)] = tmp.max() * 2.0
         plt.imshow(self._scene, interpolation='nearest')
         plt.show()
+
+
+class MOPuddleworldProblem(MORLProblem):
+    """
+    This problem contains a quadratic map (please use size more than 15, to get a useful puddle)
+    the puddle is an obstacle that the agent has to drive around. The aim is to reach the goal state at the top right
+    """
+    def __init__(self, size=20, gamma=0.9):
+
+        # available actions:    right,             up,                 left,            down
+        self.actions = (np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]), np.array([1, 0]))
+        self.n_actions = len(self.actions)
+        self.n_actions_print = self.n_actions
+        self.gamma = gamma
+        # size of the grid
+        self.n_states = size * size
+        self.n_states_print = self.n_states
+        # size of the grid in one dimension
+        self._size = size
+        # dimensions: 0:goal (not) reached, 1: puddle touched(-1/-2)
+        self.reward_dimension = 2
+        # goal position
+        self.goal = [0, self._size-1]
+        # scene quadradic zeros
+        self._scene = np.zeros((self._size, self._size))
+        # create puddle: the deeper, the greater the regret
+        self._scene[0.1*self._size:0.7*self._size, 0.05*self._size:0.5*self._size+1] = -1
+        self._scene[0.35*self._size:, :0.30*self._size] = 0
+        self._scene[0.10*self._size, :0.3*self._size] = 0
+        self._scene[0.10*self._size, (self._size/2)] = 0
+        self._scene[0.35*self._size:, (self._size/2)] = 0
+        self._scene[0.2*self._size:0.3*self._size, 0.1*self._size:0.5*self._size] = -2
+        self._scene[0.15*self._size:0.65*self._size, 0.35*self._size:0.45*self._size] = -2
+        self._scene[0, self._size-1] = 1
+
+        # all possible states
+        self.intstates = [i for i in xrange(self._size*self._size-1)]
+        # we don't wanna start in goal state
+        del self.intstates[self._size-1]
+        # initial state is randomly selected (non-goal)
+        init = random.choice(self.intstates)
+        self.state = init
+        self.last_state = init
+        self.terminal_state = False
+        # plot
+        self.fig, self.ax = plt.subplots()
+        temp = self._scene
+
+        self.ax.imshow(temp, interpolation='nearest')
+        step = 1.
+        min = 0.
+        rows = temp.shape[0]
+        columns = temp.shape[1]
+        row_arr = np.arange(min, rows)
+        col_arr = np.arange(min, columns)
+        x, y = np.meshgrid(row_arr, col_arr)
+        for col_val, row_val in zip(x.flatten(), y.flatten()):
+            c = int(temp[row_val, col_val])
+            self.ax.text(col_val, row_val, c, va='center', ha='center')
+        plt.show()
+
+    def reset(self):
+        init = random.choice(self.intstates)
+        self.state = init
+        self.last_state = init
+        self.terminal_state = False
+
+    def _get_reward(self, state):
+        position = self._get_position(state)
+        reward = np.zeros(self.reward_dimension)
+        if self._in_map(position) and self._scene[position] < 0:
+            reward[1] = self._scene[position]*10
+        if state == self._size:
+            reward[0] = 1
+        else:
+            reward[0] = -1
+
+        return reward
+
+    def play(self, action):
+        actions = self.actions
+        state = self.state
+
+        position = self._get_position(state)
+        n_position = position + actions[action]
+        if not self._in_map(n_position):
+            self.state = state
+            self.last_state = state
+            reward = self._get_reward(self.state)
+        else:
+            self.last_state = state
+            self.state = self._get_index(n_position)
+            reward = self._get_reward(self.state)
+            if (reward > 0).any():
+                self.terminal_state = True
+        # self.print_map(position)
+        return reward
+
+    def _get_index(self, position):
+        return position[0] * self.scene_x_dim + position[1]
+
+    def _get_position(self, index):
+        return index // self.scene_y_dim, index % self.scene_x_dim
+
+    def _in_map(self, pos):
+        return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
+
+    @property
+    def scene_x_dim(self):
+        return self._size
+
+    @property
+    def scene_y_dim(self):
+        return self._size
+
+    def print_map(self, pos=None):
+        tmp = self._scene
+        if pos:
+            tmp[tuple(pos)] = tmp.max() * 2.0
+        plt.imshow(self._scene, interpolation='nearest')
+        plt.show()
+
+class MORLResourceGatheringProblem:
+
+    def __init__(self):
+        pass
+

@@ -671,7 +671,8 @@ class MORLGridworld(Gridworld):
             self._construct_r()
 
         self.reset()
-
+    def name(self):
+        return "MORL_Gridworld"
     def _get_reward(self, state):
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
@@ -896,6 +897,9 @@ class MORLBurdiansAssProblem(MORLProblem):
         self.count = 0
         self.hunger = 0
 
+    def name(self):
+        return "BuridansAss"
+
     def _get_reward(self, state):
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
@@ -1038,7 +1042,7 @@ class MOPuddleworldProblem(MORLProblem):
         for col_val, row_val in zip(x.flatten(), y.flatten()):
             c = int(temp[row_val, col_val])
             self.ax.text(col_val, row_val, c, va='center', ha='center')
-        plt.show()
+        # plt.show()
 
     def reset(self):
         init = random.choice(self.intstates)
@@ -1057,6 +1061,9 @@ class MOPuddleworldProblem(MORLProblem):
             reward[0] = -1
 
         return reward
+
+    def name(self):
+        return "Puddleworld"
 
     def play(self, action):
         actions = self.actions
@@ -1101,8 +1108,115 @@ class MOPuddleworldProblem(MORLProblem):
         plt.imshow(self._scene, interpolation='nearest')
         plt.show()
 
-class MORLResourceGatheringProblem:
 
-    def __init__(self):
-        pass
+class MORLResourceGatheringProblem:
+    """
+    In this problem the agent has to find the resources and bring them back to the homebase.
+    the enemies are
+    """
+
+    def __init__(self, size=5, gamma=0.9, p = 0.1):
+
+        # available actions:    right,             up,                 left,            down
+        self.actions = (np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]), np.array([1, 0]))
+        self.n_actions = len(self.actions)
+        self.n_actions_print = self.n_actions
+        self.gamma = gamma
+        self.losing_probability = p
+        # size of the grid
+        self.n_states = size * size
+        self.n_states_print = self.n_states
+        # size of the grid in one dimension
+        self._size = size
+        # dimensions: 0:attack of enemy(-1), 1: resource 1 (+1), 2: resource 2 (+1)
+        self.reward_dimension = 3
+        # goal position
+        self._bag = [0, ] * 2
+        # scene quadradic zeros
+        self._scene = np.zeros((self._size, self._size))
+        # enemies
+        self._scene[0, 3] = -1
+        self._scene[1, 2] = -1
+        # resources (are on state 2 and 9):
+        self.resource_state = [2, 9]
+        self._scene[0, 2] = 1
+        self._scene[1, 4] = 1
+        # init state (homebase)
+        self.init = 22
+        self.state = self.init
+        self.last_state = self.init
+        self.terminal_state = False
+
+    def reset(self):
+        self.init = 22
+        self.state = self.init
+        self.last_state = self.init
+        self.terminal_state = False
+
+    def _get_reward(self, state):
+        position = self._get_position(state)
+        reward = np.zeros(self.reward_dimension)
+        # we are 1. in the map, 2. we're on a field where the enemy is and 3. we lost the fight
+        if self._in_map(position) and self._scene[position] < 0 and random.random() < self.losing_probability:
+            # we  get negative reward
+            reward[0] = -1
+            # our resources is stolen
+            self._bag[:] = [0, ] * len(self._bag)
+            # we need to get back to the homebase
+            self.reset()
+            return reward
+        # we are 1. in the map and 2. we found resource:
+        if self._in_map(position) and self._scene[position] > 0:
+            # put the resource in our bag
+            self._bag[self.resource_state.index(state)] = 1
+        # if we're turning back home
+        if self._in_map(position) and state == self.init:
+            # we get reward for the bag (0,1,0), (0,1,1), (0,0,1), or (0,0,0)
+            reward[1:] = self._bag
+        return reward
+
+    def name(self):
+        return "Resource Gathering"
+
+    def play(self, action):
+        actions = self.actions
+        state = self.state
+
+        position = self._get_position(state)
+        n_position = position + actions[action]
+        if not self._in_map(n_position):
+            self.state = state
+            self.last_state = state
+            reward = self._get_reward(self.state)
+        else:
+            self.last_state = state
+            self.state = self._get_index(n_position)
+            reward = self._get_reward(self.state)
+            if (reward > 0).any():
+                self.terminal_state = True
+        return reward
+
+    def _get_index(self, position):
+        return position[0] * self.scene_x_dim + position[1]
+
+    def _get_position(self, index):
+        return index // self.scene_y_dim, index % self.scene_x_dim
+
+    def _in_map(self, pos):
+        return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
+
+    @property
+    def scene_x_dim(self):
+        return self._size
+
+    @property
+    def scene_y_dim(self):
+        return self._size
+
+    def print_map(self, pos=None):
+        tmp = self._scene
+        if pos:
+            tmp[tuple(pos)] = tmp.max() * 2.0
+        plt.imshow(self._scene, interpolation='nearest')
+        plt.show()
 

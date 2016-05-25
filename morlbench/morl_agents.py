@@ -123,7 +123,8 @@ class TDMorlAgent(MorlAgent):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
         self._V[last_state] += self._alpha * (scalar_reward + self._gamma * self._V[state] - self._V[last_state])
 
-        if my_debug: log.debug(' V: %s' % (str(self._V[0:110].reshape((11, 10)))))
+        if my_debug:
+            log.debug(' V: %s' % (str(self._V[0:110].reshape((11, 10)))))
 
     def decide(self, t, state):
         return self._policy.decide(state)
@@ -173,10 +174,12 @@ class SARSAMorlAgent(MorlAgent):
 
     def _learn(self, t, last_state, last_action, action, reward, state):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
-        self._Q[last_state, last_action] += self._alpha * \
-                                            (scalar_reward + self._gamma * self._Q[state, action] - self._Q[
-                                                last_state, last_action])
-        if my_debug: log.debug(' Q: %s' % (str(self._Q)))
+        self._Q[last_state, last_action] += self._alpha * (scalar_reward +
+                                                           self._gamma *
+                                                           self._Q[state, action] -
+                                                           self._Q[last_state, last_action])
+        if my_debug:
+            log.debug(' Q: %s' % (str(self._Q)))
 
     def decide(self, t, state):
         if random.random() < self._epsilon:
@@ -433,8 +436,7 @@ class PreScalarizedQMorlAgent(MorlAgent):
         scalar_reward = np.dot(self._scalarization_weights.T, reward)
 
         self._Q[last_state, action] += self._alpha * \
-                                  (scalar_reward + self._gamma * np.amax(self._Q[state, :]) - self._Q[
-                                      last_state, action])
+            (scalar_reward + self._gamma * np.amax(self._Q[state, :]) - self._Q[last_state, action])
 
         if my_debug:
             log.debug(' Q: %s' % (str(self._Q[state, :])))
@@ -443,10 +445,12 @@ class PreScalarizedQMorlAgent(MorlAgent):
         if random.random() < self._epsilon:
             action = random.choice(np.where(self._Q[state, :] == np.amax(self._Q[state, :]))[0])
 
-            if my_debug: log.debug('  took greedy action %i' % action)
+            if my_debug:
+                log.debug('  took greedy action %i' % action)
             return action
         action = random.randint(0, self._morl_problem.n_actions - 1)
-        if my_debug: log.debug('   took random action %i' % action)
+        if my_debug:
+            log.debug('   took random action %i' % action)
         return action
 
     def get_learned_action(self, state):
@@ -749,7 +753,7 @@ class MORLChebyshevAgent(MorlAgent):
         return dist.ravel()
 
     def name(self):
-        return "chebishev_Q_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()
+        return "chebishev_Q_agent_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()
 
     def _greedy_sel(self, state):
         # state -> quality list
@@ -903,7 +907,7 @@ class MORLHVBAgent(MorlAgent):
         return new_action
 
     def name(self):
-        return "HVB_Q_" + 'e' + str(self._epsilon) + "a" + str(self._alpha)
+        return "HVB_Q_agent_" + 'e' + str(self._epsilon) + "a" + str(self._alpha)
 
     def get_learned_action_distribution(self, state):
         """

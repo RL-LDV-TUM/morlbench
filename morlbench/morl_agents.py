@@ -767,7 +767,7 @@ class MORLChebyshevAgent(MorlAgent):
             # store that value into the list
             sq_list.append(sq)
         # chosen action is the one with greatest sq value
-        new_action = random.choice(np.where(sq_list == max(sq_list))[0])
+        new_action = random.choice(np.where(sq_list == min(sq_list))[0])
         q = np.array(([x for x in self._Q[state, new_action, :]]))
         self.l.append(q)
         # store hv, only if self.l is non-empty (only this way worked for me TODO: find elegant way )
@@ -949,12 +949,84 @@ class MORLHVBAgent(MorlAgent):
         return dist.ravel()
 
 
-class DynMultiCritAverageRewardAgent(MorlAgent):
-    def __init__(self):
-        pass
+class MORLHLearningAgent(MorlAgent):
+    def __init__(self, morl_problem, epsilon, alpha, weights, **kwargs ):
+        super(MORLHLearningAgent, self).__init__(morl_problem, **kwargs)
+        # probability for epsilon greedy
+        self._epsilon = epsilon
+        # weight vector
+        self.w = weights
+        # count of each action an state is left with
+        self.n_action_taken = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
+        self.n_action_taken[:, :] = self._morl_problem.n_states
+        # count of results an action ends with
+        self.n_action_resulted_in = np.ones((self._morl_problem.n_states, self._morl_problem.n_actions,
+                                             self._morl_problem.n_states))
+        # probability of an state action state triple
+        self._probability = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions,
+                                             self._morl_problem.n_states))
+        self._probability[:, :, :] = 1.0/float(self._morl_problem.n_states)
+        # reward for state-state transition
+        self._reward = np.zeros((self._morl_problem.n_states, self._morl_problem.n_states, self._morl_problem.reward_dimension))
+        # h value
+        self._h = np.zeros((self._morl_problem.n_states, self._morl_problem.reward_dimension))
+        # scalar optimal average reward
+        self._rho = np.zeros(self._morl_problem.reward_dimension)
+        # counter for "best action token"
+        self._T = 0
+        self.alpha = alpha
+        self.took_greedy = False
 
-    def decide(self):
-        pass
+    def decide(self, t, state):
+        if random.random() > self._epsilon:
+            return random.randint(0, self._morl_problem.n_actions-1)
+        else:
+            return self._greedy_sel(t, state)
 
-    def _learn(self, state, action):
-        pass
+    def _greedy_sel(self, t, state):
+        a_list = []
+        for action in xrange(self._morl_problem.n_actions):
+            suma = np.sum([self._probability[state, action, i]*self._h[i] for i in range(self._morl_problem.n_states)])
+
+            a_list.append(np.dot((self._reward[state, action] + suma), self.w))
+        self.took_greedy = True
+        return a_list.index(max(a_list))
+
+    def learn(self, t, last_state, action, reward, state):
+        # access private function
+        self._learn(t, last_state, action, reward, state)
+        #  store last action after learning
+        self._last_action = action
+
+    def _learn(self, t, last_state, action, reward, state):
+        # count up action taken from last state
+        self.n_action_taken[last_state, action] += 1
+        # count up state resulted from this state action
+        self.n_action_resulted_in[last_state, action, state] += 1
+        self._probability[last_state, action, state] = self.n_action_resulted_in[last_state, action, state] / \
+                                                self.n_action_taken[last_state, action]
+        self._reward[last_state, action] += (reward - self._reward[last_state, action]) / \
+                                             self.n_action_taken[last_state, action]
+        if self.took_greedy:
+            self.took_greedy = False
+            self._rho = self.alpha*(reward - self._h[last_state] + self._h[state]) + self._rho * (1-self.alpha)
+            # self.alpha = (self.alpha / (0.001 + self.alpha))
+        self._get_h_value(last_state, action)
+
+    def _get_h_value(self, state, action):
+        h_list = []
+        h_list.append(self.w*(self._reward[state, action] + np.sum([self._probability[state, action, next_state]*self._h[next_state,:]
+                                                         for next_state in xrange(self._morl_problem.n_states)], axis=0)))
+        self._h[state] = max(h_list) - self._rho
+
+    def get_learned_action(self, state):
+        """
+        uses epsilon greedy and hvb action selection
+        :param state: state the agent is
+        :return: action to do next
+        """
+        # get action out of max q value of n_objective-dimensional matrix
+        if random.random() < self._epsilon:
+            return self._greedy_sel(0, state)
+        else:
+            return random.randint(0, self._morl_problem.n_actions-1)

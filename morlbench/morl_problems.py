@@ -168,6 +168,9 @@ class Deepsea(MORLProblem):
         if self.R is None:
             self._construct_r()
 
+    def name(self):
+        return "Deepsea"
+
     def _construct_p(self):
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self._scene.shape[0]):

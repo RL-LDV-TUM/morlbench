@@ -16,7 +16,7 @@ from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
-from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent
+from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent, MORLHLearningAgent
 from morlbench.morl_problems import MORLGridworld, MORLBurdiansAssProblem, MOPuddleworldProblem, \
     MORLResourceGatheringProblem
 from morlbench.experiment_helpers import morl_interact_multiple
@@ -49,6 +49,7 @@ class TestAgents(unittest2.TestCase):
         # create one agent using Hypervolume based Algorithm
         self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=self.alfahvb, epsilon=self.eps, ref=self.ref,
                                      scal_weights=[1.0, 10.0])
+        self.hagent = MORLHLearningAgent(self.problem, self.eps, self.alf)
         # both agents interact (times):
         self.interactions = 2
 
@@ -70,15 +71,16 @@ class TestLearning(TestAgents):
 
     def runInteractions(self):
         # make the interactions
-        payouts, moves, states = morl_interact_multiple(self.chebyagent, self.gridworldproblem, self.interactions,
-                                                        max_episode_length=150)
-        print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
-              str(states[:]) + '\n')
-
-        payouts2, moves2, states2 = morl_interact_multiple(self.hvbagent, self.gridworldproblem, self.interactions,
-                                                           max_episode_length=150)
-        print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
-              str(states2[:]) + '\n')
+        p,m,s = morl_interact_multiple(self.hagent, self.problem, self.interactions)
+        # payouts, moves, states = morl_interact_multiple(self.chebyagent, self.gridworldproblem, self.interactions,
+        #                                                 max_episode_length=150)
+        # print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
+        #       str(states[:]) + '\n')
+        #
+        # payouts2, moves2, states2 = morl_interact_multiple(self.hvbagent, self.gridworldproblem, self.interactions,
+        #                                                    max_episode_length=150)
+        # print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
+        #       str(states2[:]) + '\n')
 
     def testWeightVariation(self):
         """

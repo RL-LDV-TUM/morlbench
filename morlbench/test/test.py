@@ -313,8 +313,8 @@ class TestPuddleworld(TestProblems):
         order = [1]
         for i in order:
             r = self.puddleworldproblem.play(i)
-        reward = tuple([e for e in r])
-        self.assertTupleEqual(reward, (-1.0, 0.0), 'reward of going doesn\'t fit')
+        reward = r[1]
+        self.assertEqual(reward, -1.0, 'reward of going doesn\'t fit')
 
     def testPuddleReward(self):
         self.puddleworldproblem.reset()

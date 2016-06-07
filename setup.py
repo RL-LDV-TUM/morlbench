@@ -14,7 +14,7 @@ setup(name='MORL Framework',
           'neurolab',
           'cvxopt',
           'unittest2',
-          'inspyred',
+          #'inspyred',
           'scipy'
       ]
       )

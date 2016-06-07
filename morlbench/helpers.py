@@ -15,7 +15,7 @@ import cPickle as pickle
 from os.path import isfile
 from operator import itemgetter
 import numpy as np
-from inspyred.ec.analysis import hypervolume
+#from inspyred.ec.analysis import hypervolume
 import math
 import time
 from functools import wraps

@@ -13,23 +13,31 @@ import progressbar as pgbar
 
 my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
 
+
 def interact_multiple(agent, problem, interactions):
     """
     Interact multiple times with the problem and then
     return arrays of actions chosen and payouts received
     in each stage.
     """
+    # storage
     payouts = []
     actions = []
     log.info('Playing %i interactions ... ' % (interactions))
+    # playing for %interaction times
     for t in xrange(interactions):
+        # first decide witch action to take in current state
         action = agent.decide(t)
+        # take that action
         payout = problem.play(action)
+        # learn from taken action
         agent.learn(t, action, payout)
         if my_debug: log.debug(' step %05i: action: %i, payout: %f' %
                   (t, action, payout))
+        # store the reward and action history
         payouts.append(payout)
         actions.append(action)
+    # return numpy arrays
     payouts = np.array(payouts)
     actions = np.array(actions)
     return actions, payouts
@@ -41,7 +49,7 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
     problem and then return arrays of actions chosen and
     payouts received in each stage.
     """
-
+    # storage for interactions
     final_rewards = []
     moves = []
     states = []
@@ -50,21 +58,28 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
     pbar = pgbar.ProgressBar(widgets=['Interactions ', pgbar.SimpleProgress('/'), ' (', pgbar.Percentage(), ') ',
                                       pgbar.Bar(), ' ', pgbar.ETA()], maxval=interactions)
     pbar.start()
+    # play for %interactions times
     for i in xrange(interactions):
-
+        # storage for episodes
         rewards = []
         actions = []
         tmp_states = []
         problem.reset()
+        # obtain current state
         state = problem.state
+        # store current state as last state
         last_state = state
+        # go as long as the problem isn't in a final state or the max number of episode steps is reached
         for t in xrange(max_episode_length):
+            # decide which action to take next
             action = agent.decide(t, problem.state)
+            # take that action and recieve reward
             reward = problem.play(action)
 
-            if my_debug: log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
-                      (t, problem.last_state, action, str(reward), problem.state))
-
+            if my_debug:
+                log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
+                          (t, problem.last_state, action, str(reward), problem.state))
+            # learn from that action
             agent.learn(t, problem.last_state, action, reward, problem.state)
 
             # Preserve reward, action and state
@@ -83,6 +98,7 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
     # newline to fix output of pgbar
     print ""
     return np.array(final_rewards), np.array(moves), np.array(states)
+
 
 def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, max_episode_length=150):
     """
@@ -112,8 +128,9 @@ def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, ma
                 action = agent.decide(t, problem.state)
                 reward = problem.play(action)
                 state = problem.state
-                if my_debug: log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
-                          (t, problem.last_state, action, str(reward), problem.state))
+                if my_debug:
+                    log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
+                              (t, problem.last_state, action, str(reward), problem.state))
                 agent.learn(t, problem.last_state, action, reward, problem.state)
 
                 # Preserve reward, action and state
@@ -146,7 +163,7 @@ def interact_multiple_twoplayer(agent1, agent2, problem, interactions,
     return arrays of actions chosen and payouts received
     in each stage.
     """
-    #TODO: Make this more flexible instead of tedious code duplication.
+    # TODO: Make this more flexible instead of tedious code duplication.
     payouts1 = []
     actions1 = []
     payouts2 = []

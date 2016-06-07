@@ -7,7 +7,7 @@ setup(name='RL Framework',
       description='Framework for Reinforcement Learning agents',
       packages=find_packages(),
       install_requires=[
-          'matplotlib',
+          # 'matplotlib',
           'numpy',
           'datetime',
           'joblib',

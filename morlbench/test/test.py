@@ -36,7 +36,7 @@ class TestAgents(unittest2.TestCase):
         # tau is for chebyshev agent
         self.tau = 1.0
         # ref point is used for Hypervolume calculation
-        self.ref = [-10.0, 0.0, 0.0]
+        self.ref = [-1.0, -1.0, -1.0]
         # learning rate
         self.alf = 0.1
         self.alfacheb = 0.1
@@ -49,9 +49,9 @@ class TestAgents(unittest2.TestCase):
         # create one agent using Hypervolume based Algorithm
         self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=self.alfahvb, epsilon=self.eps, ref=self.ref,
                                      scal_weights=[1.0, 10.0])
-        self.hagent = MORLHLearningAgent(self.problem, self.eps, self.alf)
+        self.hagent = MORLHLearningAgent(self.problem, self.eps, self.alf, self.scalarization_weights)
         # both agents interact (times):
-        self.interactions = 2
+        self.interactions = 20
 
 
 class TestLearning(TestAgents):
@@ -72,15 +72,15 @@ class TestLearning(TestAgents):
     def runInteractions(self):
         # make the interactions
         p,m,s = morl_interact_multiple(self.hagent, self.problem, self.interactions)
-        # payouts, moves, states = morl_interact_multiple(self.chebyagent, self.gridworldproblem, self.interactions,
-        #                                                 max_episode_length=150)
-        # print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
-        #       str(states[:]) + '\n')
-        #
-        # payouts2, moves2, states2 = morl_interact_multiple(self.hvbagent, self.gridworldproblem, self.interactions,
-        #                                                    max_episode_length=150)
-        # print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
-        #       str(states2[:]) + '\n')
+        payouts, moves, states = morl_interact_multiple(self.chebyagent, self.gridworldproblem, self.interactions,
+                                                         max_episode_length=150)
+        print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
+              str(states[:]) + '\n')
+
+        payouts2, moves2, states2 = morl_interact_multiple(self.hvbagent, self.gridworldproblem, self.interactions,
+                                                           max_episode_length=150)
+        print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
+              str(states2[:]) + '\n')
 
     def testWeightVariation(self):
         """
@@ -104,7 +104,7 @@ class TestLearning(TestAgents):
         self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.5, 0.0, 0.5], alpha=self.alf, epsilon=self.eps,
                                               tau=self.tau, ref_point=self.ref))
         self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.33, 0.33, 0.33], alpha=self.alf,
-                                             epsilon=self.eps, tau=self.tau, ref_point=self.ref))
+                                              epsilon=self.eps, tau=self.tau, ref_point=self.ref))
 
         # interact with each
         for agent in self.agents:
@@ -116,29 +116,29 @@ class TestLearning(TestAgents):
             self.vollist.append(maxvol)
 
         # cut longer lists
-        length = min([len(x) for x in self.vollist])
+        length = max([len(x) for x in self.vollist])
         for lists in self.vollist:
-            del lists[length:]
+            for i in range(len(lists), length):
+                lists.append(lists[i-1])
+
         # create x vectors
         x = np.arange(length)
         # colour vector
-        plt.subplot(121)
+        plt.figure()
         colours = ['r', 'b', 'g', 'k', 'y', 'm']
-        for lists in self.vollist:
+        for i in xrange(len(self.vollist)):
             # printed name for label
-            weights = self.agents[self.vollist.index(lists)]._w
+            weights = self.agents[i]._w
             name = 'weights:'
-            for i in xrange(len(weights)):
-                name += str(weights[i])+'_'
-            # no last underline
-            name = name[:len(name)-1]
+            name += str(weights)
             # plotting
-            plt.plot(x, lists, colours[self.vollist.index(lists)], label=name)
+            plt.plot(x, self.vollist[i], colours[i], label=name)
         # size of axes
         plt.axis([0-0.01*len(x), len(x), 0, 1.1*max([max(x) for x in self.vollist])])
         # position the legend
         plt.legend(loc='lower right', frameon=False)
         # show!
+        plt.show()
 
 
 class TestHyperVolumeCalculator(unittest2.TestCase):
@@ -249,7 +249,7 @@ class TestBuridan(TestProblems):
     def testPlay(self):
         # tests if we get negative hunger reward if we go on 10 steps without eating
         self.buridansassproblem.reset()
-        order = [1, 2, 3, 4, 4, 3, 2, 2, 1]
+        order = [1, 2, 3, 4, 4, 3, 2, 2, 1, 2]
         for i in order:
             r = self.buridansassproblem.play(i)
         reward = r[0]

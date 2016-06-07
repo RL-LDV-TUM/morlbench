@@ -1,4 +1,4 @@
-from morlbench.morl_problems import Deepsea
+from morlbench.morl_problems import MOPuddleworldProblem
 from morlbench.morl_agents import MORLChebyshevAgent
 from morlbench.experiment_helpers import morl_interact_multiple
 from morlbench.morl_policies import PolicyFromAgent
@@ -10,17 +10,17 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     # create Problem
-    problem = Deepsea()
+    problem = MOPuddleworldProblem()
     # create an initialize randomly a weight vector
-    scalarization_weights = [0.0, 1.0]
+    scalarization_weights = [1.0, 0.0]
     # tau is for chebyshev agent
-    tau = 4.0
+    tau = 10.0
     # ref point is used for Hypervolume calculation
-    ref = [-25.0, -1.0]
+    ref = [-1.0, -1.0]
     # learning rate
-    alfacheb = 0.1
+    alfacheb = 0.11
     # Propability of epsilon greedy selection
-    eps = 0.6
+    eps = 0.1
     # create one agent using chebyshev scalarization method
     chebyagent = MORLChebyshevAgent(problem, epsilon=eps, alpha=alfacheb, scalarization_weights=scalarization_weights,
                                     ref_point=ref, tau=tau,)

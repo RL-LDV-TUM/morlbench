@@ -17,6 +17,9 @@ from operator import itemgetter
 import numpy as np
 from inspyred.ec.analysis import hypervolume
 import math
+import time
+from functools import wraps
+
 def virtualFunction():
     raise RuntimeError('Virtual function not implemented.')
 
@@ -128,14 +131,14 @@ class HyperVolumeCalculator:
             return 0
         # special algorithm for 2 dimensions
         if dimensions == 2:
-            front = self.pareto_front_2_dim(given_points)
+            front = self.pareto_optimal_front_2_dim(given_points)
             return front
         # for all other dimensions
         if dimensions > 2:
-            front = self.pareto_front_d_dim(given_points)
+            front = self.pareto_optimal_front_d_dim(given_points)
             return front
 
-    def pareto_front_2_dim(self, points):
+    def pareto_optimal_front_2_dim(self, points):
         """
         this function extracts pareto front from 2 dim data set
         :param points: 2d - data - set
@@ -154,9 +157,9 @@ class HyperVolumeCalculator:
                 pareto_front.append(pair)
         return pareto_front
 
-    def pareto_front_d_dim(self, points):
+    def pareto_optimal_front_d_dim(self, points):
         """
-        this function extracts pareto front from d dimensional data set
+        this function extracts pareto optimal front from d dimensional data set
         :param points: d dimensional data points which should be analysed
         :return: pareto front of the input point set
         """
@@ -259,3 +262,15 @@ class HyperVolumeCalculator:
             vol = vol + x * math.fabs(ql[0][n - 1] - ref[n - 1])
         return vol
 
+
+def fn_timer(function):
+    @wraps(function)
+    def function_timer(*args, **kwargs):
+        t0 = time.time()
+        result = function(*args, **kwargs)
+        t1 = time.time()
+        print ("Total time running %s: %s seconds" %
+               (function.func_name, str(t1-t0))
+               )
+        return result
+    return function_timer

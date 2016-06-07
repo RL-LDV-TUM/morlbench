@@ -1013,7 +1013,7 @@ class MORLHLearningAgent(MorlAgent):
         if self.took_greedy:
             self.took_greedy = False
             self._rho = self.alpha*(reward - self._h[last_state] + self._h[state]) + self._rho * (1-self.alpha)
-            self.alpha = (self.alpha / (0.001 + self.alpha))
+            self.alpha = (self.alpha / (1 + self.alpha))
         self._get_h_value(last_state, action)
 
     def _get_h_value(self, state, action):
@@ -1026,13 +1026,17 @@ class MORLHLearningAgent(MorlAgent):
 
     def get_learned_action(self, state):
         """
-        uses epsilon greedy and hvb action selection
+        uses epsilon greedy and h action selection
         :param state: state the agent is
         :return: action to do next
         """
         # get action out of max q value of n_objective-dimensional matrix
+        temp = self._epsilon
+        self._epsilon = 1
         if random.random() < self._epsilon:
+            self._epsilon = temp
             return self._greedy_sel(0, state)
+
         else:
             return random.randint(0, self._morl_problem.n_actions-1)
 

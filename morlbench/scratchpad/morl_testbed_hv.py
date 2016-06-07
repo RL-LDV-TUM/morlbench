@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     # create Problem
-    problem = Deepsea()
+    problem = MOPuddleworldProblem()
     # create an initialize randomly a weight vector
     scalarization_weights = np.zeros(problem.reward_dimension)
     scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)], len(scalarization_weights))

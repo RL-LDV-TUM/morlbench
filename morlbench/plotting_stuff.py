@@ -104,3 +104,20 @@ def plot_that_pretty_rldm15(xdata=[], ydata=[], labels=[],
         # plt.savefig(output_filename)
         plt.savefig(output_filename, bbox_extra_artists=linelabels,
                     bbox_inches='tight')
+
+
+def show_exploration(states, n_states):
+    # create histogramm data
+    state_distribution = np.zeros((n_states))
+    for i in range(n_states):
+        for j in range(len(states)):
+            state_distribution[i] += states.count(i)
+    state_distribution[:] = state_distribution[:]/float(state_distribution.max())
+    plt.axis([0, n_states, 0, 1])
+    n, bins, patches = plt.hist(state_distribution, (len(state_distribution)))
+    plt.xlabel('state')
+    plt.ylabel('frequency')
+    # print(str(state_distribution.max())+str(state_distribution.argmax()))
+    plt.grid(False)
+    plt.show()
+

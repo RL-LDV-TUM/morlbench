@@ -674,8 +674,10 @@ class MORLGridworld(Gridworld):
             self._construct_r()
 
         self.reset()
+
     def name(self):
         return "MORL_Gridworld"
+
     def _get_reward(self, state):
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
@@ -843,7 +845,7 @@ class MORLGridworldStatic(Gridworld):
         return reward
 
 
-class MORLBurdiansAssProblem(MORLProblem):
+class MORLBuridansAssProblem(MORLProblem):
     """
     This problem contains buridans ass domain. An ass starts (usually) in a 3x3 grid in the middle position (1,1)
     in the top left and the bottom right corner there is a pile of food. if the ass moves away from a visible food state,
@@ -863,6 +865,7 @@ class MORLBurdiansAssProblem(MORLProblem):
         # steps until new food is generated
         self.n_appear = n_appear
         self.gamma = gamma
+
 
         # size of the grid
         self.n_states = size * size
@@ -891,6 +894,9 @@ class MORLBurdiansAssProblem(MORLProblem):
         self.count = 0
         # counting variable for hunger
         self.hunger = 0
+        self._flat_map = np.argwhere(self._scene >= 0)  # get all indices greater than zero
+        # get all elements greater than zero and stack them to the corresponding index
+        self._flat_map = np.column_stack((self._flat_map,  self._scene[self._scene >= 0]))
 
     def reset(self):
         init = (self._size*self._size)/2
@@ -899,6 +905,8 @@ class MORLBurdiansAssProblem(MORLProblem):
         self.terminal_state = False
         self.count = 0
         self.hunger = 0
+        self._scene[self._size-1, self._size-1] = 1
+        self._scene[0, 0] = 1
 
     def name(self):
         return "BuridansAss"
@@ -911,12 +919,12 @@ class MORLBurdiansAssProblem(MORLProblem):
         if self._get_distance(position, self.food1) > self.max_distance and random.random() <\
                 self.steal_probability:
             self._scene[self.food1] = 0
-            reward[1] -= 0.5
+            reward[1] = -0.5
         # same for food no. 2
         if self._get_distance(position, self.food2) > self.max_distance and random.random() <\
                 self.steal_probability:
             self._scene[self.food2] = 0
-            reward[1] -= 0.5
+            reward[1] = -0.5
         # check if we're eating something and reward, finally resetting hunger
         if self._in_map(position) and self._scene[position] > 0 and self.last_state == self.state:
             reward[0] = 1
@@ -924,7 +932,7 @@ class MORLBurdiansAssProblem(MORLProblem):
         else:
             # negative reward if we're walking to much without food
             self.hunger += 1
-            if self.hunger > 8:
+            if self.hunger > 9:
                 reward[0] = -1
         # check if we're walking. if positive, reward: -1
         if self.last_state != self.state:
@@ -1045,6 +1053,9 @@ class MOPuddleworldProblem(MORLProblem):
         for col_val, row_val in zip(x.flatten(), y.flatten()):
             c = int(temp[row_val, col_val])
             self.ax.text(col_val, row_val, c, va='center', ha='center')
+        self._flat_map = np.argwhere(self._scene >= 0)  # get all indices greater than zero
+        # get all elements greater than zero and stack them to the corresponding index
+        self._flat_map = np.column_stack((self._flat_map,  self._scene[self._scene >= 0]))
         # plt.show()
 
     def reset(self):

@@ -16,11 +16,12 @@ import cPickle as pickle
 log.basicConfig(level=log.INFO)
 
 
-from morlbench.morl_problems import Deepsea, MORLGridworld, MORLGridworldTime
-from morlbench.morl_agents import MORLChebyshevAgent, QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent
+from morlbench.morl_problems import Deepsea, MORLGridworld, MORLGridworldTime, MORLBuridansAssProblem
+from morlbench.morl_agents import MORLChebyshevAgent, QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent,\
+    SARSAMorlAgent, MORLHVBAgent
 from morlbench.morl_policies import PolicyFromAgent, PolicyGridworld
 from morlbench.inverse_morl import InverseMORLIRL
-from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_heat_plot
+from morlbench.plot_heatmap import policy_plot2, transition_map, heatmap_matplot, policy_heat_plot
 from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
 from morlbench.experiment_helpers import morl_interact_multiple, morl_interact_multiple_average
 from morlbench.plotting_stuff import show_exploration
@@ -33,7 +34,7 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
-    runs = 1
+    runs = 5
 
     saved_weights = []
     plt.ion()
@@ -43,9 +44,9 @@ if __name__ == '__main__':
         problem = MORLGridworld()
         #problem = MORLGridworldTime()
 
-        scalarization_weights = np.array([10.0, 0.0, 10.0])
+        scalarization_weights = np.array([0.0, 1.0, 0.0])
 
-        eps = 0.6
+        eps = 0.1
         alfa = 0.3
         tau = 1.0
 
@@ -55,13 +56,15 @@ if __name__ == '__main__':
         #agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-        agent = MORLChebyshevAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.9)
-        #
+        # agent = MORLChebyshevAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.9,
+        #                           ref_point=[-1.0, -1.0, -1.0])
+        agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.6, ref=[-1.0, -1.0, -1.0], scal_weights=[1.0, 10.0])
+
         # payouts, moves, states = morl_interact_multiple_average(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
         payouts, moves, states = morl_interact_multiple(agent, problem, interactions=interactions, max_episode_length=150)
         log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
-       # show_exploration(states, problem.n_states)
+        # show_exploration(states, problem.n_states)
         # learned_policy = PolicyFromAgent(problem, agent, mode='gibbs')
         # learned_policy = PolicyFromAgent(problem, agent, mode='None')
         learned_policy = PolicyFromAgent(problem, agent, mode='greedy')
@@ -76,7 +79,7 @@ if __name__ == '__main__':
         i_morl = InverseMORLIRL(problem, learned_policy)
         scalarization_weights_alge = i_morl.solvealge()
         #
-        # log.info("scalarization weights (alge): %s" % (str(scalarization_weights_alge)))
+        log.info("scalarization weights (alge): %s" % (str(scalarization_weights_alge)))
         #
         #
         # problem2 = MORLGridworldTime()
@@ -99,10 +102,10 @@ if __name__ == '__main__':
         fName1 = expName + str(i) + '_learned'
         fName2 = expName + str(i) + '_retrieved'
 
-        #policy_plot2(problem, learned_policy)
+        policy_plot2(problem, learned_policy)
         policy_heat_plot(problem, learned_policy, states, filename=fName1)
         # plt.ioff()
-        # policy_plot2(problem2, learned_policy2)
+        #policy_plot2(problem2, learned_policy2)
         #policy_heat_plot(problem2, learned_policy2, states2, filename=fName2)
 
     output = np.array(saved_weights)

@@ -121,3 +121,41 @@ def show_exploration(states, n_states):
     plt.grid(False)
     plt.show()
 
+
+def plot_hypervolume(agents, problem, name='agent'):
+    volumes_list = dict()
+    for agent in xrange(len(agents)):
+        volumes = [0]
+        volumes.extend(agents[agent].max_volumes)
+        volumes_list[agent] = volumes
+    maxlen = max([len(vol) for vol in volumes_list.values()])
+    # extend shorter lists
+    for volumes in volumes_list.values():
+        for i in range(maxlen-len(volumes)):
+            volumes.append(volumes[len(volumes)-1])
+    x = np.arange(maxlen)
+
+    ##################################
+    #               PLOT             #
+    ##################################
+    plt.figure()
+    paretofront = [max([max(vol) for vol in volumes_list.values()]), ] * maxlen
+    title = problem.name()
+    if name == 'weights':
+        title += ' '
+        title += agents[0].name()
+    plt.title(title)
+    colours = ['r', 'b', 'g', 'k', 'y', 'm', 'ro', 'bx']
+    for i in range(len(volumes_list)):
+        if name == 'agent':
+            plt.plot(x, volumes_list[i], colours[i], label=agents[i].name())
+        if name == 'weights':
+            plt.plot(x, volumes_list[i], colours[i], label=str(agents[i]._w))
+    plt.plot(x, paretofront, 'g--', label="Paretofront")
+    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
+    plt.axis([0-0.01*len(x), len(x), 0, 1.1*max([max(vol) for vol in volumes_list.values()])])
+    plt.xlabel('interactions')
+    plt.ylabel('hypervolume')
+    plt.grid(True)
+    plt.show()
+

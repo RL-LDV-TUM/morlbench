@@ -17,24 +17,25 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent, MORLHLearningAgent
-from morlbench.morl_problems import MORLGridworld, MORLBurdiansAssProblem, MOPuddleworldProblem, \
+from morlbench.morl_problems import MORLGridworld, MORLBuridansAssProblem, MOPuddleworldProblem, \
     MORLResourceGatheringProblem
 from morlbench.experiment_helpers import morl_interact_multiple
 from morlbench.helpers import HyperVolumeCalculator
+from morlbench.plotting_stuff import plot_hypervolume
 
 
 class TestAgents(unittest2.TestCase):
 
     def setUp(self):
         # create Problem
-        self.gridworldproblem = MORLGridworld()
+        self.gridworldproblem = MORLBuridansAssProblem()
         self.problem = MOPuddleworldProblem()
         # create an initialize randomly a weight vector
         self.scalarization_weights = np.zeros(self.problem.reward_dimension)
         self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],
                                                    len(self.scalarization_weights))
         # tau is for chebyshev agent
-        self.tau = 1.0
+        self.tau = 4.0
         # ref point is used for Hypervolume calculation
         self.ref = [-1.0, -1.0, -1.0]
         # learning rate
@@ -44,14 +45,14 @@ class TestAgents(unittest2.TestCase):
         # Propability of epsilon greedy selection
         self.eps = 0.1
         # create one agent using chebyshev scalarization method
-        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [1.0, 1.0, 1.0], alpha=self.alfacheb, epsilon=self.eps,
+        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [1.0, 0.0, 0.0], alpha=self.alfacheb, epsilon=self.eps,
                                              tau=self.tau, ref_point=self.ref)
         # create one agent using Hypervolume based Algorithm
         self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=self.alfahvb, epsilon=self.eps, ref=self.ref,
                                      scal_weights=[1.0, 10.0])
         self.hagent = MORLHLearningAgent(self.problem, self.eps, self.alf, self.scalarization_weights)
         # both agents interact (times):
-        self.interactions = 20
+        self.interactions = 200
 
 
 class TestLearning(TestAgents):
@@ -110,35 +111,8 @@ class TestLearning(TestAgents):
         for agent in self.agents:
             p, a, s = morl_interact_multiple(agent, self.gridworldproblem, self.interactions,
                                              max_episode_length=150)
-            # store all volumes containing (0,0)
-            maxvol = [0]
-            maxvol.extend(agent.max_volumes)
-            self.vollist.append(maxvol)
 
-        # cut longer lists
-        length = max([len(x) for x in self.vollist])
-        for lists in self.vollist:
-            for i in range(len(lists), length):
-                lists.append(lists[i-1])
-
-        # create x vectors
-        x = np.arange(length)
-        # colour vector
-        plt.figure()
-        colours = ['r', 'b', 'g', 'k', 'y', 'm']
-        for i in xrange(len(self.vollist)):
-            # printed name for label
-            weights = self.agents[i]._w
-            name = 'weights:'
-            name += str(weights)
-            # plotting
-            plt.plot(x, self.vollist[i], colours[i], label=name)
-        # size of axes
-        plt.axis([0-0.01*len(x), len(x), 0, 1.1*max([max(x) for x in self.vollist])])
-        # position the legend
-        plt.legend(loc='lower right', frameon=False)
-        # show!
-        plt.show()
+        plot_hypervolume(self.agents, self.agents[0]._morl_problem, name='weights')
 
 
 class TestHyperVolumeCalculator(unittest2.TestCase):

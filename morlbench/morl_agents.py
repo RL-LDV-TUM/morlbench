@@ -682,6 +682,21 @@ class MORLChebyshevAgent(MorlAgent):
         self.max_volumes = []
         # storage for the volumes optained in ONE interaction
         self.temp_vol = []
+        self._Q_save = []
+
+    def reset(self):
+        self._z = np.zeros(self._morl_problem.reward_dimension)
+        self._Q = np.zeros(self.q_shape)
+        self.max_volumes = []
+
+    def save(self):
+        self._Q_save.append(self._Q)
+
+    def restore(self):
+        tmp = np.zeros_like(self._Q)
+        for i in self._Q_save:
+            tmp += i
+        self._Q = np.divide(tmp, self._Q_save.__len__())
 
     def decide(self, t, state):
         """
@@ -757,7 +772,7 @@ class MORLChebyshevAgent(MorlAgent):
         return dist.ravel()
 
     def name(self):
-        return "chebishev_Q_agent_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + self._w.ravel().tolist().__str__()
+        return "chebishev_Q_agent_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._w)
 
     def _greedy_sel(self, state):
         # state -> quality list
@@ -934,8 +949,11 @@ class MORLHVBAgent(MorlAgent):
         :param state: state the agent is
         :return: action to do next
         """
+        temp = self._epsilon
+        self._epsilon = 1
         # get action out of max q value of n_objective-dimensional matrix
         if random.random() < self._epsilon:
+            self._epsilon = temp
             return self._greedy_sel(state)
         else:
             return random.randint(0, self._morl_problem.n_actions-1)

@@ -61,6 +61,8 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
     # play for %interactions times
     for i in xrange(interactions):
         # storage for episodes
+        if i == 0.4*interactions:
+            agent._epsilon = 0.9
         rewards = []
         actions = []
         tmp_states = []
@@ -110,14 +112,17 @@ def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, ma
     final_rewards = []
     moves = []
     states = []
+    eps_start = agent._epsilon
 
     log.info('Playing %i runs with %i interactions each... ', runs, interactions)
     pbar = pgbar.ProgressBar(widgets=['Runs ', pgbar.SimpleProgress('/'), ' (', pgbar.Percentage(), ') ',
                                       pgbar.Bar(), ' ', pgbar.ETA()], maxval=runs)
     pbar.start()
     for r in xrange(runs):
-
+        agent._epsilon = eps_start
         for i in xrange(interactions):
+            if i == 0.5*interactions:
+                agent._epsilon = 0.9
             rewards = []
             actions = []
             tmp_states = []

@@ -7,7 +7,7 @@ Created on Jun 07, 2016
 """
 import numpy as np
 from morlbench.morl_agents_multiple_crit import MultipleCriteriaH
-from morlbench.morl_problems import MORLBurdiansAssProblem, MOPuddleworldProblem
+from morlbench.morl_problems import MORLBuridansAssProblem, MOPuddleworldProblem
 from morlbench.morl_policies import PolicyFromAgent
 from morlbench.plot_heatmap import policy_heat_plot, policy_plot2, policy_plot
 

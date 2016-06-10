@@ -19,7 +19,7 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent, MORLHLearningAgent
 from morlbench.morl_problems import MORLGridworld, MORLBuridansAssProblem, MOPuddleworldProblem, \
     MORLResourceGatheringProblem
-from morlbench.experiment_helpers import morl_interact_multiple
+from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.helpers import HyperVolumeCalculator
 from morlbench.plotting_stuff import plot_hypervolume
 
@@ -72,14 +72,14 @@ class TestLearning(TestAgents):
 
     def runInteractions(self):
         # make the interactions
-        p,m,s = morl_interact_multiple(self.hagent, self.problem, self.interactions)
-        payouts, moves, states = morl_interact_multiple(self.chebyagent, self.gridworldproblem, self.interactions,
-                                                         max_episode_length=150)
+        p,m,s = morl_interact_multiple_episodic(self.hagent, self.problem, self.interactions)
+        payouts, moves, states = morl_interact_multiple_episodic(self.chebyagent, self.gridworldproblem, self.interactions,
+                                                                 max_episode_length=150)
         print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
               str(states[:]) + '\n')
 
-        payouts2, moves2, states2 = morl_interact_multiple(self.hvbagent, self.gridworldproblem, self.interactions,
-                                                           max_episode_length=150)
+        payouts2, moves2, states2 = morl_interact_multiple_episodic(self.hvbagent, self.gridworldproblem, self.interactions,
+                                                                    max_episode_length=150)
         print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
               str(states2[:]) + '\n')
 
@@ -109,8 +109,8 @@ class TestLearning(TestAgents):
 
         # interact with each
         for agent in self.agents:
-            p, a, s = morl_interact_multiple(agent, self.gridworldproblem, self.interactions,
-                                             max_episode_length=150)
+            p, a, s = morl_interact_multiple_episodic(agent, self.gridworldproblem, self.interactions,
+                                                      max_episode_length=150)
 
         plot_hypervolume(self.agents, self.agents[0]._morl_problem, name='weights')
 

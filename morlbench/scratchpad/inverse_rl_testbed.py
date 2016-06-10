@@ -22,7 +22,7 @@ from morlbench.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterminis
 from morlbench.inverse_morl import InverseMORLIRL
 from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
 from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
-from morlbench.experiment_helpers import morl_interact_multiple, morl_interact_multiple_average
+from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_interact_multiple_average_episodic
 
 import matplotlib.pyplot as plt
 
@@ -39,7 +39,7 @@ if __name__ == '__main__':
     interactions = 50000
 
     agent_optimal = PreScalarizedQMorlAgent(problem, scalarization_weights_groundtruth, alpha=alfa, epsilon=eps)
-    payouts, moves, states = morl_interact_multiple(agent_optimal, problem, interactions, max_episode_length=150)
+    payouts, moves, states = morl_interact_multiple_episodic(agent_optimal, problem, interactions, max_episode_length=150)
 
     # policy_optimal = PolicyDeepseaDeterministic(problem, policy='P5')
     # policy_human = PolicyDeepseaExpert(problem, task='T3')
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     agent2 = PreScalarizedQMorlAgent(problem2, scalarization_weights_alge, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights_alge, alpha=alfa, epsilon=eps, lmbda=0.9)
 
-    payouts2, moves2, states2 = morl_interact_multiple(agent2, problem2, interactions, max_episode_length=150)
+    payouts2, moves2, states2 = morl_interact_multiple_episodic(agent2, problem2, interactions, max_episode_length=150)
 
     #plt.ion()
 

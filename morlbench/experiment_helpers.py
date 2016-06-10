@@ -43,7 +43,7 @@ def interact_multiple(agent, problem, interactions):
     return actions, payouts
 
 
-def morl_interact_multiple(agent, problem, interactions, max_episode_length=150):
+def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_length=150):
     """
     Interact multiple times with the multi objective RL
     problem and then return arrays of actions chosen and
@@ -61,6 +61,7 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
     # play for %interactions times
     for i in xrange(interactions):
         # storage for episodes
+        raise RuntimeError("What are those constants doing here?")
         if i == 0.4*interactions:
             agent._epsilon = 0.9
         rewards = []
@@ -102,7 +103,62 @@ def morl_interact_multiple(agent, problem, interactions, max_episode_length=150)
     return np.array(final_rewards), np.array(moves), np.array(states)
 
 
-def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, max_episode_length=150):
+def morl_interact_multiple(agent, problem, interactions, max_steps):
+    """
+    Interact multiple times with the multi objective RL
+    problem and then return arrays of actions chosen and
+    payouts received in each stage.
+    """
+    # storage for interactions
+    average_rewards_per_run = []
+    moves = []
+    states = []
+
+    log.info('Playing %i interactions ... ' % interactions)
+    pbar = pgbar.ProgressBar(widgets=['Interactions ', pgbar.SimpleProgress('/'), ' (', pgbar.Percentage(), ') ',
+                                      pgbar.Bar(), ' ', pgbar.ETA()], maxval=interactions)
+    pbar.start()
+    # play for %interactions times
+    for i in xrange(interactions):
+        # storage for interactions
+        rewards = []
+        actions = []
+        tmp_states = []
+        problem.reset()
+        # obtain current state
+        state = problem.state
+        # store current state as last state
+        last_state = state
+        # go as long as the problem isn't in a final state or the max number of episode steps is reached
+        for t in xrange(max_steps):
+            # decide which action to take next
+            action = agent.decide(t, problem.state)
+            # take that action and recieve reward
+            reward = problem.play(action)
+
+            if my_debug:
+                log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
+                          (t, problem.last_state, action, str(reward), problem.state))
+            # learn from that action
+            agent.learn(t, problem.last_state, action, reward, problem.state)
+
+            # Preserve reward, action and state
+            rewards.append(reward)
+            actions.append(action)
+            tmp_states.append(problem.last_state)
+
+        problem.reset()
+        moves.append(actions)
+        states.append(tmp_states)
+        average_rewards_per_run.append(np.average(rewards))
+
+        pbar.update(i)
+    # newline to fix output of pgbar
+    print ""
+    return np.array(average_rewards_per_run), np.array(moves), np.array(states)
+
+
+def morl_interact_multiple_average_episodic(agent, problem, runs=50, interactions=500, max_episode_length=150):
     """
     Perform multiple runs with of multiple interactions with the
     multi objective RL problem and then return arrays of actions chosen and
@@ -121,6 +177,7 @@ def morl_interact_multiple_average(agent, problem, runs=50, interactions=500, ma
     for r in xrange(runs):
         agent._epsilon = eps_start
         for i in xrange(interactions):
+            raise RuntimeError("What are those constants doing here?")
             if i == 0.5*interactions:
                 agent._epsilon = 0.9
             rewards = []

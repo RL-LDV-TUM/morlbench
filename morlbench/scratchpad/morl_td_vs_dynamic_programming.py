@@ -19,7 +19,7 @@ from morlbench.morl_problems import Deepsea
 from morlbench.morl_agents import TDMorlAgent
 from morlbench.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministicExample01
 from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
-from morlbench.experiment_helpers import morl_interact_multiple
+from morlbench.experiment_helpers import morl_interact_multiple_episodic
 
 
 if __name__ == '__main__':
@@ -49,7 +49,7 @@ if __name__ == '__main__':
     log.info('%s' % (str(agent)))
     log.info('%s' % (str(problem)))
 
-    payouts, moves, states = morl_interact_multiple(agent, problem, interactions, max_episode_length=trials)
+    payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions, max_episode_length=trials)
 
     tdV = agent._V
 

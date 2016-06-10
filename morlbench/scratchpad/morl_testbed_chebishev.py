@@ -1,6 +1,6 @@
 from morlbench.morl_problems import MOPuddleworldProblem
 from morlbench.morl_agents import MORLChebyshevAgent
-from morlbench.experiment_helpers import morl_interact_multiple
+from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.morl_policies import PolicyFromAgent
 from morlbench.plot_heatmap import policy_heat_plot
 
@@ -27,8 +27,8 @@ if __name__ == '__main__':
     # both agents interact (times):
     interactions = 1000
     # make the interactions
-    payouts, moves, states = morl_interact_multiple(chebyagent, problem, interactions,
-                                                    max_episode_length=150)
+    payouts, moves, states = morl_interact_multiple_episodic(chebyagent, problem, interactions,
+                                                             max_episode_length=150)
     # print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
     #     str(states[:]) + '\n')
 

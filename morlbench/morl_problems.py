@@ -941,6 +941,7 @@ class MORLRobotActionPlanning(MORLProblem):
 
         self.P = None
         self.R = None
+        self.gamma = gamma
 
         # States:
         # 	s0 - standby
@@ -950,11 +951,11 @@ class MORLRobotActionPlanning(MORLProblem):
         #   s4 - self-repair
         self.n_states = 5
         # Actions:
+        #   Standby:        [0, 0, 0, 0.1]
         #   Exploration:    [1, 0, 0.5, 0.5]
         #   Gathering:      [0, 1, 1, 1]
         #   Recharge:       [0, 0, 0.1, -1]
         #   Self-Repair:    [0, 0, -1, 0.2]
-        #   Standby:        [0, 0, 0, 0.1]
         self.n_actions = 5
 
         # Rewards:
@@ -977,11 +978,16 @@ class MORLRobotActionPlanning(MORLProblem):
         return "RobotActionPlaning"
 
     def _construct_p(self):
+        #   Standby:        [0, 0, 0, 0.1]
+        #   Exploration:    [1, 0, 0.5, 0.5]
+        #   Gathering:      [0, 1, 1, 1]
+        #   Recharge:       [0, 0, 0.1, -1]
+        #   Self-Repair:    [0, 0, -1, 0.2]
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
             for a in xrange(self.n_actions):
-                for j in xrange(self.n_states):
-                    self.P[i, a, j] = 1.0 / self.n_states
+                # always transit to the state given by the action
+                self.P[i, a, a] = 1.0
 
     def reset(self):
         self.state = 0
@@ -990,11 +996,11 @@ class MORLRobotActionPlanning(MORLProblem):
 
     def _get_reward(self, state):
         r = np.zeros((self.reward_dimension, 1))
+        #   Standby:        [0, 0, 0, 0.1]
         #   Exploration:    [1, 0, 0.5, 0.5]
         #   Gathering:      [0, 1, 1, 1]
         #   Recharge:       [0, 0, 0.1, -1]
         #   Self-Repair:    [0, 0, -1, 0.2]
-        #   Standby:        [0, 0, 0, 0.1]
         if state == 0:
             # Standby
             r = np.array([0, 0, 0, 0.1])
@@ -1027,7 +1033,7 @@ class MORLRobotActionPlanning(MORLProblem):
         reward: reward of the current state.
         """
         self.last_state = self.state
-        self.state = sampleFromDiscreteDistribution(1, self.P[self.last_state, action, :])[0]
+        self.state = sampleFromDiscreteDistribution(1, self.P[self.last_state, action, :])
         return self._get_reward(self.state)
 
 

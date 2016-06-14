@@ -562,7 +562,7 @@ class NFQAgent(MorlAgent):
                                   [0, self._morl_problem.n_actions]],
                                  [20, 20, len(self._scalarization_weights)])
 
-    def learn(self, t, action, reward, state):
+    def learn(self, t, last_state, action, reward, state):
         self._learn(0, self._last_state, self._last_action,
                     self._last_reward, action, reward, state)
         # state transition and update
@@ -607,8 +607,7 @@ class NFQAgent(MorlAgent):
         inp = np.array(self._train_history)
         tar = np.array(self._goal_hist)
         # tar = tar.reshape(len(tar), 1)
-        tar = tar.reshape(len(tar), 2)  # TODO: fix me for arbitrary reward dimensions
-
+        tar = tar.reshape(len(tar), self._morl_problem.reward_dimension)
         # Train network
         # error = self._net.train.train_rprop(input, target, epochs=500, show=100, goal=0.02)
         nl.train.train_rprop(self._net, inp, tar, epochs=500, show=0, goal=0.02)
@@ -630,6 +629,7 @@ class NFQAgent(MorlAgent):
 
             weighted_q = np.dot(Q_vals, self._scalarization_weights)
             action = random.choice(np.where(weighted_q == max(weighted_q))[0])
+
             # action = random.choice(np.where(np.array(Q_vals) == min(np.array(Q_vals)))[0])
         else:
             action = random.randint(0, self._morl_problem.n_actions - 1)

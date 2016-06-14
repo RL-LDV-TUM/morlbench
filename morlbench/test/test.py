@@ -121,9 +121,9 @@ class TestHyperVolumeCalculator(unittest2.TestCase):
         self.ref_point2d = [0.1, 0.1]
         self.ref_point3d = [0.1, 0.1, 0.1]
         # data set / random points between 0/0 - 1/1
-        self.set2d = np.zeros((20, 2))
+        self.set2d = np.zeros((70, 2))
         self.set3d = np.zeros((100, 3))
-        for i in range(20):
+        for i in range(70):
             for u in range(2):
                 self.set2d[i, u] = random.random()
         for i in range(100):
@@ -142,16 +142,30 @@ class TestCalculation(TestHyperVolumeCalculator):
 
     def runPareto(self):
         pf = self.hv_2d_calc.extract_front(self.set2d)
-        plt.subplot(122)
+        plt.figure()
         plt.axis([0-0.1, max(self.set2d[:, 0]*1.21), 0-0.1, max(self.set2d[:, 1]*1.1)])
         pfx = [pf[i][0] for i in range(len(pf))]
         pfy = [pf[u][1] for u in range(len(pf))]
-
-        plt.plot(self.set2d[:, 0], self.set2d[:, 1], 'ro', pfx, pfy)
-        plt.xlabel('1')
-        plt.ylabel('2')
+        maxx = [max(pfx)]
+        maxx.extend(pfx)
+        pfx = maxx
+        miny = [0]
+        miny.extend(pfy)
+        pfy = miny
+        minx = 0
+        pfx.append(minx)
+        pfy.append(max(pfy))
+        plt.plot(self.set2d[:, 0], self.set2d[:, 1], 'ro')
+        plt.plot(pfx, pfy, 'bo', linestyle='--', drawstyle='steps-post')
+        for i in pfx
+        plt.fill_betweenx(pfx, 0, pfy, facecolor='blue', alpha=0.5)
+        plt.xlabel('x')
+        plt.ylabel('y')
+        plt.title('')
         plt.grid(False)
-
+        filename = "pareto_front_2d.pdf"
+        #plt.savefig(filename, format='pdf', bbox_inches='tight')
+        plt.show()
         plt.subplot(131)
         pf3d = self.hv_3d_calc.extract_front(self.set3d)
         fig = plt.figure()

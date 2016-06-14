@@ -1,6 +1,6 @@
 from morlbench.morl_problems import  Deepsea, MOPuddleworldProblem, MORLBuridansAssProblem, MORLGridworld, MORLResourceGatheringProblem
 from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent
-from morlbench.experiment_helpers import morl_interact_multiple
+from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.plotting_stuff import plot_hypervolume
 
 import numpy as np
@@ -54,13 +54,13 @@ if __name__ == '__main__':
     interactions = 1000
     # make the interactions
     log.info('Playing %i interactions on chebyagent' % interactions)
-    payouts, moves, states = morl_interact_multiple(chebyagent, problem, interactions,
-                                                    max_episode_length=150)
+    payouts, moves, states = morl_interact_multiple_episodic(chebyagent, problem, interactions,
+                                                             max_episode_length=150)
     # print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
     #     str(states[:]) + '\n')
     log.info('Playing %i interactions on hvb agent' % interactions)
-    payouts2, moves2, states2 = morl_interact_multiple(hvbagent, problem, interactions,
-                                                       max_episode_length=150)
+    payouts2, moves2, states2 = morl_interact_multiple_episodic(hvbagent, problem, interactions,
+                                                                max_episode_length=150)
     # print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
     #      str(states2[:]) + '\n')
 
@@ -81,8 +81,8 @@ if __name__ == '__main__':
     # interact with each
     log.info('Playing %i interactions on %i chebyagents' % interactions, len(agents))
     for agent in agent_group:
-        p, a, s = morl_interact_multiple(agent, problem, interactions,
-                                         max_episode_length=150)
+        p, a, s = morl_interact_multiple_episodic(agent, problem, interactions,
+                                                  max_episode_length=150)
     # plot the evolution of hv of every weights agent
     plot_hypervolume(agent_group, agent_group[0]._morl_problem, name='weights')
 

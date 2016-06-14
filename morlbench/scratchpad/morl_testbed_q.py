@@ -27,7 +27,7 @@ from morlbench.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterminis
 from morlbench.inverse_morl import InverseMORL
 from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2, policy_heat_plot
 from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
-from morlbench.experiment_helpers import morl_interact_multiple, morl_interact_multiple_average
+from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_interact_multiple_average_episodic
 
 
 if __name__ == '__main__':
@@ -60,11 +60,11 @@ if __name__ == '__main__':
     # agent = MORLChebyshevAgent(problem, scalarization_weights, alfa, eps, tau, ref_point=ref, gamma=gamma)
     agent = MORLHVBAgent(problem, alfa, eps, ref, scalarization_weights)
     # Run the experiment one time for the given number of interactions
-    payouts, moves, states = morl_interact_multiple(agent, problem, interactions=interactions,
-                                                   max_episode_length=episode_length)
+    payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions,
+                                                             max_episode_length=episode_length)
 
     # Repeat experiment for "runs" times and average the results
-    # payouts, moves, states = morl_interact_multiple_average(agent, problem, runs=runs, interactions=interactions,
+    # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions,
                                                             #  max_episode_length=episode_length)
 
     # Get learned policy from agent using the defined method

@@ -9,7 +9,7 @@ Created on Nov 19, 2012
 """
 
 from helpers import SaveableObject, loadMatrixIfExists, virtualFunction
-from probability_helpers import assureProbabilityMatrix
+from probability_helpers import assureProbabilityMatrix, sampleFromDiscreteDistribution
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -214,9 +214,6 @@ class Deepsea(MORLProblem):
         self.last_state = self.state
         self._position = self._get_position(self.state)
         self._last_position = self._position
-
-    def __str__(self):
-        return self.__class__.__name__
 
     @property
     def scene_x_dim(self):
@@ -566,8 +563,9 @@ class MountainCarMulti(MountainCar):
 
 class Gridworld(MORLProblem):
     """
-    Original Algen-Gridworld.
+    Original Simple-MORL-Gridworld.
     """
+
     def __init__(self, size=10, gamma=0.9):
         self.gamma = gamma
 
@@ -843,6 +841,200 @@ class MORLGridworldStatic(Gridworld):
                 self.terminal_state = True
 
         return reward
+
+
+class Financial(MORLProblem):
+    """
+    This is a multi-objective financial toy problem.
+    The agent can choose to invest into a number of financial products. Each action means to buy
+    or to sell one specific financial product. Therefore, if we have f financial products, there
+    will be 2*f actions. The problem is formulated in a bandit-style setting. This means, we have
+    only one state, in which we remain and can choose to buy or sell assets. The vector-valued
+    reward contains the payouts for the current portfolio with respect to
+
+    (payout, risk, flexibility)
+    """
+
+    def __init__(self, gamma=0.9):
+        super(Financial, self).__init__(['state'])
+        # TODO: financial environment not finished
+        raise NotImplementedError("Financial environment not implemented yet.")
+
+        self.P = None
+        self.R = None
+
+        self.n_states = 1
+        self.n_financial_products = 3
+        # buy and sell products or do nothing
+        self.n_actions = 2 * self.n_financial_products + 1
+
+        self.reward_dimension = 3
+
+        self.product_rewards = [
+            # Stock
+            (1.0, -1.0, 1.0),
+            # Bond
+            (0.5, -0.1, -1.0),
+            # CallMoney
+            (0.2, 0.0, 0.0)
+        ]
+
+        self.reset()
+
+        # build state transition matrix P_{ss'} where (i, j) is the transition probability
+        # from state i to j
+        if self.P is None:
+            self._construct_p()
+
+        # build reward vector R(s)
+        if self.R is None:
+            self._construct_r()
+
+    @staticmethod
+    def name(self):
+        return "Financial"
+
+    def _construct_p(self):
+        self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
+        for i in xrange(self.n_states):
+            for a in xrange(self.n_actions):
+                for j in xrange(self.n_states):
+                    self.P[i, a, j] = 1.0 / self.n_states
+
+    def reset(self):
+        self.state = 0
+        self.last_state = 0
+        self.terminal_state = False
+
+    def _get_reward(self, state):
+        # TODO: finish implementation not suitable for static LP solver
+        r = np.zeros((self.reward_dimension, 1))
+        r[0] = 1.0
+        return r
+
+    def play(self, action):
+        """
+        Perform an action (buy or sell an asset)
+
+        Parameters
+        ----------
+        action: integer, which asset will be bought/sold by
+            the agent.
+
+
+        Returns
+        -------
+        reward: reward of the current state.
+        """
+
+        return self._get_reward(self.state)
+
+
+class MORLRobotActionPlanning(MORLProblem):
+    """
+    This is supposed to be a example problem for a high level task selection
+    in a robot, which can receive vector valued reward.
+    """
+
+    def __init__(self, gamma=0.9):
+        super(MORLRobotActionPlanning, self).__init__(['state'])
+
+        self.P = None
+        self.R = None
+        self.gamma = gamma
+
+        # States:
+        # 	s0 - standby
+        #   s1 - exploration
+        #   s2 - gathering
+        #   s3 - recharge
+        #   s4 - self-repair
+        self.n_states = 5
+        # Actions:
+        #   Standby:        [0, 0, 0, 0.1]
+        #   Exploration:    [1, 0, 0.5, 0.5]
+        #   Gathering:      [0, 1, 1, 1]
+        #   Recharge:       [0, 0, 0.1, -1]
+        #   Self-Repair:    [0, 0, -1, 0.2]
+        self.n_actions = 5
+
+        # Rewards:
+        #   (Information, Utility of Resources, Wear, Energy Consumption)
+        self.reward_dimension = 4
+
+        self.reset()
+
+        # build state transition matrix P_{ss'} where (i, j) is the transition probability
+        # from state i to j
+        if self.P is None:
+            self._construct_p()
+
+        # build reward vector R(s)
+        if self.R is None:
+            self._construct_r()
+
+    @staticmethod
+    def name(self):
+        return "RobotActionPlaning"
+
+    def _construct_p(self):
+        #   Standby:        [0, 0, 0, 0.1]
+        #   Exploration:    [1, 0, 0.5, 0.5]
+        #   Gathering:      [0, 1, 1, 1]
+        #   Recharge:       [0, 0, 0.1, -1]
+        #   Self-Repair:    [0, 0, -1, 0.2]
+        self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
+        for i in xrange(self.n_states):
+            for a in xrange(self.n_actions):
+                # always transit to the state given by the action
+                self.P[i, a, a] = 1.0
+
+    def reset(self):
+        self.state = 0
+        self.last_state = 0
+        self.terminal_state = False
+
+    def _get_reward(self, state):
+        r = np.zeros((self.reward_dimension, 1))
+        #   Standby:        [0, 0, 0, 0.1]
+        #   Exploration:    [1, 0, 0.5, 0.5]
+        #   Gathering:      [0, 1, 1, 1]
+        #   Recharge:       [0, 0, 0.1, -1]
+        #   Self-Repair:    [0, 0, -1, 0.2]
+        if state == 0:
+            # Standby
+            r = np.array([0, 0, 0, 0.1])
+        elif state == 1:
+            # Exploration
+            r = np.array([1, 0, 0.5, 0.5])
+        elif state == 2:
+            # Gathering
+            r = np.array([0, 1, 1, 1])
+        elif state == 3:
+            # Recharge
+            r = np.array([0, 0, 0.1, -1])
+        elif state == 4:
+            # Self-Repair
+            r = np.array([0, 0, -1, 0.2])
+        else:
+            raise RuntimeError("Unknown state in reward encountered")
+        return r
+
+    def play(self, action):
+        """
+        Perform an action
+
+        Parameters
+        ----------
+        action: integer, what high-level decision should be taken
+
+        Returns
+        -------
+        reward: reward of the current state.
+        """
+        self.last_state = self.state
+        self.state = sampleFromDiscreteDistribution(1, self.P[self.last_state, action, :])
+        return self._get_reward(self.state)
 
 
 class MORLBuridansAssProblem(MORLProblem):

@@ -22,7 +22,7 @@ from morlbench.morl_policies import PolicyFromAgent, PolicyGridworld
 from morlbench.inverse_morl import InverseMORLIRL
 from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_heat_plot
 from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
-from morlbench.experiment_helpers import morl_interact_multiple, morl_interact_multiple_average
+from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_interact_multiple_average_episodic
 
 import pickle
 import time
@@ -46,8 +46,8 @@ if __name__ == '__main__':
     # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
     #
-    # payouts, moves, states = morl_interact_multiple_average(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
-    payouts, moves, states = morl_interact_multiple(agent, problem, interactions=interactions, max_episode_length=150)
+    # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
+    payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=150)
     log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
     # learned_policy = PolicyFromAgent(problem, agent, mode='gibbs')
@@ -69,7 +69,7 @@ if __name__ == '__main__':
     #
     problem2 = MORLGridworldTime()
     agent2 = PreScalarizedQMorlAgent(problem2, scalarization_weights_alge, alpha=alfa, epsilon=eps)
-    payouts2, moves2, states2 = morl_interact_multiple(agent2, problem2, interactions=interactions, max_episode_length=150)
+    payouts2, moves2, states2 = morl_interact_multiple_episodic(agent2, problem2, interactions=interactions, max_episode_length=150)
     log.info('Average Payout: %s' % (str(payouts2.mean(axis=0))))
 
     # learned_policy2 = PolicyFromAgent(problem2, agent2, mode='gibbs')

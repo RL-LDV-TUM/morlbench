@@ -342,8 +342,6 @@ class PolicyDeepseaExpert(Policy):
                 self._pi[self._state_map[i], action] = val
 
 
-
-
 class PolicyFromAgent(Policy):
     """
     Derive a greedy policy from a trained agent.
@@ -402,3 +400,17 @@ class PolicyGridworld(Policy):
                     self._pi[i, 0] = 1.0
                 else:
                     self._pi[i, 3] = 1.0
+
+
+class PolicyRobotActionPlanningRandom(Policy):
+    """
+    A random policy for the robot action planning morl example.
+    """
+    def __init__(self, problem):
+        super(PolicyRobotActionPlanningRandom, self).__init__(problem)
+
+        self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
+
+        for i in xrange(self._problem.n_states):
+            for j in xrange(self._problem.n_actions):
+                self._pi[i, j] = 1.0 / self._problem.n_actions

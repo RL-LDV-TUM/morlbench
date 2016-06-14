@@ -22,7 +22,7 @@ from morlbench.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterminis
 from morlbench.inverse_morl import InverseMORL
 from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2
 from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
-from morlbench.experiment_helpers import morl_interact_multiple, morl_interact_multiple_average
+from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_interact_multiple_average_episodic
 
 import pickle
 import time
@@ -52,8 +52,8 @@ if __name__ == '__main__':
     # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
 
-    # payouts, moves, states = morl_interact_multiple_average(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
-    payouts, moves, states = morl_interact_multiple(agent, problem, interactions=interactions, max_episode_length=150)
+    # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
+    payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=150)
 
     learned_policy = PolicyFromAgent(problem, agent, mode='gibbs')
     # learned_policy = PolicyFromAgent(problem, agent, mode='greedy')

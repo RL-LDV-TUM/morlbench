@@ -2,9 +2,9 @@
 
 from setuptools import setup, find_packages
 
-setup(name='RL Framework',
+setup(name='MORL Framework',
       version='1.0',
-      description='Framework for Reinforcement Learning agents',
+      description='Framework for Multi Objective Reinforcement Learning agents',
       packages=find_packages(),
       install_requires=[
           # 'matplotlib',
@@ -14,7 +14,7 @@ setup(name='RL Framework',
           'neurolab',
           'cvxopt',
           'unittest2',
-          'inspyred',
+          #'inspyred',
           'scipy'
       ]
       )

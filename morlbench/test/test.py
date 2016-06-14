@@ -157,7 +157,7 @@ class TestCalculation(TestHyperVolumeCalculator):
         pfy.append(max(pfy))
         plt.plot(self.set2d[:, 0], self.set2d[:, 1], 'ro')
         plt.plot(pfx, pfy, 'bo', linestyle='--', drawstyle='steps-post')
-        for i in pfx
+
         plt.fill_betweenx(pfx, 0, pfy, facecolor='blue', alpha=0.5)
         plt.xlabel('x')
         plt.ylabel('y')

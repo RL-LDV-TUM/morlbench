@@ -168,18 +168,12 @@ def morl_interact_multiple_average_episodic(agent, problem, runs=50, interaction
     final_rewards = []
     moves = []
     states = []
-    eps_start = agent._epsilon
-
     log.info('Playing %i runs with %i interactions each... ', runs, interactions)
     pbar = pgbar.ProgressBar(widgets=['Runs ', pgbar.SimpleProgress('/'), ' (', pgbar.Percentage(), ') ',
                                       pgbar.Bar(), ' ', pgbar.ETA()], maxval=runs)
     pbar.start()
     for r in xrange(runs):
-        agent._epsilon = eps_start
         for i in xrange(interactions):
-            raise RuntimeError("What are those constants doing here?")
-            if i == 0.5*interactions:
-                agent._epsilon = 0.9
             rewards = []
             actions = []
             tmp_states = []

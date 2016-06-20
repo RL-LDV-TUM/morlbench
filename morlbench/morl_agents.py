@@ -640,13 +640,13 @@ class NFQAgent(MorlAgent):
         return action
 
 
-class MORLChebyshevAgent(MorlAgent):
+class MORLScalarizingAgent(MorlAgent):
     """
     This class is an Agent that uses chebyshev scalarization method in Q-iteration
     Contains a Q-Value table with additional parameter o <-- (Objective)
     @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
-    def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, ref_point, **kwargs):
+    def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, ref_point, function='chebishev', **kwargs):
         """
         initializes MORL Agent
         :param morl_problem: a Problem inheriting MORLProblem Class
@@ -657,7 +657,7 @@ class MORLChebyshevAgent(MorlAgent):
         :param kwargs: some additional arguments
         :return:
         """
-        super(MORLChebyshevAgent, self).__init__(morl_problem, **kwargs)
+        super(MORLScalarizingAgent, self).__init__(morl_problem, **kwargs)
         # create Q-value table
         self.q_shape = (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension)
         self._Q = np.zeros(self.q_shape)
@@ -667,8 +667,11 @@ class MORLChebyshevAgent(MorlAgent):
         self._epsilon = epsilon
         # small constant training addition value for the z point
         self._tau = tau
-        # create reference point for each objective used for chebyshev scalarization adapted on each step
-        self._z = np.zeros(self._morl_problem.reward_dimension)
+        # determine scalarization function:
+        self.function = function
+        if self.function == 'chebishev':
+            # create reference point for each objective used for chebyshev scalarization adapted on each step
+            self._z = np.zeros(self._morl_problem.reward_dimension)
 
         # weight vector
         self._w = scalarization_weights
@@ -688,6 +691,8 @@ class MORLChebyshevAgent(MorlAgent):
         self._z = np.zeros(self._morl_problem.reward_dimension)
         self._Q = np.zeros(self.q_shape)
         self.max_volumes = []
+        self.l = []
+        self.temp_vol = []
 
     def save(self):
         self._Q_save.append(self._Q)
@@ -736,7 +741,8 @@ class MORLChebyshevAgent(MorlAgent):
                 (reward[objective] + self._gamma * self._Q[state, new_action, objective] -
                  self._Q[last_state, action, objective])
             # store z value
-            self._z[objective] = self._Q[:, :, objective].max() + self._tau
+            if self.function =='chebishev':
+                self._z[objective] = self._Q[:, :, objective].max() + self._tau
 
     def get_learned_action(self, state):
         """
@@ -744,20 +750,26 @@ class MORLChebyshevAgent(MorlAgent):
         :param state: state the agent is
         :return: action to do next
         """
-        temp = self._epsilon
-        self._epsilon = 1
-        # get action out of max q value of n_objective-dimensional matrix
-        if random.random() < self._epsilon:
-            # dot product with weights
-            weighted_q = np.dot(self._Q[state, :], self._w)
-            # the first of maximum list (if more are available)
-            action = random.choice(np.where(weighted_q == max(weighted_q))[0])
-            self._epsilon = temp
-            return action
-        else:
-            # otherwise return random selection
-            self._epsilon = temp
-            return random.randint(0, self._morl_problem.n_actions-1)
+
+        #  state -> quality list
+        sq_list = []
+        # explore all actions
+        for acts in xrange(self._morl_problem.n_actions):
+            # create value vector for objectives
+            obj = [x for x in self._Q[state, acts, :]]
+            # scalarize the Q-values using chebyshev metric
+            if self.function == 'linear':
+                sq = np.amax([np.dot(self._w[o], obj[o]) for o in xrange(len(obj))])
+            if self.function == 'chebishev':
+                sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
+            # store that value into the list
+            sq_list.append(sq)
+        # chosen action is the one with greatest sq value
+        new_action = random.choice(np.where(sq_list == min(sq_list))[0])
+
+
+        return new_action
+
 
     def get_learned_action_gibbs_distribution(self, state):
         """
@@ -781,8 +793,10 @@ class MORLChebyshevAgent(MorlAgent):
         for acts in xrange(self._morl_problem.n_actions):
             # create value vector for objectives
             obj = [x for x in self._Q[state, acts, :]]
-            # scalarize the Q-values using chebyshev metric
-            sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
+            if self.function == 'linear':
+                sq = np.amax([np.dot(self._w[o], obj[o]) for o in xrange(len(obj))])
+            if self.function == 'chebishev':
+                sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
             # store that value into the list
             sq_list.append(sq)
         # chosen action is the one with greatest sq value
@@ -846,6 +860,23 @@ class MORLHVBAgent(MorlAgent):
         self._l = []
         # weights for objectives
         self._w = scal_weights
+        self._Qsave = []
+
+    def save(self):
+        self._Qsave.append(self._Q)
+
+    def restore(self):
+        tmp = np.zeros_like(self._Q)
+        for i in self._Q_save:
+            tmp += i
+        self._Q = np.divide(tmp, self._Q_save.__len__())
+
+    def reset(self):
+        self._Q = np.zeros(self.q_shape)
+        self._last_action = random.randint(0, self._morl_problem.n_actions-1)
+        self.max_volumes =[]
+        self._l = []
+        self.temp_vol =[]
 
     def decide(self, t, state):
         # epsilon greedy hypervolume based action selection:
@@ -1122,3 +1153,7 @@ class MORLRLearningAgent(MorlAgent):
         else:
             return random.randint(0, self._morl_problem.n_actions-1)
 
+class MORLLFQAgent(MorlAgent):
+    def __init__(self, morl_problem, ):
+        super(MORLLFQAgent, self).__init__(morl_problem)
+        pass

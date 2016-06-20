@@ -429,6 +429,9 @@ class MountainCar(MORLProblem):
     def get_state(self, position):
         pass
 
+    def name(self):
+        return "Mountain Car"
+
     def play(self, action):
         """
         Perform an action with the car in the mountains
@@ -444,7 +447,7 @@ class MountainCar(MORLProblem):
         """
 
         # Remember state before executing action
-        previousState = self._state
+        previousState = self.state
 
         self._time += 1
 
@@ -493,9 +496,8 @@ class MountainCar(MORLProblem):
         if self._position <= self._minPosition:  # and (self._velocity < 0)
             self._velocity = 0.0
 
-            # if self._position >= self._goalPosition and abs(self._velocity) > self._maxGoalVelocity:
-            #    self._velocity = -self._velocity
-
+            if self._position >= self._goalPosition:
+                self.terminal_state = True
             # TODO: set terminal state for being at the goal position
 
 

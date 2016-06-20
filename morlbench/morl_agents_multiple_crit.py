@@ -85,16 +85,20 @@ class MultipleCriteriaH:
         ###################################################################
         #       PLOT (Curve for Learning Process and Policy Plot)         #
         ###################################################################
-        fig = plt.figure()
+        # fig = plt.figure()
+        # x = np.arange(len(self.interactions_per_weight))
+        # plt.plot(x, self.interactions_per_weight, label="interactios per weight")
+        fig, ax = plt.subplots()
+        width = 1.0
         x = np.arange(len(self.interactions_per_weight))
-        plt.plot(x, self.interactions_per_weight, label="interactios per weight")
+        ax.bar(x, self.interactions_per_weight, width, color='r', label="interactios per weight")
         for i in range(len(self.stored)):
             if self.stored[i]:
                 plt.axvline(i, color='r', linestyle='--')
         plt.axis([0, 1.1*len(self.interactions_per_weight), 0, 1.1*max(self.interactions_per_weight)])
         plt.xlabel("weight count")
         plt.ylabel("count of interactions ")
-        plt.draw()
+        plt.show()
 
     def look_for_opt(self, weight):
         weighted = [np.dot(weight, self.rhos[u]) for u in self.rhos.iterkeys()]
@@ -255,9 +259,11 @@ class MultipleCriteriaR:
         ###################################################################
         #       PLOT (Curve for Learning Process and Policy Plot)         #
         ###################################################################
-        fig = plt.figure()
+        fig, ax = plt.subplots()
+        width = 1/len(self.interactions_per_weight)
         x = np.arange(len(self.interactions_per_weight))
-        plt.plot(x, self.interactions_per_weight, label="interactios per weight")
+        ax.bar(x, self.interactions_per_weight, width, color='r', label="interactios per weight")
+        # plt.plot(x, self.interactions_per_weight, label="interactios per weight")
         for i in range(len(self.stored)):
             if self.stored[i]:
                 plt.axvline(i, color='r', linestyle='--')

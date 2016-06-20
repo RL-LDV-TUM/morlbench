@@ -646,7 +646,8 @@ class MORLScalarizingAgent(MorlAgent):
     Contains a Q-Value table with additional parameter o <-- (Objective)
     @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
-    def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, ref_point, function='chebishev', **kwargs):
+    def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, ref_point, function='chebishev',
+                 gamma=0.9, **kwargs):
         """
         initializes MORL Agent
         :param morl_problem: a Problem inheriting MORLProblem Class
@@ -662,6 +663,7 @@ class MORLScalarizingAgent(MorlAgent):
         self.q_shape = (self._morl_problem.n_states, self._morl_problem.n_actions, self._morl_problem.reward_dimension)
         self._Q = np.zeros(self.q_shape)
         # parameter for Q-learning algorithm
+        self._gamma = gamma
         self._alpha = alpha
         # parameter for greedy strategy
         self._epsilon = epsilon

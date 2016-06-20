@@ -17,7 +17,7 @@ log.basicConfig(level=log.INFO)
 
 
 from morlbench.morl_problems import Deepsea, MORLGridworld, MORLGridworldTime, MORLBuridansAssProblem
-from morlbench.morl_agents import MORLChebyshevAgent, QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent,\
+from morlbench.morl_agents import MORLScalarizingAgent, QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent,\
     SARSAMorlAgent, MORLHVBAgent
 from morlbench.morl_policies import PolicyFromAgent, PolicyGridworld
 from morlbench.inverse_morl import InverseMORLIRL

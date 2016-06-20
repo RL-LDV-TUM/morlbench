@@ -61,9 +61,6 @@ def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_le
     # play for %interactions times
     for i in xrange(interactions):
         # storage for episodes
-        raise RuntimeError("What are those constants doing here?")
-        if i == 0.4*interactions:
-            agent._epsilon = 0.9
         rewards = []
         actions = []
         tmp_states = []

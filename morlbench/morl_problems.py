@@ -373,7 +373,7 @@ class DeepseaEnergy(Deepsea):
 
 
 class MountainCar(MORLProblem):
-    def __init__(self, state=-0.5, gamma=0.9):
+    def __init__(self, state=38, gamma=0.9):
         """
         Initialize the Mountain car problem.
 
@@ -392,42 +392,56 @@ class MountainCar(MORLProblem):
 
         # Discount Factor
         self.gamma = gamma
-
+        self._nb_actions = 0 # counter for acceration actions
         self._minPosition = -1.2  # Minimum car position
         self._maxPosition = 0.6  # Maximum car position (past goal)
         self._maxVelocity = 0.07  # Maximum velocity of car
-        self._goalPosition = 0.5  # Goal position - how to tell we are done
-
-        self._accelerationFactor = 0.001
+        self._goalPosition = 0.6  # Goal position - how to tell we are done
+        self._accelerationFactor = 0.01  # discount for accelerations
         self._maxGoalVelocity = 0.07
-
-        self._start_state = state
-        self._velocity = 0
-        self.state = self._start_state
-        self.last_state = self._start_state
-        self._position = self.get_position(self._start_state)
-
-        self._time = 0
-
-        self._default_reward = 1
-
-        self.terminal_state = False
-
-        self.n_states = 100  # TODO: Discretize Mountain car states!
+        self.n_states = 100  # for state discretization
+        self.state_solution = (self._maxPosition - self._minPosition)/self.n_states  # continouus step for one discrete
+        self._start_state = state # initial position ~= -0.5 ^= 38
+        self._velocity = 0  # start velocity
+        self.state = state      # initialize state variable
+        self.last_state = self.state       # at the beginning we have no other state
+        self._position = self.get_position(self._start_state)   #  the corresponding continous position on landscape
+        self._time = 0      # time variable
+        self._default_reward = 100      # reward for reaching goal position
+        self.terminal_state = False     # variable for reaching terminal state
         self.n_states_print = self.n_states - 1
+        self._goalState = self.n_states-1
         self.reward_dimension = 2
+        self.time_token = []
 
     def reset(self):
         self._velocity = 0
         self.state = self._start_state
         self.last_state = self._start_state
         self._position = self.get_position(self._start_state)
+        self._time = 0
+        self._nb_actions = 0
+        self.terminal_state = False
+
+    def distance(self, point1, point2):
+        return np.abs(point1-point2)
 
     def get_position(self, state):
-        return state
+        return self._minPosition+state*self.state_solution
 
     def get_state(self, position):
-        pass
+        difference = position - self._minPosition
+        rounded_state = int(difference/self.state_solution)
+        state_candidates = [rounded_state-1, rounded_state, rounded_state+1]
+        distances = dict()
+        for i in state_candidates:
+            distances[i] = self.distance(self.get_position(i), position)
+        for u in distances.keys():
+            if distances[u] == min(distances.values()):
+                if u > self.n_states-1:
+                    # to avoid size overflow in qtable
+                    u = self.n_states-1
+                return u
 
     def name(self):
         return "Mountain Car"
@@ -447,29 +461,32 @@ class MountainCar(MORLProblem):
         """
 
         # Remember state before executing action
-        previousState = self.state
-
+        self.last_state = self.state
+        # t
         self._time += 1
-
+        # we use a mapping for indices
         map_actions = {
             'none': 0,  # coasting
             'right': 1,  # forward thrust
             'left': -1,  # backward thrust
         }
-
         # Determine acceleration factor
         if action < len(self.actions):
+            # factor is a variable +1 for accelerating, -1 one for reversing, 0 for nothing
             factor = map_actions[self.actions[action]]  # map action to thrust factor
         else:
             print 'Warning: No matching action - Default action was selected!'
             factor = 0  # Default action
-
+        # apply that factor on the car movement
         self.car_sim(factor)
-
+        reward = np.zeros(self.reward_dimension)
+        # check if we reached goal
         if self.terminal_state:
-            return [self._default_reward, self._time]
-        else:
-            return [0, self._time]
+            # reward!
+            reward[0] = self._default_reward
+        elif self._time > 20:
+            reward[1] = -1
+        return reward
 
     def car_sim(self, factor):
 
@@ -486,23 +503,34 @@ class MountainCar(MORLProblem):
 
         # State update
         velocity_change = self._accelerationFactor * factor - 0.0025 * cos(3 * self._position)
-
+        # compute velocity
         self._velocity = minmax(self._velocity + velocity_change, -self._maxVelocity, self._maxVelocity)
-
+        # add that little progress to position
         self._position += self._velocity
-
+        # look if we've gone too far
         self._position = minmax(self._position, self._minPosition, self._maxPosition)
-
+        # check in the next discrete statee
+        self.state = self.get_state(self._position)
+        # check if we're on the wrong side
         if self._position <= self._minPosition:  # and (self._velocity < 0)
+            # inelastic wall stops the car imediately
             self._velocity = 0.0
+        # check if we've reached the goal
+        if self.state >= self._goalState:
+            self.terminal_state = True
+            # store time token for this
+            self.time_token.append(self._time)
 
-            if self._position >= self._goalPosition:
-                self.terminal_state = True
-            # TODO: set terminal state for being at the goal position
 
-
-class MountainCarMulti(MountainCar):
-    def __init__(self, state=0.5):
+class MORLMountainCar(MountainCar):
+    """
+    reward: [time, reversal, front]
+    every time step: time=-1
+    every reversal: reversal=-1
+    every front acceleration: front = -1
+    reaching goal position: time = 100
+    """
+    def __init__(self, state=38, gamma = 0.9):
         """
         Initialize the Multi Objective Mountain car problem.
 
@@ -511,10 +539,17 @@ class MountainCarMulti(MountainCar):
         state: default state is -0.5
         """
         self._nb_actions = 0
-
-        super(MountainCarMulti, self).__init__(state=state)
-
+        super(MORLMountainCar, self).__init__(state=state)
         self.reward_dimension = 3
+
+    def reset(self):
+        self._velocity = 0
+        self.state = self._start_state
+        self.last_state = self._start_state
+        self._position = self.get_position(self._start_state)
+        self._time = 0
+        self._nb_actions = 0
+        self.terminal_state = False
 
     def play(self, action):
         """
@@ -536,7 +571,7 @@ class MountainCarMulti(MountainCar):
         """
 
         # Remember state before executing action
-        previousState = self.state
+        self.last_state = self.state
 
         self._time += 1
 
@@ -545,22 +580,25 @@ class MountainCarMulti(MountainCar):
             'right': 1,  # forward thrust
             'none': 0,  # coasting
         }
-
         # Determine acceleration factor
         if action < len(self.actions):
             factor = map_actions[self.actions[action]]  # map action to thrust factor
-            if (self._actions[action] == 'right') or (self.actions[action] == 'left'):
+            if (self.actions[action] == 'right') or (self.actions[action] == 'left'):
                 self._nb_actions += 1
         else:
             print 'Warning: No matching action - Default action was selected!'
             factor = 0  # Default action
 
         self.car_sim(factor)
+        reward = np.zeros(self.reward_dimension)
+        if self._nb_actions >= 20:
+            reward[2] = -1
 
         if self.terminal_state:
-            return [self._default_reward, self._time]
+            reward[0] = self._default_reward
         else:
-            return [0, self._time]
+            reward[1] = -1
+        return reward
 
 
 class Gridworld(MORLProblem):
@@ -1236,7 +1274,7 @@ class MOPuddleworldProblem(MORLProblem):
         self.fig, self.ax = plt.subplots()
         temp = self._scene
 
-        self.ax.imshow(temp, interpolation='nearest')
+        #self.ax.imshow(temp, interpolation='nearest')
         step = 1.
         min = 0.
         rows = temp.shape[0]

@@ -1,4 +1,4 @@
-from morlbench.morl_problems import MORLResourceGatheringProblem, MountainCar, MORLGridworld, MORLBuridansAssProblem, Deepsea
+from morlbench.morl_problems import MORLResourceGatheringProblem, MORLMountainCar, MORLGridworld, MORLBuridansAssProblem, Deepsea
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.morl_policies import PolicyFromAgent
@@ -10,10 +10,10 @@ import random
 import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
-    hypervolume_experiment = True
-    comparison_experiment = False
+    hypervolume_experiment = False
+    comparison_experiment = True
     # create Problem
-    problem = MORLBuridansAssProblem()
+    problem = MORLMountainCar()
     # create an initialize randomly a weight vector
     scalarization_weights = [1.0, 0.0, 0.0]
     # tau is for chebyshev agent
@@ -28,7 +28,9 @@ if __name__ == '__main__':
     chebyagent = MORLScalarizingAgent(problem, epsilon=eps, alpha=alfacheb, scalarization_weights=scalarization_weights,
                                       ref_point=ref, tau=tau, function='linear')
     # both agents interact (times):
-    interactions = 10000
+    interactions = 1000
+    n_vectors = 10
+
     if hypervolume_experiment:
         # make the interactions
         payouts, moves, states = morl_interact_multiple_episodic(chebyagent, problem, interactions,
@@ -41,7 +43,6 @@ if __name__ == '__main__':
     # In this experiment we play two agents against each other with different weights and compare hv ###################
     ####################################################################################################################
     if comparison_experiment:
-        n_vectors = 50
         weights = [np.random.dirichlet(np.ones(problem.reward_dimension), size=1)[0] for i in xrange(n_vectors)]
         hvbagent = MORLHVBAgent(problem, alfacheb, eps, ref, weights[0])
         hvb_hypervolumes = []
@@ -69,7 +70,7 @@ if __name__ == '__main__':
         plt.xlabel('weights')
         plt.ylabel('hypervolume maximum')
         plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
-        weights = [[round(weights[q][i], 2) for i in xrange(len(weights[i]))] for q in xrange(len(weights))]
+        weights = [[round(weights[q][i], 2) for i in xrange(len(weights[q]))] for q in xrange(len(weights))]
         ax.set_xticks(x)
         ax.set_xticklabels(weights, rotation=40)
         print weights

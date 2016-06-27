@@ -145,14 +145,24 @@ def plot_hypervolume(agents, problem, name='agent'):
         title += ' '
         title += agents[0].name()
     plt.title(title)
-    colours = ['r', 'b', 'g', 'k', 'y', 'm', 'ro', 'bx']
+    colours = ['r', 'b', 'g', 'k', 'y', 'm', 'rx-', 'bx-', 'gx-', 'yx-', 'mx-']
     for i in range(len(volumes_list)):
         if name == 'agent':
             plt.plot(x, volumes_list[i], colours[i], label=agents[i].name())
         if name == 'weights':
             plt.plot(x, volumes_list[i], colours[i], label=str(agents[i]._w))
+        if name == 'epsilon':
+            plt.plot(x, volumes_list[i], colours[i], label='epsilon= ' + str(agents[i]._epsilon))
+        if name == 'gamma':
+            plt.plot(x, volumes_list[i], colours[i], label='gamma= ' + str(agents[i]._gamma))
+        if name == 'alpha':
+            plt.plot(x, volumes_list[i], colours[i], label='aplha: ' + str(agents[i]._alpha))
+        if name == 'tau':
+            plt.plot(x, volumes_list[i], colours[i], label='tau: '+str(agents[i]._tau))
+        if name == 'reference point':
+            plt.plot(x, volumes_list[i], colours[i], label='ref-point: '+ str(agents[i].hv_calculator.ref_point))
     plt.plot(x, paretofront, 'g--', label="Paretofront")
-    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
+    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
     plt.axis([0-0.01*len(x), len(x), 0, 1.1*max([max(vol) for vol in volumes_list.values()])])
     plt.xlabel('interactions')
     plt.ylabel('hypervolume')

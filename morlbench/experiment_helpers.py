@@ -92,7 +92,7 @@ def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_le
                 problem.reset()
                 moves.append(actions)
                 states.append(tmp_states)
-                final_rewards.append(rewards[-2])
+                final_rewards.append(np.average(rewards))
                 break
         pbar.update(i)
     # newline to fix output of pgbar
@@ -196,7 +196,11 @@ def morl_interact_multiple_average_episodic(agent, problem, runs=50, interaction
                     problem.reset()
                     moves.append(actions)
                     states.append(tmp_states)
-                    final_rewards.append(rewards[-2])
+                    try:
+                        final_rewards.append(rewards[-2])
+                    except IndexError:
+                        final_rewards.append(rewards[-1])
+
                     break
 
         agent.save()
@@ -244,3 +248,10 @@ def interact_multiple_twoplayer(agent1, agent2, problem, interactions,
     payouts2 = np.array(payouts2)
     actions2 = np.array(actions2)
     return (actions1, payouts1), (actions2, payouts2)
+
+
+def create_all_weight_combinations(n):
+
+    for s in xrange(n-1):
+        pass
+

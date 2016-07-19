@@ -14,14 +14,16 @@ from scipy.interpolate import spline
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator, FormatStrFormatter
+from scipy.spatial import ConvexHull
 
-
-from morlbench.morl_agents import MORLChebyshevAgent, MORLHVBAgent, MORLHLearningAgent
+from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent, MORLHLearningAgent
+from morlbench.morl_agents_multiple_crit import MORLConvexHullValueIteration
 from morlbench.morl_problems import MORLGridworld, MORLBuridansAssProblem, MOPuddleworldProblem, \
-    MORLResourceGatheringProblem
+    MORLResourceGatheringProblem, Deepsea, MORLMountainCar
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.helpers import HyperVolumeCalculator
 from morlbench.plotting_stuff import plot_hypervolume
+
 
 
 class TestAgents(unittest2.TestCase):
@@ -29,7 +31,7 @@ class TestAgents(unittest2.TestCase):
     def setUp(self):
         # create Problem
         self.gridworldproblem = MORLBuridansAssProblem()
-        self.problem = MOPuddleworldProblem()
+        self.problem = Deepsea()
         # create an initialize randomly a weight vector
         self.scalarization_weights = np.zeros(self.problem.reward_dimension)
         self.scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)],
@@ -45,14 +47,15 @@ class TestAgents(unittest2.TestCase):
         # Propability of epsilon greedy selection
         self.eps = 0.1
         # create one agent using chebyshev scalarization method
-        self.chebyagent = MORLChebyshevAgent(self.gridworldproblem, [1.0, 0.0, 0.0], alpha=self.alfacheb, epsilon=self.eps,
-                                             tau=self.tau, ref_point=self.ref)
+        self.chebyagent = MORLScalarizingAgent(self.gridworldproblem, [1.0, 0.0, 0.0], alpha=self.alfacheb, epsilon=self.eps,
+                                               tau=self.tau, ref_point=self.ref)
         # create one agent using Hypervolume based Algorithm
         self.hvbagent = MORLHVBAgent(self.gridworldproblem, alpha=self.alfahvb, epsilon=self.eps, ref=self.ref,
                                      scal_weights=[1.0, 10.0])
         self.hagent = MORLHLearningAgent(self.problem, self.eps, self.alf, self.scalarization_weights)
         # both agents interact (times):
         self.interactions = 200
+        self.convHullAgent = MORLConvexHullValueIteration(self.problem)
 
 
 class TestLearning(TestAgents):
@@ -94,18 +97,18 @@ class TestLearning(TestAgents):
         # list of volumes
         self.vollist = []
         # 6 agents with each different weights
-        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [1.0, 0.0, 0.0], alpha=self.alf, epsilon=self.eps,
-                                              tau=self.tau, ref_point=self.ref))
-        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.0, 1.0, 0.0], alpha=self.alf, epsilon=self.eps,
-                                              tau=self.tau, ref_point=self.ref))
-        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.5, 0.5, 0.0], alpha=self.alf, epsilon=self.eps,
-                                              tau=self.tau, ref_point=self.ref))
-        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.0, 0.5, 0.5], alpha=self.alf, epsilon=self.eps,
-                                              tau=self.tau, ref_point=self.ref))
-        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.5, 0.0, 0.5], alpha=self.alf, epsilon=self.eps,
-                                              tau=self.tau, ref_point=self.ref))
-        self.agents.append(MORLChebyshevAgent(self.gridworldproblem, [0.33, 0.33, 0.33], alpha=self.alf,
-                                              epsilon=self.eps, tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLScalarizingAgent(self.gridworldproblem, [1.0, 0.0, 0.0], alpha=self.alf, epsilon=self.eps,
+                                                tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLScalarizingAgent(self.gridworldproblem, [0.0, 1.0, 0.0], alpha=self.alf, epsilon=self.eps,
+                                                tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLScalarizingAgent(self.gridworldproblem, [0.5, 0.5, 0.0], alpha=self.alf, epsilon=self.eps,
+                                                tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLScalarizingAgent(self.gridworldproblem, [0.0, 0.5, 0.5], alpha=self.alf, epsilon=self.eps,
+                                                tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLScalarizingAgent(self.gridworldproblem, [0.5, 0.0, 0.5], alpha=self.alf, epsilon=self.eps,
+                                                tau=self.tau, ref_point=self.ref))
+        self.agents.append(MORLScalarizingAgent(self.gridworldproblem, [0.33, 0.33, 0.33], alpha=self.alf,
+                                                epsilon=self.eps, tau=self.tau, ref_point=self.ref))
 
         # interact with each
         for agent in self.agents:
@@ -113,6 +116,29 @@ class TestLearning(TestAgents):
                                                       max_episode_length=150)
 
         plot_hypervolume(self.agents, self.agents[0]._morl_problem, name='weights')
+
+
+class TestConvexHullValueIt(TestAgents):
+    def runTest(self):
+        self.runConvexHullIndices()
+
+    def runConvexHullIndices(self):
+        data = np.zeros((70, 2))
+        for i in range(70):
+            for u in range(2):
+                data[i, u] = random.random()
+        hv_calc = HyperVolumeCalculator([-1.0, -1.0])
+        front = hv_calc.extract_front(data)
+        hull = ConvexHull(front)
+        plt.figure()
+        plt.axis([0, 1, 0, 1])
+        for i in xrange(len(front)):
+            if i in hull.simplices:
+                plt.plot(front[i][0], front[i][1], 'bo')
+            else:
+                plt.plot(front[i][0], front[i][1], 'ro')
+        plt.show()
+
 
 
 class TestHyperVolumeCalculator(unittest2.TestCase):
@@ -191,9 +217,10 @@ class TestCalculation(TestHyperVolumeCalculator):
 
 class TestProblems(unittest2.TestCase):
     def setUp(self):
-        self.buridansassproblem = MORLBurdiansAssProblem()
+        self.buridansassproblem = MORLBuridansAssProblem()
         self.puddleworldproblem = MOPuddleworldProblem()
         self.resourcegatheringproblem = MORLResourceGatheringProblem()
+        self.mountaincarproblem = MORLMountainCar()
 
 
 class TestBuridan(TestProblems):
@@ -396,3 +423,16 @@ class TestResourceGathering(TestProblems):
         self.assertEqual(s, self.resourcegatheringproblem.init, 'did not set the player on init position after losing')
         self.assertEqual(rew, -1, 'did not get negative reward after losing')
         self.assertEqual(bag_size, 0, 'bag wasn\'t emptied after losing against enemy')
+
+
+class TestMountainCarMulti(TestProblems):
+    def runTest(self):
+        self.testPosition()
+
+    def testPosition(self):
+        state = self.mountaincarproblem.n_states/2
+        print state
+        position = self.mountaincarproblem.get_position(state)
+        print position
+        state = self.mountaincarproblem.get_state(position)
+        print state

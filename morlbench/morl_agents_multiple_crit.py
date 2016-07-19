@@ -9,7 +9,8 @@ from morlbench.morl_problems import MOPuddleworldProblem, MORLBuridansAssProblem
 from morlbench.morl_agents import MORLHLearningAgent, MORLRLearningAgent
 from morlbench.morl_policies import PolicyFromAgent
 from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_heat_plot, policy_plot2
-
+from morlbench.helpers import HyperVolumeCalculator
+from scipy.spatial import ConvexHull
 
 import numpy as np
 # import random
@@ -54,6 +55,7 @@ class MultipleCriteriaH:
         self.stored = dict()
         self.old_rho = np.zeros(self.problem.reward_dimension)
         self.interaction_rhos = []
+        self.pareto = []
 
     def get_learned_action(self, state):
         return self.hlearning.get_learned_action(state)
@@ -73,7 +75,7 @@ class MultipleCriteriaH:
             # put it into the agent
             self.train_one_weight(self.weights[i])
             # plot the evolution of rhos
-            self.plot_interaction_rhos(self.weights[i])
+            # self.plot_interaction_rhos(self.weights[i])
             # evaluate and store policy if good. a True is stored in self.stored[i] if the policy was good enough
             self.stored[i] = self.evaluate_new_policy(self.old_rho, i)
             pbar.update(i)
@@ -96,8 +98,10 @@ class MultipleCriteriaH:
             if self.stored[i]:
                 plt.axvline(i, color='r', linestyle='--')
         plt.axis([0, 1.1*len(self.interactions_per_weight), 0, 1.1*max(self.interactions_per_weight)])
+        self.pareto = [self.weights[i] for i in xrange(len(self.stored)) if self.stored[i]]
         plt.xlabel("weight count")
         plt.ylabel("count of interactions ")
+        plt.title('Count of learning phases at each weight')
         plt.show()
 
     def look_for_opt(self, weight):
@@ -228,6 +232,7 @@ class MultipleCriteriaR:
         self.stored = dict()
         self.old_rho = np.zeros(self.problem.reward_dimension)
         self.interaction_rhos = []
+        self.pareto = []
 
     def get_learned_action(self, state):
         return self.r_learning.get_learned_action(state)
@@ -247,7 +252,7 @@ class MultipleCriteriaR:
             # put it into the agent
             self.train_one_weight(self.weights[i])
             # plot the evolution of rhos
-            #self.plot_interaction_rhos(self.weights[i])
+            # self.plot_interaction_rhos(self.weights[i])
             # evaluate and store policy if good. a True is stored in self.stored[i] if the policy was good enough
             self.stored[i] = self.evaluate_new_policy(self.old_rho, i)
             pbar.update(i)
@@ -260,16 +265,22 @@ class MultipleCriteriaR:
         #       PLOT (Curve for Learning Process and Policy Plot)         #
         ###################################################################
         fig, ax = plt.subplots()
-        width = 1/len(self.interactions_per_weight)
+        width = 1.0
         x = np.arange(len(self.interactions_per_weight))
         ax.bar(x, self.interactions_per_weight, width, color='r', label="interactios per weight")
         # plt.plot(x, self.interactions_per_weight, label="interactios per weight")
         for i in range(len(self.stored)):
             if self.stored[i]:
-                plt.axvline(i, color='r', linestyle='--')
+                plt.axvline(i, color='b', linestyle='--')
         plt.axis([0, 1.1*len(self.interactions_per_weight), 0, 1.1*max(self.interactions_per_weight)])
+        weights = [[round(self.weights[q][u], 2) for u in xrange(len(self.weights[q]))] for q in xrange(len(self.weights))]
+        ax.set_xticks(x)
+        ax.set_xticklabels(weights, rotation=40)
         plt.xlabel("weight count")
         plt.ylabel("count of interactions ")
+        plt.title('Count of learning phases at each weight')
+
+        self.pareto = [self.weights[i] for i in xrange(len(self.stored)) if self.stored[i]]
         plt.draw()
 
     def look_for_opt(self, weight):
@@ -365,3 +376,60 @@ class MultipleCriteriaR:
             # store the count of interactions to show convergence acceleration
             self.interactions_per_weight.append(t)
 
+
+class MORLConvexHullValueIteration:
+    def __init__(self, morl_problem, gamma=0.9):
+        self._problem = morl_problem
+        self._gamma = gamma
+        self._q_shape = (morl_problem.n_states, morl_problem.n_actions, morl_problem.reward_dimension)
+        self._Q_sets = np.array([np.array([np.array([[0, ] * morl_problem.reward_dimension], ), ] *
+                                          morl_problem.n_actions), ] * morl_problem.n_states)
+        self._V = np.array([np.array([[0, ] * morl_problem.reward_dimension]), ] * morl_problem.n_states)
+        # we need the convex hull of the pareto set. first:
+        ref = [0.0, ]*self._problem.reward_dimension
+        self.hv_calculator = HyperVolumeCalculator(ref)
+        self._Q = np.zeros((morl_problem.n_states, morl_problem.n_actions))
+
+    def hull_add(self, hull1, hull2):
+        new_set = []
+        for vector1 in hull1:
+            for vector2 in hull2:
+                new_set.append(np.add(vector1, vector2))
+        hull = self.get_hull(new_set)
+        return hull
+
+    def get_hull(self, set):
+        if len(set) < self._problem.reward_dimension+1:
+            return set
+        set = set
+        front = self.hv_calculator.extract_front(set)
+        hullindices = ConvexHull(front).simplices
+        hull = [front[i] for i in hullindices]
+        return hull
+
+    def vector_add(self, hull, vector):
+        new_set = []
+        for vector1 in hull:
+            new_set.append(np.add(vector1, vector))
+        hull = self.get_hull(new_set)
+        return hull
+
+    def scalar_multiplication(self, hull, scalar):
+        new_set = []
+        for vector in hull:
+            new_set.append(scalar*vector)
+        hull = self.get_hull(new_set)
+        return hull
+
+    def get_learned_action(self, state):
+        return self._Q[state, :].argmax()
+
+    def extract_policy(self, weight_vector):
+        new_Q = np.zeros((self._problem.n_states, self._problem.n_actions))
+        for s in xrange(self._problem.n_states):
+            for a in xrange(self._problem.n_actions):
+                weighted = []
+                for q in self._Q_sets[s, a]:
+                    weighted.append(np.dot(weight_vector, q))
+                new_Q[s, a] = max(weighted)
+        self._Q = new_Q

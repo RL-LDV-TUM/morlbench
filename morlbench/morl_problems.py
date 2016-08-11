@@ -1116,7 +1116,6 @@ class MORLBuridansAssProblem(MORLProblem):
     """
 
     def __init__(self, size=3, p=0.9, n_appear=10, gamma=0.9):
-
         self.steal_probability = p
         # available actions: stay                right,             up,                 left,            down
         self.actions = (np.array([0, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]), np.array([1, 0]))
@@ -1126,7 +1125,7 @@ class MORLBuridansAssProblem(MORLProblem):
         self.n_appear = n_appear
         self.gamma = gamma
         # size of the grid times 9 time states for hunger, 4 food states
-        self.n_states = size * size * 9 * 3
+        self.n_states = size * size * 9 * 4
         # visible is only the 3x3 grid
         self.n_states_print = size*size
         # size of the grid in one dimension
@@ -1172,9 +1171,9 @@ class MORLBuridansAssProblem(MORLProblem):
         # get all elements greater than zero and stack them to the corresponding index
         self._flat_map = np.column_stack((self._flat_map,  self._scene[self._scene >= 0]))
         self.P = None
-        self._construct_p()
+        # self._construct_p()
         self.R = None
-        self._construct_r()
+        # self._construct_r()
 
     def _construct_p(self):
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
@@ -1206,12 +1205,11 @@ class MORLBuridansAssProblem(MORLProblem):
         if self.eat_alert:
             reward[0] = 1
             self.eat_alert = False
+        if self.hunger == self.max_hunger-1:
+                reward[0] = -1
         if self.steal_alert:
             self.steal_alert = False
             reward[1] = -0.5
-        else:
-            if self.hunger == 9:
-                reward[0] = -1
         # check if we're walking. if positive, reward: -1
         if self.last_state != self.state:
             reward[2] = -1
@@ -1235,29 +1233,29 @@ class MORLBuridansAssProblem(MORLProblem):
         if not self._in_map(n_position):
             self.state = state
             self.last_state = state
+            reward = self._get_reward(self.state)
+            if (reward > 0).any():
+                self.terminal_state = True
+            return reward
         # hunger grows if we're going
         if action != 0:
-            self.hunger+1
-            if self.hunger > self.max_hunger:
-                self.hunger = self.max_hunger
-        if self._scene[position] > 0 and self.last_state == self.state:
-            if position == self.food1:
-                self.food[0] = 0
-            else:
-                self.food[1] = 0
+            self.hunger += 1
+            if self.hunger > self.max_hunger-1:
+                self.hunger = self.max_hunger-1
+        if self._scene[n_position[0], n_position[1]] > 0 and action == 0:
             self.hunger = 0
             self.eat_alert = True
         # maybe food is stolen if we go in the wrong direction
-        elif self._get_distance(position, self.food1) > self.max_distance and random.random() <\
+        elif self._get_distance(n_position, self.food1) > self.max_distance and random.random() <\
                 self.steal_probability:
             self._scene[self.food1] = 0
             self.steal_alert = True
         # same for food no. 2
-        elif self._get_distance(position, self.food2) > self.max_distance and random.random() <\
+        elif self._get_distance(n_position, self.food2) > self.max_distance and random.random() <\
                 self.steal_probability:
             self._scene[self.food2] = 0
             self.steal_alert = True
-
+        self.state = self._get_index(n_position)
         reward = self._get_reward(self.state)
         if (reward > 0).any():
             self.terminal_state = True
@@ -1273,7 +1271,7 @@ class MORLBuridansAssProblem(MORLProblem):
         if x.f_code.co_name == '_policy_plot2':
             return position[0] * self.scene_x_dim + position[1]
         pos = self.position_map[position[0], position[1]]
-        f = self.food_map[self.food[0],self.food[1]]
+        f = self.food_map[self.food[0], self.food[1]]
         h = self.hunger
         return self.state_map[pos, f, h]
 

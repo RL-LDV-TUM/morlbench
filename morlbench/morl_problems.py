@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from math import cos, sqrt
 import logging as log
 import random
-import time
+import sys
 
 import os
 
@@ -374,7 +374,7 @@ class DeepseaEnergy(Deepsea):
 
 
 class MountainCar(MORLProblem):
-    def __init__(self, state=38, gamma=0.9):
+    def __init__(self, acc_fac=0.00001, cf=0.0002, time_lim=30, state=38, gamma=0.9):
         """
         Initialize the Mountain car problem.
 
@@ -393,12 +393,13 @@ class MountainCar(MORLProblem):
         self.P = None
         # Discount Factor
         self.gamma = gamma
-        self._nb_actions = 0 # counter for acceration actions
+        self.init_state = state
+        self._nb_actions = 0  # counter for acceration actions
         self._minPosition = -1.2  # Minimum car position
         self._maxPosition = 0.6  # Maximum car position (past goal)
         self._maxVelocity = 0.07  # Maximum velocity of car
         self._goalPosition = 0.6  # Goal position - how to tell we are done
-        self._accelerationFactor = 0.0002  # discount for accelerations
+        self._accelerationFactor = acc_fac  # discount for accelerations
         self._maxGoalVelocity = 0.07
         self.n_states = 200  # for state discretization
         self.state_solution = (self._maxPosition - self._minPosition)/self.n_states  # continouus step for one discrete
@@ -414,7 +415,9 @@ class MountainCar(MORLProblem):
         self._goalState = self.n_states-1
         self.reward_dimension = 2
         self.time_token = []
+        self.cosine_factor = cf
         # self._construct_p()
+        self.time_limit = time_lim
 
     def reset(self):
         self._velocity = 0
@@ -481,7 +484,7 @@ class MountainCar(MORLProblem):
             factor = 0  # Default action
         # apply that factor on the car movement
         self.car_sim(factor)
-        return self._get_reward()
+        return self._get_reward(self.state)
 
     def _get_reward(self, state):
         reward = np.zeros(self.reward_dimension)
@@ -489,7 +492,7 @@ class MountainCar(MORLProblem):
         if self.terminal_state:
             # reward!
             reward[0] = self._default_reward
-        elif self._time > 20:
+        elif self._time > self.time_limit:
             reward[1] = -1
         return reward
 
@@ -521,14 +524,14 @@ class MountainCar(MORLProblem):
             return max(lim1, min(lim2, val))
 
         # State update
-        velocity_change = self._accelerationFactor * factor - 0.0025 * cos(3 * self._position)
+        velocity_change = self._accelerationFactor * factor - self.cosine_factor * cos(3 * self._position)
         # compute velocity
         self._velocity = minmax(self._velocity + velocity_change, -self._maxVelocity, self._maxVelocity)
         # add that little progress to position
         self._position += self._velocity
         # look if we've gone too far
         self._position = minmax(self._position, self._minPosition, self._maxPosition)
-        # check in the next discrete statee
+        # check in the next discrete state
         self.state = self.get_state(self._position)
         # check if we're on the wrong side
         if self._position <= self._minPosition:  # and (self._velocity < 0)
@@ -541,7 +544,7 @@ class MountainCar(MORLProblem):
             self.time_token.append(self._time)
 
 
-class MORLMountainCar(MountainCar):
+class MountainCarAcceleration(MountainCar):
     """
     reward: [time, reversal, front]
     every time step: time=-1
@@ -549,7 +552,7 @@ class MORLMountainCar(MountainCar):
     every front acceleration: front = -1
     reaching goal position: time = 100
     """
-    def __init__(self, state=38, gamma=0.9):
+    def __init__(self, acc_fac=0.00001, cf = 0.0002, time_lim=30, state=50, gamma=0.9):
         """
         Initialize the Multi Objective Mountain car problem.
 
@@ -558,7 +561,7 @@ class MORLMountainCar(MountainCar):
         state: default state is -0.5
         """
         self._nb_actions = 0
-        super(MORLMountainCar, self).__init__(state=state)
+        super(MountainCarAcceleration, self).__init__(state=state, acc_fac=acc_fac, cf=cf, time_lim=time_lim)
         self.reward_dimension = 3
 
     def reset(self):
@@ -638,7 +641,7 @@ class Gridworld(MORLProblem):
         self.n_states_print = self.n_states
         self._size = size
         self.reward_dimension = self.n_states
-
+        self.init_state = 0
         self.P = None
         self.R = None
 
@@ -680,7 +683,7 @@ class Gridworld(MORLProblem):
         return position[0] * self.scene_x_dim + position[1]
 
     def _get_position(self, index):
-        return index // self.scene_y_dim, index % self.scene_x_dim
+        return index // self.scene_x_dim, index % self.scene_x_dim
 
     def _in_map(self, pos):
         return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
@@ -1012,6 +1015,7 @@ class MORLRobotActionPlanning(MORLProblem):
         #   s3 - recharge
         #   s4 - self-repair
         self.n_states = 5
+        self.init_state = 0
         # Actions:
         #   Standby:        [0, 0, 0, 0.1]
         #   Exploration:    [1, 0, 0.5, 0.5]
@@ -1108,7 +1112,7 @@ class MORLBuridansAssProblem(MORLProblem):
     the food in the bigger distance will be stolen with a probability of p. Eeating the food means choosing action
     "stay" at the field of a food
     it will be rewarded with following criteria: hunger, lost food, walking distance
-    hunger means
+    hunger means that after 9 steps without eating a food pile the next action(s) will be rewarded with -1
     """
 
     def __init__(self, size=3, p=0.9, n_appear=10, gamma=0.9):
@@ -1121,16 +1125,19 @@ class MORLBuridansAssProblem(MORLProblem):
         # steps until new food is generated
         self.n_appear = n_appear
         self.gamma = gamma
-        # size of the grid
-        self.n_states = size * size
-        self.n_states_print = self.n_states
+        # size of the grid times 9 time states for hunger, 4 food states
+        self.n_states = size * size * 9 * 3
+        # visible is only the 3x3 grid
+        self.n_states_print = size*size
         # size of the grid in one dimension
         self._size = size
         # dimensions: 0: hunger(time, the ass hasn't got eaten(-1 per t)), 1: lost food(-0.5), 2: distance walked(-1)
         self.reward_dimension = 3
+        self.max_hunger = 9
         # food positions
         self.food1 = self._size-1, 0
         self.food2 = 0, self._size-1
+        self.food = [1, 1]
         # scene quadradic zeros
         self._scene = np.zeros((self._size, self._size))
         # at places where the food is: 1
@@ -1139,16 +1146,28 @@ class MORLBuridansAssProblem(MORLProblem):
 
         # pythagoras distance
         self.max_distance = sqrt(2)
-
+        self.position_map = dict()
+        for i in xrange(self._size):
+            for u in xrange(self._size):
+                self.position_map[i, u] = len(self.position_map)
+        self.food_map = {(0, 0): 0, (0, 1): 1, (1, 0): 2, (1, 1): 3}
+        self.state_map = dict()
+        for x in xrange(self.scene_x_dim):
+            for y in xrange(self.scene_y_dim):
+                for f in xrange(len(self.food_map)):
+                    for h in xrange(self.max_hunger):
+                        self.state_map[self.position_map[x, y], f, h] = len(self.state_map)
         # initial state is the middle (e.g. at 3x3 matrix index 4)
-        init = (self._size*self._size)/2
-        self.state = init
-        self.last_state = init
+        self.init_state = self.state_map[self.position_map[1, 1], 3, 0]
+        self.state = self.init_state
+        self.last_state = self.init_state
         self.terminal_state = False
         # counting variable for food recreation
         self.count = 0
         # counting variable for hunger
         self.hunger = 0
+        self.steal_alert = False
+        self.eat_alert = False
         self._flat_map = np.argwhere(self._scene >= 0)  # get all indices greater than zero
         # get all elements greater than zero and stack them to the corresponding index
         self._flat_map = np.column_stack((self._flat_map,  self._scene[self._scene >= 0]))
@@ -1168,9 +1187,8 @@ class MORLBuridansAssProblem(MORLProblem):
                         self.P[i, a, j] = 1.0
 
     def reset(self):
-        init = (self._size*self._size)/2
-        self.state = init
-        self.last_state = init
+        self.state = self.init_state
+        self.last_state = self.init_state
         self.terminal_state = False
         self.count = 0
         self.hunger = 0
@@ -1183,25 +1201,16 @@ class MORLBuridansAssProblem(MORLProblem):
     def _get_reward(self, state):
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
-        # check if food is visibly reachable:
         # if not and in self.steal_probability cases the food is stolen
-        if self._get_distance(position, self.food1) > self.max_distance and random.random() <\
-                self.steal_probability:
-            self._scene[self.food1] = 0
-            reward[1] = -0.5
-        # same for food no. 2
-        if self._get_distance(position, self.food2) > self.max_distance and random.random() <\
-                self.steal_probability:
-            self._scene[self.food2] = 0
-            reward[1] = -0.5
         # check if we're eating something and reward, finally resetting hunger
-        if self._in_map(position) and self._scene[position] > 0 and self.last_state == self.state:
+        if self.eat_alert:
             reward[0] = 1
-            self.hunger = 0
+            self.eat_alert = False
+        if self.steal_alert:
+            self.steal_alert = False
+            reward[1] = -0.5
         else:
-            # negative reward if we're walking to much without food
-            self.hunger += 1
-            if self.hunger > 9:
+            if self.hunger == 9:
                 reward[0] = -1
         # check if we're walking. if positive, reward: -1
         if self.last_state != self.state:
@@ -1216,7 +1225,8 @@ class MORLBuridansAssProblem(MORLProblem):
         if self.count == self.n_appear:
             self._scene[self._size-1, self._size-1] = 1
             self._scene[0, 0] = 1
-
+            self.food = [1, 1]
+            self.count = 0
         actions = self.actions
         state = self.state
 
@@ -1225,14 +1235,32 @@ class MORLBuridansAssProblem(MORLProblem):
         if not self._in_map(n_position):
             self.state = state
             self.last_state = state
-            reward = self._get_reward(self.state)
-        else:
+        # hunger grows if we're going
+        if action != 0:
+            self.hunger+1
+            if self.hunger > self.max_hunger:
+                self.hunger = self.max_hunger
+        if self._scene[position] > 0 and self.last_state == self.state:
+            if position == self.food1:
+                self.food[0] = 0
+            else:
+                self.food[1] = 0
+            self.hunger = 0
+            self.eat_alert = True
+        # maybe food is stolen if we go in the wrong direction
+        elif self._get_distance(position, self.food1) > self.max_distance and random.random() <\
+                self.steal_probability:
+            self._scene[self.food1] = 0
+            self.steal_alert = True
+        # same for food no. 2
+        elif self._get_distance(position, self.food2) > self.max_distance and random.random() <\
+                self.steal_probability:
+            self._scene[self.food2] = 0
+            self.steal_alert = True
 
-            self.last_state = state
-            self.state = self._get_index(n_position)
-            reward = self._get_reward(self.state)
-            if (reward > 0).any():
-                self.terminal_state = True
+        reward = self._get_reward(self.state)
+        if (reward > 0).any():
+            self.terminal_state = True
         return reward
 
     def _get_distance(self, state1, state2):
@@ -1241,10 +1269,24 @@ class MORLBuridansAssProblem(MORLProblem):
         return np.linalg.norm(second-first)
 
     def _get_index(self, position):
-        return position[0] * self.scene_x_dim + position[1]
+        x = sys._getframe(1)
+        if x.f_code.co_name == '_policy_plot2':
+            return position[0] * self.scene_x_dim + position[1]
+        pos = self.position_map[position[0], position[1]]
+        f = self.food_map[self.food[0],self.food[1]]
+        h = self.hunger
+        return self.state_map[pos, f, h]
 
     def _get_position(self, index):
-        return index // self.scene_y_dim, index % self.scene_x_dim
+        for k in self.state_map.keys():
+            if self.state_map[k] == index:
+                pos = k
+                break
+        for o in self.position_map.keys():
+            if self.position_map[o] == pos[0]:
+                pos = o
+                break
+        return pos[0], pos[1]
 
     def _in_map(self, pos):
         return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
@@ -1299,15 +1341,15 @@ class MOPuddleworldProblem(MORLProblem):
         self._scene[0, self._size-1] = 1
 
         # all possible states
-        self.intstates = [i for i in xrange(self._size*self._size-1)]
+        self.init = [i for i in xrange(self._size * self._size - 1)]
         # we don't wanna start in goal state and right next to it, so we delete these states
-        del self.intstates[self._size-1]
-        del self.intstates[self._size-2]
-        del self.intstates[(2*self._size)-1]
+        del self.init[self._size - 1]
+        del self.init[self._size - 2]
+        del self.init[(2 * self._size) - 1]
         # initial state is randomly selected (non-goal)
-        init = random.choice(self.intstates)
-        self.state = init
-        self.last_state = init
+        self.init_state = random.choice(self.init)
+        self.state = self.init_state
+        self.last_state = self.init_state
         self.terminal_state = False
         # # plot
         # self.fig, self.ax = plt.subplots()
@@ -1327,11 +1369,28 @@ class MOPuddleworldProblem(MORLProblem):
         # # get all elements greater than zero and stack them to the corresponding index
         # self._flat_map = np.column_stack((self._flat_map,  self._scene[self._scene >= 0]))
         # # plt.show()
+        self.P = None
+        self._construct_p()
+        self.R = None
+        self._construct_r()
+
+    def _set_new_init(self):
+        self.init_state = random.choice(self.init)
+
+    def _construct_p(self):
+        self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
+        for i in xrange(self.n_states):
+            for a in xrange(self.n_actions):
+                for j in xrange(self.n_states):
+                    if not self._in_map(self._get_position(j)):
+                        self.P[i, a, i] = 1.0
+                    else:
+                        self.P[i, a, j] = 1.0
 
     def reset(self):
-        init = random.choice(self.intstates)
-        self.state = init
-        self.last_state = init
+        self._set_new_init()
+        self.state = self.init_state
+        self.last_state = self.init_state
         self.terminal_state = False
 
     def _get_reward(self, state):
@@ -1396,46 +1455,67 @@ class MOPuddleworldProblem(MORLProblem):
 class MORLResourceGatheringProblem(MORLProblem):
     """
     In this problem the agent has to find the resources and bring them back to the homebase.
-    the enemies steal resources with a probability of 0.1
+    the enemies steal resources with a probability of 0.9
 
     """
     def __init__(self, size=5, gamma=0.9, p=0.1):
+
+        # for each field in the scene we have 4 possible states, each shows the state of the bag in one position
+        self._bag_mapping = {
+            0: [0, 0],
+            1: [0, 1],
+            2: [1, 0],
+            3: [1, 1]
+        }
         # available actions:    right,             up,                 left,            down
         self.actions = (np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]), np.array([1, 0]))
+        # how many actions ?
         self.n_actions = len(self.actions)
         self.n_actions_print = self.n_actions
+        # gamma is learning rate
         self.gamma = gamma
+        # the probability, the bag will be rubbed, in case of enemy attack
         self.losing_probability = p
-        # size of the grid
+        # the bag can contain two elements and is empy at the beginning
         self._bag = [0, ] * 2
-        self._bag_states = [[0, 0], [0, 1], [1, 0], [1, 1]]
-        self.n_states = size * size * len(self._bag_states)
-        self.n_states_print = self.n_states
+        # we have a grid of 5 columns and 5 rows, for each cartesian state we have 2 states for
+        # each of two bag places (--> 4D) a place in the bag can be 0 or 1 (empty or filled)
+        self.n_bag_place_states = 2
+        self.n_states = size * size * self.n_bag_place_states * self.n_bag_place_states
+        self.n_states_print = size*size
+
         # size of the grid in one dimension
         self._size = size
         # dimensions: 0:attack of enemy(-1), 1: resource 1 (+1), 2: resource 2 (+1)
         self.reward_dimension = 3
-        # scene quadradic zeros
+        # scene quadradic zeros, the game field in cartesian
         self._scene = np.zeros((self._size, self._size))
-        # enemies
+        # enemies coordinates get negative field
+        self.enemy_positions = [(0, 3), (1, 2)]
         self._scene[0, 3] = -1
         self._scene[1, 2] = -1
-        # resources (are on state 2 and 9):
-        self.resource_state = [2, 9]
+        # resources (are on state 8 and 9):
+        self.resource_positions = [(0, 2), (1, 4)]
         self._scene[0, 2] = 1
         self._scene[1, 4] = 1
         # init state (homebase)
-        self.init = 22
+        self.init = 88
+        self.init_position = [4, 2]
         self.state = self.init
         self.last_state = self.init
         self.terminal_state = False
         self.P = None
         self._construct_p()
-        self.R = None
+        self.R = np.zeros((self.n_states, self.reward_dimension))
         self._construct_r()
 
+    def get_bag_index(self, bag):
+        for i in self._bag_mapping.keys():
+            if self._bag_mapping[i] == bag:
+                return i
+
     def reset(self):
-        self.init = 22
+        self.init = 88
         self.state = self.init
         self.last_state = self.init
         self.terminal_state = False
@@ -1443,7 +1523,9 @@ class MORLResourceGatheringProblem(MORLProblem):
         self._scene[1, 4] = 1
 
     def _get_reward(self, state):
-        position = self._get_position(state)
+        pos = self._get_position(state)
+        position = pos[0], pos[1]
+        bag = pos[2:]
         reward = np.zeros(self.reward_dimension)
         # we are 1. in the map, 2. we're on a field where the enemy is and 3. we lost the fight
         if self._in_map(position) and self._scene[position] < 0 and random.random() < self.losing_probability:
@@ -1452,44 +1534,75 @@ class MORLResourceGatheringProblem(MORLProblem):
             # our resources is stolen
             self._bag[:] = [0, ] * len(self._bag)
             # we need to get back to the homebase
-            self.reset()
+            position = self.init_position
+            self.state = self._get_index((position[0], position[1], self._bag[0], self._bag[1]))
             return reward
         # we are 1. in the map and 2. we found resource:
-        if self._in_map(position) and self._scene[position] > 0:
-            # put the resource in our bag
-            self._bag[self.resource_state.index(state)] = 1
+        elif self._in_map(position) and self._scene[position] > 0: # put the resource in our bag
+            # check which resource it is
+            if position == self.resource_positions[0]:
+                self._bag[0] = 1
+            if position == self.resource_positions[1]:
+                self._bag[1] = 1
+            # delete it from the field
             self._scene[position] = 0
+
         # if we're turning back home
-        if self._in_map(position) and state == self.init:
+        if self._in_map(position) and position == (4, 2):
             # we get reward for the bag (0,1,0), (0,1,1), (0,0,1), or (0,0,0)
             reward[1:] = self._bag
+        self.state = self._get_index((position[0], position[1], self._bag[0], self._bag[1]))
         return reward
 
     def _construct_p(self):
-        self.P = np.zeros((self.n_states, self.n_actions, self.n_states, len(self._bag_states)))
+        self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
-            xi, yi = self._get_position(i)
+            xi, yi, bag1, bag2 = self._get_position(i)
             for a in xrange(self.n_actions):
-                for bs in xrange(len(self._bag_states)):
-                    ox, oy = self.actions[a]
-                    tx, ty = xi + ox, yi + oy
+                ox, oy = self.actions[a]
+                tx, ty = xi + ox, yi + oy
+                bag_state = bag1, bag2
 
-                    if not self._in_map((tx, ty)):
-                        self.P[i, a, i, bs] = 1.0
-                    elif self._scene[(tx, ty)] < 0:
-                        self.P[i, a, j, bs] = 1-self.losing_probability
-                    else:
-                        j = self._get_index((tx, ty))
-                        self.P[i, a, j, bs] = 1.0
+                if (tx, ty) in self.resource_positions:
+                    tb0 = 1 if (tx, ty) == self.resource_positions[0] and not bag_state[0] else 0
+                    tb1 = 1 if (tx, ty) == self.resource_positions[1] and not bag_state[1] else 0
+                else:
+                    tb0, tb1 = bag_state
+                if (tx, ty) in self.enemy_positions and bag_state != (0,0):
+                    tb0, tb1 = 0,0
+
+                n = self._get_index((tx, ty, tb0, tb1))
+
+                if not self._in_map((tx, ty, tb0, tb1)):
+                    self.P[i, a, i] = 1.0
+                else:
+                    self.P[i, a, n] = 1.0
 
     def name(self):
         return "Resource Gathering"
+
+    def _build_Reward(self):
+        self.Reward = np.zeros((self.n_states,))
+        for s in xrange(self.n_states):
+            for a in xrange(len(self.actions)):
+
+                xi, yi, bag1, bag2 = self._get_position(s)
+                # we get reward if we come home with non-empty bag
+                x,y = self.init_position
+                a0, a1, a2 = self.actions[0],self.actions[1], self.actions[2]
+                neigbours = ((x+a0[0], y+a0[1]), (x+a1[0], y+a1[1]), (x+a2[0], y+a2[1]))
+                if [xi, yi] == self.init_position and (bag1 or bag2):
+                    self.R[s, ] = bag1
+                    self.R[s, 2] = bag2
+                if [xi, yi] == self.enemy_positions[0] or [xi, yi] == self.enemy_positions[1]:
+                    self.R[s, 0] = -1
 
     def play(self, action):
         actions = self.actions
         state = self.state
 
-        position = self._get_position(state)[:1]
+        position = self._get_position(state)[:2]
+        bag = self._get_position(state)[2:]
         n_position = position + actions[action]
         if not self._in_map(n_position):
             self.state = state
@@ -1497,6 +1610,7 @@ class MORLResourceGatheringProblem(MORLProblem):
             reward = self._get_reward(self.state)
         else:
             self.last_state = state
+            n_position = (n_position[0], n_position[1], bag[0], bag[1])
             self.state = self._get_index(n_position)
             reward = self._get_reward(self.state)
             if (reward > 0).any():
@@ -1504,13 +1618,17 @@ class MORLResourceGatheringProblem(MORLProblem):
         return reward
 
     def _get_index(self, position):
-        return position[0] * self.scene_x_dim + position[1]*len(self._bag_states) + position[2]
+        x = sys._getframe(1)
+        if x.f_code.co_name == '_policy_plot2':
+            return position[0] * self.scene_x_dim + position[1]
+        bagind = self.get_bag_index([position[2], position[3]])
+        return (position[0] * self.scene_x_dim + position[1])*len(self._bag_mapping) + bagind
 
     def _get_position(self, index):
-        index /= len(self._bag_states)
-        bag_state = int('0b'+ str(self._bag[0])+str(self._bag[1]))
-        return index // (self.scene_y_dim*len(self._bag_states), index %
-                         (self.scene_x_dim*len(self._bag_states)), bag_state)
+        bag_state = index % len(self._bag_mapping)
+        bag = self._bag_mapping[bag_state]
+        index /= len(self._bag_mapping)
+        return index/self.scene_y_dim, index % self.scene_y_dim, bag[0], bag[1]
 
     def _in_map(self, pos):
         return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim

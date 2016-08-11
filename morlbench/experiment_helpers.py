@@ -88,11 +88,11 @@ def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_le
             tmp_states.append(problem.last_state)
 
             # Decide if terminal state
-            if problem.terminal_state:
+            if problem.terminal_state or t == max_episode_length-1:
                 problem.reset()
                 moves.append(actions)
                 states.append(tmp_states)
-                final_rewards.append(np.average(rewards))
+                final_rewards.append(np.sum(rewards))
                 break
         pbar.update(i)
     # newline to fix output of pgbar
@@ -147,7 +147,7 @@ def morl_interact_multiple(agent, problem, interactions, max_steps):
         problem.reset()
         moves.append(actions)
         states.append(tmp_states)
-        average_rewards_per_run.append(np.average(rewards))
+        average_rewards_per_run.append(np.sum(rewards, axis=0))
 
         pbar.update(i)
     # newline to fix output of pgbar

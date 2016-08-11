@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Created on Jun 11, 2016
+
+@author: Simon Wölzmüller <ga35voz@mytum.de>
+"""
 from morlbench.morl_problems import  Deepsea, MOPuddleworldProblem, MORLBuridansAssProblem, MORLGridworld, MORLResourceGatheringProblem
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
@@ -30,31 +37,31 @@ Attention:
 """
 if __name__ == '__main__':
     # create Problem
-    experiment_1 = False
-    experiment_2 = True
+    experiment_1 = True
+    experiment_2 = False
     problem = MORLBuridansAssProblem()
     # create an initialize randomly a weight vector
     scalarization_weights = np.zeros(problem.reward_dimension)
     scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)], len(scalarization_weights))
     # tau is for chebyshev agent
-    tau = 50.0
+    tau = 4.0
     # ref point is used for Hypervolume calculation
     ref = [-1.0, -1.0, -1.0]
     # learning rate
     alf = 0.2
-    alfacheb = 0.05
+    alfacheb = 0.2
     alfahvb = 0.01
-    n_vectors = 20
+    n_vectors = 5
 
     # Propability of epsilon greedy selection
     eps = 0.1
-    # create one agent using chebyshev scalarization method
+    # create one agent using scalarization method
     chebyagent = MORLScalarizingAgent(problem, [1.0, 0.0, 0.0], alpha=alfacheb, epsilon=eps,
-                                      tau=tau, ref_point=ref)
+                                      tau=tau, ref_point=ref, function='linear')
     # create one agent using Hypervolume based Algorithm
-    hvbagent = MORLHVBAgent(problem, alpha=alfahvb, epsilon=0.6, ref=ref, scal_weights=[1.0, 10.0])
+    hvbagent = MORLHVBAgent(problem, alpha=alfahvb, epsilon=0.1, ref=ref, scal_weights=[1.0, 10.0])
     # both agents interact (times):
-    interactions = 10000
+    interactions = 100
     if experiment_1:
         # make the interactions
         log.info('Playing %i interactions on chebyagent' % interactions)
@@ -70,7 +77,17 @@ if __name__ == '__main__':
 
         # extract all volumes of each agent
         agents = [hvbagent, chebyagent]   # plot the evolution of both agents hypervolume metrics
-        plot_hypervolume(agents, problem)
+        plot_hypervolume(agents, problem, name='agent')
+        plt.figure()
+        length = min([len(payouts), len(payouts2)])
+        x = np.arange(length)
+        if length != len(payouts):
+            payouts = payouts[:length]
+        else:
+            payouts2 = payouts2[:length]
+        plt.plot(x, payouts, 'r', label='cheb')
+        plt.plot(x, payouts2, 'b', label='hvb')
+        plt.show()
 
     if experiment_2:
         # list of agents with different weights
@@ -78,9 +95,9 @@ if __name__ == '__main__':
         # list of volumes
         vollist = []
         # 6 agents with each different weights
-        weights = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5],
-                   [0.5, 0.0, 0.5], [0.33, 0.33, 0.33]]
-        # weights = [np.random.dirichlet(np.ones(problem.reward_dimension), size=1)[0] for i in xrange(n_vectors)]
+        # weights = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5],
+        #           [0.5, 0.0, 0.5], [0.33, 0.33, 0.33]]
+        weights = [np.random.dirichlet(np.ones(problem.reward_dimension), size=1)[0] for i in xrange(n_vectors)]
         for weight in weights:
             agent_group.append(MORLScalarizingAgent(problem, weight, alpha=alfacheb, epsilon=eps,
                                                     tau=tau, ref_point=ref))

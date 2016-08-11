@@ -416,8 +416,9 @@ class MORLConvexHullValueIteration:
 
     def scalar_multiplication(self, hull, scalar):
         new_set = []
+
         for vector in hull:
-            new_set.append(scalar*vector)
+            new_set.append([scalar*vec for vec in vector])
         hull = self.get_hull(new_set)
         return hull
 

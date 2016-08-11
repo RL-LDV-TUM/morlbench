@@ -761,7 +761,7 @@ class MORLScalarizingAgent(MorlAgent):
             obj = [x for x in self._Q[state, acts, :]]
             # scalarize the Q-values using chebyshev metric
             if self.function == 'linear':
-                sq = np.amax([np.dot(self._w[o], obj[o]) for o in xrange(len(obj))])
+                sq = sum([self._w[o]*obj[o] for o in xrange(len(obj))])
             if self.function == 'chebishev':
                 sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
             # store that value into the list
@@ -786,7 +786,7 @@ class MORLScalarizingAgent(MorlAgent):
         return dist.ravel()
 
     def name(self):
-        return "chebishev_Q_agent_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._w)
+        return "skalar"+self.function+"_Q_agent_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._w)
 
     def _greedy_sel(self, state):
         # state -> quality list
@@ -796,13 +796,13 @@ class MORLScalarizingAgent(MorlAgent):
             # create value vector for objectives
             obj = [x for x in self._Q[state, acts, :]]
             if self.function == 'linear':
-                sq = np.amax([np.dot(self._w[o], obj[o]) for o in xrange(len(obj))])
+                sq = sum([(self._w[o]*obj[o]) for o in xrange(len(obj))])
             if self.function == 'chebishev':
                 sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
             # store that value into the list
             sq_list.append(sq)
         # chosen action is the one with greatest sq value
-        new_action = random.choice(np.where(sq_list == min(sq_list))[0])
+        new_action = random.choice(np.where(sq_list == max(sq_list))[0])
         q = np.array(([x for x in self._Q[state, new_action, :]]))
         self.l.append(q)
         # store hv, only if self.l is non-empty (only this way worked for me TODO: find elegant way )
@@ -1155,7 +1155,3 @@ class MORLRLearningAgent(MorlAgent):
         else:
             return random.randint(0, self._morl_problem.n_actions-1)
 
-class MORLLFQAgent(MorlAgent):
-    def __init__(self, morl_problem, ):
-        super(MORLLFQAgent, self).__init__(morl_problem)
-        pass

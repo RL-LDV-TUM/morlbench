@@ -713,7 +713,7 @@ class MORLScalarizingAgent(MorlAgent):
         :return: action the agent chose
         """
         # epsilon greedy action selection:
-        if random.random() < self._epsilon:
+        if random.random() > self._epsilon:
             # greedy action selection:
             action = self._greedy_sel(state)
         else:
@@ -752,22 +752,23 @@ class MORLScalarizingAgent(MorlAgent):
         :param state: state the agent is
         :return: action to do next
         """
-
         #  state -> quality list
         sq_list = []
         # explore all actions
         for acts in xrange(self._morl_problem.n_actions):
             # create value vector for objectives
             obj = [x for x in self._Q[state, acts, :]]
-            # scalarize the Q-values using chebyshev metric
             if self.function == 'linear':
-                sq = sum([self._w[o]*obj[o] for o in xrange(len(obj))])
+                sq = sum([(self._w[o]*obj[o]) for o in xrange(len(obj))])
             if self.function == 'chebishev':
                 sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
             # store that value into the list
             sq_list.append(sq)
         # chosen action is the one with greatest sq value
-        new_action = random.choice(np.where(sq_list == min(sq_list))[0])
+        if self.function == 'linear':
+            new_action = np.argmax(sq_list)
+        if self.function == 'chebishev':
+            new_action = np.argmin(sq_list)
 
 
         return new_action
@@ -802,7 +803,10 @@ class MORLScalarizingAgent(MorlAgent):
             # store that value into the list
             sq_list.append(sq)
         # chosen action is the one with greatest sq value
-        new_action = random.choice(np.where(sq_list == max(sq_list))[0])
+        if self.function == 'linear':
+            new_action = np.argmax(sq_list)
+        if self.function == 'chebishev':
+            new_action = np.argmin(sq_list)
         q = np.array(([x for x in self._Q[state, new_action, :]]))
         self.l.append(q)
         # store hv, only if self.l is non-empty (only this way worked for me TODO: find elegant way )
@@ -882,7 +886,7 @@ class MORLHVBAgent(MorlAgent):
 
     def decide(self, t, state):
         # epsilon greedy hypervolume based action selection:
-        if random.random() < self._epsilon:
+        if random.random() > self._epsilon:
             # greedy action selection:
             action = self._greedy_sel(state)
         else:
@@ -982,14 +986,8 @@ class MORLHVBAgent(MorlAgent):
         :param state: state the agent is
         :return: action to do next
         """
-        temp = self._epsilon
-        self._epsilon = 1
-        # get action out of max q value of n_objective-dimensional matrix
-        if random.random() < self._epsilon:
-            self._epsilon = temp
-            return self._greedy_sel(state)
-        else:
-            return random.randint(0, self._morl_problem.n_actions-1)
+        return self._greedy_sel(state)
+
 
     def get_learned_action_gibbs_distribution(self, state):
         """
@@ -1032,7 +1030,7 @@ class MORLHLearningAgent(MorlAgent):
         self.took_greedy = False
 
     def decide(self, t, state):
-        if random.random() > self._epsilon:
+        if random.random() < self._epsilon:
             return random.randint(0, self._morl_problem.n_actions-1)
         else:
             return self._greedy_sel(t, state)
@@ -1113,7 +1111,7 @@ class MORLRLearningAgent(MorlAgent):
         self.took_greedy = False
 
     def decide(self, t, state):
-        if random.random() > self._epsilon:
+        if random.random() < self._epsilon:
             return random.randint(0, self._morl_problem.n_actions-1)
         else:
             return self._greedy_sel(t, state)

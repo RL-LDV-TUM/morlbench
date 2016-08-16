@@ -17,11 +17,11 @@ from matplotlib.ticker import LinearLocator, FormatStrFormatter
 from scipy.spatial import ConvexHull
 
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent, MORLHLearningAgent
-from morlbench.morl_agents_multiple_crit import MORLConvexHullValueIteration
+from morlbench.morl_agents_multiple_criteria import MORLConvexHullValueIteration
 from morlbench.morl_problems import MORLGridworld, MORLBuridansAssProblem, MOPuddleworldProblem, \
-    MORLResourceGatheringProblem, Deepsea, MORLMountainCar
+    MORLResourceGatheringProblem, Deepsea, MountainCarAcceleration
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
-from morlbench.helpers import HyperVolumeCalculator
+from morlbench.helpers import HyperVolumeCalculator, compute_hull
 from morlbench.plotting_stuff import plot_hypervolume
 
 
@@ -123,23 +123,20 @@ class TestConvexHullValueIt(TestAgents):
         self.runConvexHullIndices()
 
     def runConvexHullIndices(self):
-        data = np.zeros((70, 2))
-        for i in range(70):
-            for u in range(2):
-                data[i, u] = random.random()
-        hv_calc = HyperVolumeCalculator([-1.0, -1.0])
-        front = hv_calc.extract_front(data)
-        hull = ConvexHull(front)
+        # data = np.zeros((70, 2))
+        # for i in range(70):
+        #     for u in range(2):
+        #         data[i, u] = random.random()
+        self.data = [[4,2,0], [1,1,1], [1,1,0], [1,0,1]]
+        hull = compute_hull(data)
         plt.figure()
-        plt.axis([0, 1, 0, 1])
-        for i in xrange(len(front)):
-            if i in hull.simplices:
-                plt.plot(front[i][0], front[i][1], 'bo')
-            else:
-                plt.plot(front[i][0], front[i][1], 'ro')
+        plt.plot(data[:][0], data[:][1], 'ro')
+        plt.plot(hull[:][0], hull[:][1], 'bo')
         plt.show()
 
-
+    def testGetConvHull(self):
+        data = self.data
+        self.convHullAgent.get_hull(data)
 
 class TestHyperVolumeCalculator(unittest2.TestCase):
     def setUp(self):
@@ -218,9 +215,9 @@ class TestCalculation(TestHyperVolumeCalculator):
 class TestProblems(unittest2.TestCase):
     def setUp(self):
         self.buridansassproblem = MORLBuridansAssProblem()
-        self.puddleworldproblem = MOPuddleworldProblem()
+        self.puddleworldproblem = MOPuddleworldProblem(20)
         self.resourcegatheringproblem = MORLResourceGatheringProblem()
-        self.mountaincarproblem = MORLMountainCar()
+        self.mountaincarproblem = MountainCarAcceleration()
 
 
 class TestBuridan(TestProblems):
@@ -230,7 +227,7 @@ class TestBuridan(TestProblems):
         self.testPlay()
         self.testFoodstolen()
 
-    def testPuddleScene(self):
+    def testBuridanScene(self):
         plt.subplot(132)
         fig, ax = plt.subplots()
         scene = self.buridansassproblem._scene
@@ -287,7 +284,7 @@ class TestBuridan(TestProblems):
         # go down
         self.buridansassproblem.play(4)
         # check on map if he's gone down
-        # self.buridansassproblem.print_map(self.buridansassproblem._get_position(self.buridansassproblem.state))
+        self.buridansassproblem.print_map(self.buridansassproblem._get_position(self.buridansassproblem.state))
 
     def testFoodEaten(self):
         self.buridansassproblem.reset()
@@ -322,7 +319,7 @@ class TestPuddleworld(TestProblems):
         for col_val, row_val in zip(x.flatten(), y.flatten()):
             c = int(scene[row_val, col_val])
             ax.text(col_val, row_val, c, va='center', ha='center')
-
+        plt.show()
     def testPlay(self):
         self.puddleworldproblem.reset()
         order = [1]
@@ -350,7 +347,8 @@ class TestResourceGathering(TestProblems):
         self.testResourceReward()
 
     def testResScene(self):
-        plt.subplot(142)
+        self.resourcegatheringproblem.__init__()
+
         fig, ax = plt.subplots()
         scene = self.resourcegatheringproblem._scene
         scene[4, 2] = 9
@@ -367,6 +365,7 @@ class TestResourceGathering(TestProblems):
             if col_val == 2 and row_val == 4:
                 c = "H"
             ax.text(col_val, row_val, c, va='center', ha='center')
+        # plt.show()
 
     def testResources(self):
         self.resourcegatheringproblem.reset()
@@ -384,6 +383,14 @@ class TestResourceGathering(TestProblems):
 
         self.assertEqual(r1, 1, 'first resource not found')
         self.assertEqual(r2, 1, 'second resource not found')
+
+    def testWorld3d(self):
+        state = self.resourcegatheringproblem.state
+        for i in xrange(self.resourcegatheringproblem.n_states):
+            position = self.resourcegatheringproblem._get_position(i)
+            state = self.resourcegatheringproblem._get_index(position)
+            self.assertEqual(state, i, 'index %d is wrong' % i)
+        print self.resourcegatheringproblem._get_index((1, 4, 0,0))
 
     def testResourceReward(self):
         self.resourcegatheringproblem.reset()

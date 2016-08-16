@@ -7,14 +7,14 @@ setup(name='MORL Framework',
       description='Framework for Multi Objective Reinforcement Learning agents',
       packages=find_packages(),
       install_requires=[
-          # 'matplotlib',
+          'matplotlib',
           'numpy',
           'datetime',
           'joblib',
           'neurolab',
           'cvxopt',
           'unittest2',
-          #'inspyred',
+          'pyhull',
           'scipy'
       ]
       )

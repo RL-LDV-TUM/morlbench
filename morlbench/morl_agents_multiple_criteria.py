@@ -9,9 +9,8 @@ from morlbench.morl_problems import MOPuddleworldProblem, MORLBuridansAssProblem
 from morlbench.morl_agents import MORLHLearningAgent, MORLRLearningAgent
 from morlbench.morl_policies import PolicyFromAgent
 from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_heat_plot, policy_plot2
-from morlbench.helpers import HyperVolumeCalculator
-from scipy.spatial import ConvexHull
-
+from morlbench.helpers import HyperVolumeCalculator, compute_hull, remove_duplicates
+from pyhull.convex_hull import ConvexHull
 import numpy as np
 # import random
 import matplotlib.pyplot as plt
@@ -382,10 +381,13 @@ class MORLConvexHullValueIteration:
         self._problem = morl_problem
         self._gamma = gamma
         self._q_shape = (morl_problem.n_states, morl_problem.n_actions, morl_problem.reward_dimension)
-        self._Q_sets = np.array([np.array([np.array([[0, ] * morl_problem.reward_dimension], ), ] *
-                                          morl_problem.n_actions), ] * morl_problem.n_states)
-        self._V = np.array([np.array([[0, ] * morl_problem.reward_dimension]), ] * morl_problem.n_states)
-        # we need the convex hull of the pareto set. first:
+        self.s_a_mapping = dict()
+        for s in xrange(self._problem.n_states):
+            for a in xrange(self._problem.n_actions):
+                self.s_a_mapping[s, a] = len(self.s_a_mapping)
+        self._Q_sets = list([[0, ]*self._problem.reward_dimension] for s in xrange(len(self.s_a_mapping)))
+
+        self._V = list([[[0, ]*self._problem.reward_dimension] for s in xrange(self._problem.n_states)])
         ref = [0.0, ]*self._problem.reward_dimension
         self.hv_calculator = HyperVolumeCalculator(ref)
         self._Q = np.zeros((morl_problem.n_states, morl_problem.n_actions))
@@ -395,16 +397,20 @@ class MORLConvexHullValueIteration:
         for vector1 in hull1:
             for vector2 in hull2:
                 new_set.append(np.add(vector1, vector2))
+
         hull = self.get_hull(new_set)
         return hull
 
-    def get_hull(self, set):
-        if len(set) < self._problem.reward_dimension+1:
-            return set
-        set = set
-        front = self.hv_calculator.extract_front(set)
-        hullindices = ConvexHull(front).simplices
-        hull = [front[i] for i in hullindices]
+    def get_hull(self, pset):
+        dim = len(pset[0])
+        pset = remove_duplicates(pset)
+        # if len(pset) > 2:
+        #     hull = ConvexHull(pset).vertices
+        #     if hull == []:
+        #         hull = pset
+        # else:
+        #     return pset
+        hull = self.hv_calculator.extract_front(pset)
         return hull
 
     def vector_add(self, hull, vector):
@@ -416,7 +422,6 @@ class MORLConvexHullValueIteration:
 
     def scalar_multiplication(self, hull, scalar):
         new_set = []
-
         for vector in hull:
             new_set.append([scalar*vec for vec in vector])
         hull = self.get_hull(new_set)
@@ -430,7 +435,7 @@ class MORLConvexHullValueIteration:
         for s in xrange(self._problem.n_states):
             for a in xrange(self._problem.n_actions):
                 weighted = []
-                for q in self._Q_sets[s, a]:
+                for q in self._Q_sets[self.s_a_mapping[s, a]]:
                     weighted.append(np.dot(weight_vector, q))
                 new_Q[s, a] = max(weighted)
         self._Q = new_Q

@@ -3,22 +3,20 @@
 """
 Created on Sep 14, 2012
 
-@author: Dominik Meyer <meyerd@mytum.de>
-"""
-
-"""
 This module contains miscellaneous helper
 functions that didn't fit in any other place.
+
+@author: Dominik Meyer <meyerd@mytum.de>
 """
 
 import cPickle as pickle
 from os.path import isfile
-from operator import itemgetter
 import numpy as np
-#from inspyred.ec.analysis import hypervolume
 import math
 import time
 from functools import wraps
+import sys
+from matplotlib.mlab import PCA as mlabPCA
 
 def virtualFunction():
     raise RuntimeError('Virtual function not implemented.')
@@ -290,8 +288,58 @@ def fn_timer(function):
     return function_timer
 
 
+def compute_hull(points):
+    """
+    Hull computation over PCA (principle components analysis)
+    :param points:
+    :return:
+    """
+    raise NotImplementedError("Hull computation over PCA not yet ready")
+    final_points = []
+    if len(points) <= 1:
+        return 0, 0, points
 
+    mlab_PCA = mlabPCA(points)
+    # cutoff = 1e-10
+    # # compute the vectors mean
+    # points = [np.array(points[i]) for i in xrange(len(points))]
+    # mean = [np.mean([points[u][j] for u in xrange(len(points))]) for j in xrange(len(points[0]))]
+    # # subtract the mean of each vector
+    # submean = [p - mean for p in points]
+    #
+    # # build covariance matrix
+    # covar = np.zeros((len(points[0]), len(points[0])))
+    # for v1 in xrange(len(submean)):
+    #     for dim1 in xrange(len(submean[v1])):
+    #         for dim2 in xrange(len(submean[v1])):
+    #             covar[dim1][dim2] += submean[v1][dim2]*submean[v1][dim1]
+    # # ... and its eigenvalues and eigenvectors
+    # values, vec = np.linalg.eig(covar)
+    # # count of values that are significant
+    # count = len(values[abs(values) > cutoff])
+    # if count == 0:
+    #     # no significant eigenvalue
+    #     final_points = [[0, ]*len(points)]
+    # axes = np.zeros((count, len(points[0])))
+    # i = 0
+    # for val in xrange(len(values)):
+    #     if values[val] <= cutoff:
+    #         continue
+    #     for j in xrange(len(points[0])):
+    #         axes[i, j] = -vec[i, j]
+    #     i += 1
+    # for ax in xrange(len(axes)):
+    #     for dim in xrange(len(axes[ax])):
+    #         final_points = axes
 
+    # for v1 in xrange(len(submean)):
+    #     new_points = 0
+    # new_points = [nep[0] for nep in new_points]
+    # if type(new_points[0]) == float or type(new_points[0]) == int:
+    #      new_points = [[new_points[i]] for i in xrange(len(new_points))]
+    #
+    # return mean, count, new_points
+    return 0
 
 
 

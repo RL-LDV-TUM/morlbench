@@ -1,4 +1,5 @@
-from morlbench.morl_problems import MORLResourceGatheringProblem, MountainCar, MORLGridworld, MORLBuridansAssProblem, Deepsea
+from morlbench.morl_problems import MORLResourceGatheringProblem, MountainCar, MORLGridworld, MORLBuridansAssProblem, \
+        Deepsea, MOPuddleworldProblem
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.morl_policies import PolicyFromAgent
@@ -12,13 +13,13 @@ import logging as log
 
 if __name__ == '__main__':
 
-    epsilon_experiment = False
+    epsilon_experiment = True
     gamma_experiment = False
     alpha_experiment = False
     tau_experiment = False
-    ref_point_experiment = True
+    ref_point_experiment = False
     # create Problem
-    problem = MORLBuridansAssProblem()
+    problem = MOPuddleworldProblem()
     # create an initialize randomly a weight vector
     scalarization_weights = [0.0, 1.0, 0.0]
     # tau is for chebyshev agent

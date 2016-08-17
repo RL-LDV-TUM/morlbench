@@ -19,7 +19,7 @@ from scipy.spatial import ConvexHull
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent, MORLHLearningAgent
 from morlbench.morl_agents_multiple_criteria import MORLConvexHullValueIteration
 from morlbench.morl_problems import MORLGridworld, MORLBuridansAssProblem, MOPuddleworldProblem, \
-    MORLResourceGatheringProblem, Deepsea, MountainCarAcceleration
+    MORLResourceGatheringProblem, Deepsea, MountainCarTime
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.helpers import HyperVolumeCalculator, compute_hull
 from morlbench.plotting_stuff import plot_hypervolume
@@ -219,7 +219,7 @@ class TestProblems(unittest2.TestCase):
         self.buridansassproblem = MORLBuridansAssProblem()
         self.puddleworldproblem = MOPuddleworldProblem()
         self.resourcegatheringproblem = MORLResourceGatheringProblem()
-        self.mountaincarproblem = MountainCarAcceleration()
+        self.mountaincarproblem = MountainCarTime()
 
 
 class TestBuridan(TestProblems):

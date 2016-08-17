@@ -103,7 +103,11 @@ class SaveableObject(object):
 
 
 def remove_duplicates(array):
-
+    if type(array[0]) is int or type(array[0]) is float:
+        array = tuple(array)
+        removed = set(array)
+        removed_array = [elem for elem in removed]
+        return removed_array
     array = [tuple(element) for element in array]
     removed = set(array)
     removed_array = [elem for elem in removed]

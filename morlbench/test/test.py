@@ -56,6 +56,7 @@ class TestAgents(unittest2.TestCase):
         # both agents interact (times):
         self.interactions = 200
         self.convHullAgent = MORLConvexHullValueIteration(self.problem)
+        self.data = [[4, 2, 0], [1, 1, 1], [1, 1, 0], [1, 0, 1]]
 
 
 class TestLearning(TestAgents):
@@ -111,28 +112,29 @@ class TestLearning(TestAgents):
                                                 epsilon=self.eps, tau=self.tau, ref_point=self.ref))
 
         # interact with each
-        for agent in self.agents:
-            p, a, s = morl_interact_multiple_episodic(agent, self.gridworldproblem, self.interactions,
-                                                      max_episode_length=150)
+        # for agent in self.agents:
+        #   p, a, s = morl_interact_multiple_episodic(agent, self.gridworldproblem, self.interactions,
+        #                                          max_episode_length=150)
 
-        plot_hypervolume(self.agents, self.agents[0]._morl_problem, name='weights')
+        # plot_hypervolume(self.agents, self.agents[0]._morl_problem, name='weights')
 
 
 class TestConvexHullValueIt(TestAgents):
     def runTest(self):
         self.runConvexHullIndices()
 
+
     def runConvexHullIndices(self):
         # data = np.zeros((70, 2))
         # for i in range(70):
         #     for u in range(2):
         #         data[i, u] = random.random()
-        self.data = [[4,2,0], [1,1,1], [1,1,0], [1,0,1]]
-        hull = compute_hull(data)
+
+        hull = compute_hull(self.data)
         plt.figure()
-        plt.plot(data[:][0], data[:][1], 'ro')
+        plt.plot(self.data[:][0], self.data[:][1], 'ro')
         plt.plot(hull[:][0], hull[:][1], 'bo')
-        plt.show()
+        # plt.show()
 
     def testGetConvHull(self):
         data = self.data
@@ -215,7 +217,7 @@ class TestCalculation(TestHyperVolumeCalculator):
 class TestProblems(unittest2.TestCase):
     def setUp(self):
         self.buridansassproblem = MORLBuridansAssProblem()
-        self.puddleworldproblem = MOPuddleworldProblem(20)
+        self.puddleworldproblem = MOPuddleworldProblem()
         self.resourcegatheringproblem = MORLResourceGatheringProblem()
         self.mountaincarproblem = MountainCarAcceleration()
 
@@ -264,7 +266,7 @@ class TestBuridan(TestProblems):
         order = [1, 2, 3, 4, 4, 3, 2, 2, 1, 2]
         for i in order:
             r = self.buridansassproblem.play(i)
-        reward = r[0]
+        reward = r[2]
         self.assertEqual(reward, -1.0, 'reward of hunger doesn\'t fit')
 
     def testFoodstolen(self):
@@ -319,7 +321,8 @@ class TestPuddleworld(TestProblems):
         for col_val, row_val in zip(x.flatten(), y.flatten()):
             c = int(scene[row_val, col_val])
             ax.text(col_val, row_val, c, va='center', ha='center')
-        plt.show()
+        # plt.show()
+
     def testPlay(self):
         self.puddleworldproblem.reset()
         order = [1]
@@ -332,9 +335,9 @@ class TestPuddleworld(TestProblems):
         self.puddleworldproblem.reset()
         self.puddleworldproblem.state = 28
 
-        r = self.puddleworldproblem.play(3)
+        r = self.puddleworldproblem.play(1)
         touched = r[1]
-        r = self.puddleworldproblem.play(3)
+        r = self.puddleworldproblem.play(1)
         touched2 = r[1]
         t = touched, touched2
         self.assertTupleEqual(t, (-10.0, -20.0), 'puddlereward wrong')
@@ -365,7 +368,7 @@ class TestResourceGathering(TestProblems):
             if col_val == 2 and row_val == 4:
                 c = "H"
             ax.text(col_val, row_val, c, va='center', ha='center')
-        # plt.show()
+        plt.show()
 
     def testResources(self):
         self.resourcegatheringproblem.reset()
@@ -373,13 +376,15 @@ class TestResourceGathering(TestProblems):
         order = [2, 1, 1, 1, 1, 0]
         for i in order:
             r = self.resourcegatheringproblem.play(i)
-        r1 = self.resourcegatheringproblem._bag[0]
+        state = self.resourcegatheringproblem.state
+        r1 = self.resourcegatheringproblem._get_position(state)[2]
         self.resourcegatheringproblem.reset()
         # run to second resource:
         order = [1, 0, 1, 1, 0]
         for i in order:
             self.resourcegatheringproblem.play(i)
-        r2 = self.resourcegatheringproblem._bag[1]
+        state = self.resourcegatheringproblem.state
+        r2 = self.resourcegatheringproblem._get_position(state)[3]
 
         self.assertEqual(r1, 1, 'first resource not found')
         self.assertEqual(r2, 1, 'second resource not found')
@@ -390,7 +395,7 @@ class TestResourceGathering(TestProblems):
             position = self.resourcegatheringproblem._get_position(i)
             state = self.resourcegatheringproblem._get_index(position)
             self.assertEqual(state, i, 'index %d is wrong' % i)
-        print self.resourcegatheringproblem._get_index((1, 4, 0,0))
+        print self.resourcegatheringproblem._get_index((1, 4, 0, 0))
 
     def testResourceReward(self):
         self.resourcegatheringproblem.reset()

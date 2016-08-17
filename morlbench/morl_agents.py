@@ -6,7 +6,7 @@ Created on Nov 19, 2012
 @author: Dominik Meyer <meyerd@mytum.de>
 """
 
-from helpers import virtualFunction, SaveableObject, HyperVolumeCalculator
+from helpers import virtualFunction, SaveableObject, HyperVolumeCalculator, remove_duplicates
 
 import numpy as np
 import random
@@ -819,6 +819,7 @@ class MORLScalarizingAgent(MorlAgent):
             self.l = [x for x in l]
             # compute new hypervolume:
             self.temp_vol.append(self.hv_calculator.compute_hv(self.l))
+            self.temp_vol = remove_duplicates(self.temp_vol)
             # at the end of an interaction:
             if self._morl_problem.terminal_state:
                 # store the maximum hypervolume

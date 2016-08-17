@@ -413,11 +413,11 @@ class MountainCar(MORLProblem):
         self.terminal_state = False     # variable for reaching terminal state
         self.n_states_print = self.n_states - 1
         self._goalState = self.n_states-1
-        self.reward_dimension = 2
+        self.reward_dimension = 3
         self.time_token = []
         self.cosine_factor = cf
         # self._construct_p()
-        self.time_limit = time_lim
+        self.acceleration = 0
 
     def reset(self):
         self._velocity = 0
@@ -478,7 +478,8 @@ class MountainCar(MORLProblem):
         # Determine acceleration factor
         if action < len(self.actions):
             # factor is a variable +1 for accelerating, -1 one for reversing, 0 for nothing
-            factor = map_actions[self.actions[action]]  # map action to thrust factor
+            factor = map_actions[self.actions[action]] # map action to thrust factor
+            self.acceleration = factor
         else:
             print 'Warning: No matching action - Default action was selected!'
             factor = 0  # Default action
@@ -492,8 +493,10 @@ class MountainCar(MORLProblem):
         if self.terminal_state:
             # reward!
             reward[0] = self._default_reward
-        elif self._time > self.time_limit:
+        if self.acceleration == 1:
             reward[1] = -1
+        if self.acceleration == -1:
+            reward[2] = -2
         return reward
 
     def _construct_p(self):
@@ -544,7 +547,7 @@ class MountainCar(MORLProblem):
             self.time_token.append(self._time)
 
 
-class MountainCarAcceleration(MountainCar):
+class MountainCarTime(MountainCar):
     """
     reward: [time, reversal, front]
     every time step: time=-1
@@ -561,7 +564,7 @@ class MountainCarAcceleration(MountainCar):
         state: default state is -0.5
         """
         self._nb_actions = 0
-        super(MountainCarAcceleration, self).__init__(state=state, acc_fac=acc_fac, cf=cf, time_lim=time_lim)
+        super(MountainCarTime, self).__init__(state=state, acc_fac=acc_fac, cf=cf, time_lim=time_lim)
         self.reward_dimension = 3
 
     def reset(self):

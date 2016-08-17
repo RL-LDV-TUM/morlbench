@@ -1367,15 +1367,14 @@ class MOPuddleworldProblem(MORLProblem):
         # scene quadradic zeros
         self._scene = np.zeros((self._size, self._size))
         # create puddle: the deeper, the greater the regret
-        self._scene[0.1*self._size:0.7*self._size, 0.09*self._size:0.5*self._size+1] = -1
-        self._scene[0.35*self._size:, :0.30*self._size] = 0
-        self._scene[0.10*self._size, :0.3*self._size] = 0
-        self._scene[0.10*self._size, (self._size/2)] = 0
-        self._scene[0.35*self._size:, (self._size/2)] = 0
-        self._scene[0.2*self._size:0.3*self._size, 0.14*self._size:0.5*self._size] = -2
-        self._scene[0.15*self._size:0.65*self._size, 0.35*self._size:0.45*self._size] = -2
-        self._scene[0, self._size-1] = 1
-        self._scene[0, 1] = 10
+        self._scene[0.1*self._size:0.7*self._size, 0.09*self._size:0.5*self._size+1] = -1.0
+        self._scene[0.35*self._size:, :0.30*self._size] = 0.0
+        self._scene[0.10*self._size, :0.3*self._size] = 0.0
+        self._scene[0.10*self._size, (self._size/2)] = 0.0
+        self._scene[0.35*self._size:, (self._size/2)] = 0.0
+        self._scene[0.2*self._size:0.3*self._size, 0.14*self._size:0.5*self._size] = -2.0
+        self._scene[0.15*self._size:0.65*self._size, 0.35*self._size:0.45*self._size] = -2.0
+        self._scene[0, self._size-1] = 1.0
         self.state_map = dict()
         for y in xrange(self._size):
             for x in xrange(self._size):

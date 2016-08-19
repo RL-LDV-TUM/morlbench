@@ -1,4 +1,4 @@
-from morlbench.morl_problems import MountainCarAcceleration, Deepsea, MORLGridworld
+from morlbench.morl_problems import MountainCarTime, Deepsea, MORLGridworld, MountainCar
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.plotting_stuff import plot_hypervolume
 from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_interact_multiple_average_episodic
@@ -9,17 +9,17 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     # create Problem
-    problem = MountainCarAcceleration(acc_fac=0.004, cf=0.0025, time_lim=90, state=76)
+    problem = MountainCar(acc_fac=0.004, cf=0.0025, time_lim=90, state=76)
     # create an initialize randomly a weight vector
-    scalarization_weights = [0.5, 0.0, 0.5]
+    scalarization_weights = [1.0, 0.0, 0.0]
     # tau is for chebyshev agent
-    tau = 3.0
+    tau = 4.0
     # ref point is used for Hypervolume calculation
     ref = [-1.0, ]*problem.reward_dimension
     # learning rate
     alfacheb = 0.5
     # Propability of epsilon greedy selection
-    eps = 0.1
+    eps = 0.9
 
     # create one agent using chebyshev scalarization method
     chebyagent = MORLScalarizingAgent(problem, epsilon=eps, alpha=alfacheb, scalarization_weights=scalarization_weights,

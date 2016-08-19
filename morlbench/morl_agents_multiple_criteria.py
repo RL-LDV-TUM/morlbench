@@ -388,7 +388,7 @@ class MORLConvexHullValueIteration:
         self._Q_sets = list([[0, ]*self._problem.reward_dimension] for s in xrange(len(self.s_a_mapping)))
 
         self._V = list([[[0, ]*self._problem.reward_dimension] for s in xrange(self._problem.n_states)])
-        ref = [0.0, ]*self._problem.reward_dimension
+        ref = [-1.0, ]*self._problem.reward_dimension
         self.hv_calculator = HyperVolumeCalculator(ref)
         self._Q = np.zeros((morl_problem.n_states, morl_problem.n_actions))
 
@@ -437,5 +437,6 @@ class MORLConvexHullValueIteration:
                 weighted = []
                 for q in self._Q_sets[self.s_a_mapping[s, a]]:
                     weighted.append(np.dot(weight_vector, q))
-                new_Q[s, a] = max(weighted)
+                Q = max(weighted)
+                new_Q[s, a] = Q
         self._Q = new_Q

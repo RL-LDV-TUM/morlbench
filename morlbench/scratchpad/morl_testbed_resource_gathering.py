@@ -17,7 +17,7 @@ log.basicConfig(level=log.INFO)
 
 
 from morlbench.morl_problems import Deepsea, MORLGridworld, MOPuddleworldProblem, MORLResourceGatheringProblem
-from morlbench.morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent, FixedPolicyAgent, MORLScalarizingAgent
+from morlbench.morl_agents import MORLHLearningAgent, MORLRLearningAgent, MORLHVBAgent, MORLScalarizingAgent
 from morlbench.morl_policies import PolicyDeepseaRandom, PolicyDeepseaDeterministic, PolicyFromAgent, PolicyDeepseaExpert
 from morlbench.inverse_morl import InverseMORL
 from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_plot2, policy_heat_plot
@@ -35,23 +35,20 @@ if __name__ == '__main__':
 
     # scalarization_weights = np.array([0.153, 0.847])
     # scalarization_weights = np.array([0.5, 0.5])
-    scalarization_weights = np.array([0.0, 0.5, 0.5])
+    scalarization_weights = np.array([0.5, 0.5, 0.0])
     # scalarization_weights = np.array([0.0, 1.0])
     # scalarization_weights = np.array([0.9, 0.1])
 
-    eps = 0.1
+    eps = 0.8
     alfa = 0.4
     runs = 2
-    interactions = 1000
+    interactions = 100
 
-    # exp_policy = PolicyDeepseaExpert(problem, task='T2')
-    # det_policy = PolicyDeepseaDeterministic(problem, policy='P1')
-    # agent = FixedPolicyAgent(problem, exp_policy)
-    # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
+
     agent = MORLScalarizingAgent(problem, scalarization_weights, alfa, eps, 4.0, [-1.0, -1.0, -1.0])
+
+
+
     # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
     payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=150)
 

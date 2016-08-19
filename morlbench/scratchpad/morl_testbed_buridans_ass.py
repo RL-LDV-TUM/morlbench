@@ -16,7 +16,7 @@ import cPickle as pickle
 log.basicConfig(level=log.INFO)
 
 
-from morlbench.morl_problems import MORLBuridansAssProblem
+from morlbench.morl_problems import MORLBuridansAssProblem, MORLBuridansAss1DProblem
 from morlbench.morl_agents import MORLScalarizingAgent, QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent,\
     SARSAMorlAgent, MORLHVBAgent
 from morlbench.morl_policies import PolicyFromAgent, PolicyGridworld
@@ -41,25 +41,25 @@ if __name__ == '__main__':
 
     for i in xrange(runs):
 
-        problem = MORLBuridansAssProblem()
-        scalarization_weights = np.array([1.0, 0.0, 0.0])
+        problem = MORLBuridansAss1DProblem()
+        scalarization_weights = np.array([0.0, 1.0, 0.0])
 
-        eps = 0.9
+        eps = 0.2
         alfa = 0.1
         tau = 10.0
 
-        interactions = 1000
+        interactions = 600
 
         # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-        # agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.9,
-        #                        ref_point=[-1.0, -1.0, -1.0])
-        agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0, -1.0], scal_weights=[1.0, 10.0])
+        agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.9,
+                              ref_point=[-1.0, -1.0, -1.0])
+        # agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0, -1.0], scal_weights=[1.0, 10.0])
 
         # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
-        payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=150)
+        payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=300)
         log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
         # show_exploration(states, problem.n_states)
@@ -74,7 +74,7 @@ if __name__ == '__main__':
 
         # pickle.dump((payouts, moves, states, problem, agent), open('test_pickle.p', "wb"))
 
-        states = problem.create_plottable_states(states)
+        # states = problem.create_plottable_states(states)
         ## Plotting ##
         expName = "Exp1-"
         for w in range(len(scalarization_weights)):

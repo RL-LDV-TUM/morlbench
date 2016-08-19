@@ -341,6 +341,17 @@ class PolicyDeepseaExpert(Policy):
             for action, val in enumerate(vals):
                 self._pi[self._state_map[i], action] = val
 
+def reward_from_policy(policy):
+    pi = policy._pi
+    problem = policy.problem
+    problem.reset()
+    s = problem.init_state
+    reward = np.zeros(problem.reward_dimension)
+    while not problem.terminal_state:
+        action = np.argmax(pi[s])
+        reward += problem.play(action)
+        s = problem.state
+
 
 class PolicyFromAgent(Policy):
     """
@@ -351,7 +362,6 @@ class PolicyFromAgent(Policy):
 
         self._agent = agent
         self._pi = np.zeros((self._problem.n_states, self._problem.n_actions))
-
         for i in xrange(self._problem.n_states):
             if mode == 'gibbs':
                 # gibbs
@@ -414,3 +424,4 @@ class PolicyRobotActionPlanningRandom(Policy):
         for i in xrange(self._problem.n_states):
             for j in xrange(self._problem.n_actions):
                 self._pi[i, j] = 1.0 / self._problem.n_actions
+

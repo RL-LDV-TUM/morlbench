@@ -17,7 +17,7 @@ log.basicConfig(level=log.INFO)
 
 
 from morlbench.morl_problems import Deepsea, MORLGridworld, MORLGridworldTime
-from morlbench.morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent
+from morlbench.morl_agents import QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent, SARSAMorlAgent, MORLScalarizingAgent
 from morlbench.morl_policies import PolicyFromAgent, PolicyGridworld
 from morlbench.inverse_morl import InverseMORLIRL
 from morlbench.plot_heatmap import policy_plot, transition_map, heatmap_matplot, policy_heat_plot
@@ -31,22 +31,26 @@ import matplotlib.pyplot as plt
 
 
 if __name__ == '__main__':
-    # problem = MORLGridworld()
-    problem = MORLGridworldTime()
+    problem = MORLGridworld()
+    # problem = MORLGridworldTime()
 
-    scalarization_weights = np.array([10.0, 0.0, 0.0, 1.0])
+    scalarization_weights = np.array([0.5, 0.5, 0.0])
 
-    eps = 0.4
-    alfa = 0.3
+    def eps():
+        for i in xrange(interactions/2):
+            yield 0.1
+        yield 0.8
+    alfa = 0.1
     runs = 1
     interactions = 10000
-
+    ref_point = [-1.0, ]*problem.reward_dimension
     # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
-    agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
+    # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
     # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-    #
+    agent = MORLScalarizingAgent(problem, scalarization_weights, alfa, eps(), 4.0, ref_point)
     # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
+
     payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=150)
     log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 

@@ -17,18 +17,18 @@ if __name__ == '__main__':
     # create an initialize randomly a weight vector
     scalarization_weights = [1.0, 0.0, 0.0]
     # tau is for chebyshev agent
-    tau = 3.0
+    tau = 0.1
     # ref point is used for Hypervolume calculation
-    ref = [-4.0, ]*problem.reward_dimension
+    ref = [-0.1, ]*problem.reward_dimension
     # learning rate
-    alfacheb = 0.1
+    alfacheb = 0.01
     # Propability of epsilon greedy selection
-    eps = 0.9
+    eps = 0.5
     # create one agent using chebyshev scalarization method
     chebyagent = MORLScalarizingAgent(problem, epsilon=eps, alpha=alfacheb, scalarization_weights=scalarization_weights,
                                       ref_point=ref, tau=tau)
     # both agents interact (times):
-    interactions = 10000
+    interactions = 20000
     n_vectors = 2
 
     if hypervolume_experiment:
@@ -57,6 +57,7 @@ if __name__ == '__main__':
                                                                         max_episode_length=150)
             payouts2, moves2, states2 = morl_interact_multiple_episodic(linagent, problem, interactions,
                                                                         max_episode_length=150)
+            plot_hypervolume([chebyagent, linagent], problem)
             hvb_hypervolumes.append(max(linagent.max_volumes))
             cheb_hypervolumes.append(max(chebyagent.max_volumes))
             linagent.reset()

@@ -42,12 +42,11 @@ if __name__ == '__main__':
     for i in xrange(runs):
 
         problem = MOPuddleworldProblem()
-        problem2 = MOPuddleworldProblem(16)
-        scalarization_weights = np.array([1.0])
+        scalarization_weights = np.array([1.0, 0.0])
 
-        eps = 0.9
-        alfa = 0.2
-        tau = 1.0
+        eps = 0.2
+        alfa = 0.1
+        tau = 2.0
 
         interactions = 1000
 
@@ -55,15 +54,14 @@ if __name__ == '__main__':
         # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-        # agent = MORLChebyshevAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.9,
-        #                           ref_point=[-1.0, -1.0, -1.0])
-        agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0, -1.0], scal_weights=[1.0, 10.0])
-        agent2 = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0, -1.0], scal_weights=[1.0, 10.0])
+        agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.9,
+                                  ref_point=[-1.0, -1.0])
+        # agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0], scal_weights=[1.0, 10.0])
+
 
         # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
         payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=300)
-        payouts, moves, states = morl_interact_multiple_episodic(agent2, problem2, interactions=interactions,
-                                                                 max_episode_length=100)
+
         log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
         # show_exploration(states, problem.n_states)
@@ -88,6 +86,6 @@ if __name__ == '__main__':
 
         policy_plot2(problem, learned_policy)
         policy_heat_plot(problem, learned_policy, states, filename=fName1)
-        plot_hypervolume([agent, agent2], problem)
+        plot_hypervolume([agent], problem)
 
 

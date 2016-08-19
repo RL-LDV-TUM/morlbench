@@ -8,7 +8,7 @@ Created on Jun 07, 2016
 import numpy as np
 import matplotlib.pyplot as plt
 from morlbench.morl_agents_multiple_criteria import MultipleCriteriaH, MultipleCriteriaR
-from morlbench.morl_problems import MORLBuridansAssProblem, MOPuddleworldProblem, MORLGridworld, MountainCarAcceleration, MORLResourceGatheringProblem, Deepsea
+from morlbench.morl_problems import MORLBuridansAssProblem, MOPuddleworldProblem, MORLGridworld, MountainCarTime, MORLResourceGatheringProblem, Deepsea
 from morlbench.morl_policies import PolicyFromAgent
 from morlbench.plot_heatmap import policy_heat_plot, policy_plot2, policy_plot
 from morlbench.helpers import HyperVolumeCalculator
@@ -22,11 +22,11 @@ if __name__ == '__main__':
     # how many vectors do you want to train before?
     n_vectors = 100
     # which problem do you want to experiment on?
-    problem = MORLGridworld()
+    problem = MORLBuridansAssProblem()
     # this is the threshold that the difference of the weighted average reward of the untrained and trained policy
     # should top, to let the new trained policy be a 'better policy'
-    deltah = 0.2
-    deltar = 0.3
+    deltah = 0.1
+    deltar = 0.4
     # epsilon = propability that the agent choses a greedy action instead of a random action
     epsilon = 0.9
     # learning rate
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     alfah = 0.65
     betar = 0.01
     # how many interactions should the action train per weight?
-    interactions = 100000
+    interactions = 1000
     # how many episodes in one interactions should be taken? (if the problem gets in a terminal state, it will be
     # interrupted anyway (episodes = steps in the environment = actions)
     max_per_interaction = 200
@@ -62,6 +62,18 @@ if __name__ == '__main__':
     x = np.arange(len(hvs))
     plt.figure()
     plt.plot(x, hvs)
+    plt.xlabel('policy')
+    plt.ylabel('weighted average reward')
+    plt.title('R_Learning Average Reward Evolution')
+    rho2 = [i for i in agent2.rhos.values()]
+    pf = []
+    for i in xrange(len(rho)):
+        pf.append(rho[i])
+        hvs.append(hv_calculator.compute_hv(pf))
+    x = np.arange(len(hvs))
+    plt.figure()
+    plt.plot(x, hvs)
+    plt.title('H_Learning Average Reward Evolution')
     plt.xlabel('policy')
     plt.ylabel('weighted average reward')
     print "R-Learning found %i policy/-ies, H-Learning found %i policy/-ies" % (len(agent.pareto), len(agent2.pareto))

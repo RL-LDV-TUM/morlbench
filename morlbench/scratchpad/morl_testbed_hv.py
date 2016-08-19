@@ -5,7 +5,8 @@ Created on Jun 11, 2016
 
 @author: Simon Wölzmüller <ga35voz@mytum.de>
 """
-from morlbench.morl_problems import  Deepsea, MOPuddleworldProblem, MORLBuridansAssProblem, MORLGridworld, MORLResourceGatheringProblem
+from morlbench.morl_problems import  Deepsea, MountainCarTime, MOPuddleworldProblem, MORLBuridansAssProblem, \
+    MORLGridworld, MORLResourceGatheringProblem, MORLBuridansAss1DProblem
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.plotting_stuff import plot_hypervolume
@@ -37,9 +38,9 @@ Attention:
 """
 if __name__ == '__main__':
     # create Problem
-    experiment_1 = True
-    experiment_2 = False
-    problem = MORLBuridansAssProblem()
+    experiment_1 = False
+    experiment_2 = True
+    problem = MORLBuridansAss1DProblem()
     # create an initialize randomly a weight vector
     scalarization_weights = np.zeros(problem.reward_dimension)
     scalarization_weights = random.sample([i for i in np.linspace(0, 5, 5000)], len(scalarization_weights))
@@ -50,14 +51,14 @@ if __name__ == '__main__':
     # learning rate
     alf = 0.2
     alfacheb = 0.2
-    alfahvb = 0.01
+    alfahvb = 0.1
     n_vectors = 5
 
     # Propability of epsilon greedy selection
     eps = 0.1
     # create one agent using scalarization method
     chebyagent = MORLScalarizingAgent(problem, [1.0, 0.0, 0.0], alpha=alfacheb, epsilon=eps,
-                                      tau=tau, ref_point=ref, function='linear')
+                                      tau=tau, ref_point=ref)
     # create one agent using Hypervolume based Algorithm
     hvbagent = MORLHVBAgent(problem, alpha=alfahvb, epsilon=0.1, ref=ref, scal_weights=[1.0, 10.0])
     # both agents interact (times):
@@ -66,12 +67,12 @@ if __name__ == '__main__':
         # make the interactions
         log.info('Playing %i interactions on chebyagent' % interactions)
         payouts, moves, states = morl_interact_multiple_episodic(chebyagent, problem, interactions,
-                                                                 max_episode_length=150)
+                                                                max_episode_length=300)
         # print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
         #     str(states[:]) + '\n')
         log.info('Playing %i interactions on hvb agent' % interactions)
         payouts2, moves2, states2 = morl_interact_multiple_episodic(hvbagent, problem, interactions,
-                                                                    max_episode_length=150)
+                                                                    max_episode_length=300)
         # print("TEST(HVB): interactions made: \nP: "+str(payouts2[:])+",\n M: " + str(moves2[:]) + ",\n S: " +
         #      str(states2[:]) + '\n')
 

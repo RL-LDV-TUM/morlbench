@@ -34,7 +34,7 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
-    runs = 5
+    runs = 1
 
     saved_weights = []
     plt.ion()

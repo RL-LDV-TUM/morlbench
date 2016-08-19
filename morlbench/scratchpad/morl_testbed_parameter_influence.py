@@ -1,4 +1,4 @@
-from morlbench.morl_problems import MORLResourceGatheringProblem, MountainCar, MORLGridworld, MORLBuridansAssProblem, \
+from morlbench.morl_problems import MORLResourceGatheringProblem, MountainCarTime, MORLGridworld, MORLBuridansAssProblem, \
         Deepsea, MOPuddleworldProblem
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
@@ -13,22 +13,22 @@ import logging as log
 
 if __name__ == '__main__':
 
-    epsilon_experiment = True
+    epsilon_experiment = False
     gamma_experiment = False
-    alpha_experiment = False
-    tau_experiment = False
-    ref_point_experiment = False
+    alpha_experiment = True
+    tau_experiment = True
+    ref_point_experiment = True
     # create Problem
-    problem = MOPuddleworldProblem()
+    problem = MORLBuridansAssProblem()
     # create an initialize randomly a weight vector
-    scalarization_weights = [0.0, 1.0, 0.0]
+    scalarization_weights = [1.0, 0.0, 0.0]
     # tau is for chebyshev agent
     tau = 4.0
     # ref point is used for Hypervolume calculation
     ref = [-1.0, ]*problem.reward_dimension
     # learning rate
     alfacheb = 0.11
-    eps = 0.1
+    eps = 0.9
     # Propability of epsilon greedy selection
     epsilons = np.arange(0, 1, 0.1)
     gammas = np.arange(0, 1, 0.1)

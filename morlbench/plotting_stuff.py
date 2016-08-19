@@ -6,6 +6,7 @@ Created on Feb 10, 2015
 
 import numpy as np
 import matplotlib.pyplot as plt
+from helpers import HyperVolumeCalculator
 
 
 def plot_that_pretty_rldm15(xdata=[], ydata=[], labels=[],
@@ -161,11 +162,35 @@ def plot_hypervolume(agents, problem, name='agent'):
             plt.plot(x, volumes_list[i], colours[i], label='tau: '+str(agents[i]._tau))
         if name == 'reference point':
             plt.plot(x, volumes_list[i], colours[i], label='ref-point: '+ str(agents[i].hv_calculator.ref_point))
-    plt.plot(x, paretofront, 'g--', label="Paretofront")
+    plt.plot(x, paretofront, 'g--', label="estimated paretofront")
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
     plt.axis([0-0.01*len(x), len(x), 0, 1.1*max([max(vol) for vol in volumes_list.values()])])
     plt.xlabel('interactions')
     plt.ylabel('hypervolume')
     plt.grid(True)
+    plt.savefig('hypv_'+title+'.pdf')
+
+def plot_reward_hypervolume(rewards, problem, ref_point):
+    hv_calc = HyperVolumeCalculator(ref_point)
+    hvs = []
+    for r in xrange(len(rewards)):
+        rew = []
+        for i in xrange(len(rewards[r])):
+            cummulated = np.zeros(problem.reward_dimension)
+            for u in xrange(i, 0, -1):
+                cummulated += rewards[r][u]
+
+            rew.append(cummulated)
+        hv = []
+        for i in xrange(0, min([len(rewards), len(rewards)])):
+            hv.append(hv_calc.compute_hv(rewards[:i]))
+        hvs.append(hvs)
+
+
+    x = np.arange(len(l_hv))
+    plt.figure()
+    plt.plot(x, l_hv)
+    x = np.arange(len(c_hv))
+    plt.plot(x, c_hv)
     plt.show()
 

@@ -92,7 +92,7 @@ def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_le
                 problem.reset()
                 moves.append(actions)
                 states.append(tmp_states)
-                final_rewards.append(np.sum(rewards))
+                final_rewards.append(np.mean(rewards))
                 break
         pbar.update(i)
     # newline to fix output of pgbar

@@ -1280,16 +1280,17 @@ class MORLBuridansAssProblem(MORLProblem):
                 self.food[1] = 0
         # maybe food is stolen if we go in the wrong direction
         elif self._get_distance(n_position, self.food1) > self.max_distance and random.random() <\
-                self.steal_probability:
+                self.steal_probability and self.food[0]:
             self._scene[self.food1] = 0
             self.count = 0
             self.food[0] = 0
         # same for food no. 2
         elif self._get_distance(n_position, self.food2) > self.max_distance and random.random() <\
-                self.steal_probability:
+                self.steal_probability and self.food[1]:
             self._scene[self.food2] = 0
             self.count = 0
             self.food[1] = 0
+        self.last_state = state
         self.state = self._get_index(n_position)
         reward = self._get_reward(self.state)
         if (reward > 0).any():

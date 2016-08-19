@@ -1149,8 +1149,4 @@ class MORLRLearningAgent(MorlAgent):
         :return: action to do next
         """
         # get action out of max q value of n_objective-dimensional matrix
-        if random.random() < self._epsilon:
-            return self._greedy_sel(0, state)
-        else:
-            return random.randint(0, self._morl_problem.n_actions-1)
-
+        return self._greedy_sel(0, state)

@@ -758,21 +758,20 @@ class MORLScalarizingAgent(MorlAgent):
         for acts in xrange(self._morl_problem.n_actions):
             # create value vector for objectives
             obj = [x for x in self._Q[state, acts, :]]
-            if self.function == 'linear':
-                sq = sum([(self._w[o]*obj[o]) for o in xrange(len(obj))])
-            if self.function == 'chebishev':
-                sq = np.amax([self._w[o]*abs(obj[o]-self._z[o]) for o in xrange(len(obj))])
-            # store that value into the list
+            sq = sum([(self._w[o]*obj[o]) for o in xrange(len(obj))])
+
             sq_list.append(sq)
         # chosen action is the one with greatest sq value
-        if self.function == 'linear':
-            new_action = np.argmax(sq_list)
-        if self.function == 'chebishev':
-            new_action = np.argmin(sq_list)
-
-
+        new_action = np.argmax(sq_list)
         return new_action
 
+    def create_scalar_Q_table(self):
+        self.Qs = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
+        for s in xrange(self._morl_problem.n_states):
+            for a in xrange(self._morl_problem.n_actions):
+                obj = [x for x in self._Q[s, a, :]]
+                sq = sum([(self._w[o]*obj[o]) for o in xrange(len(obj))])
+                self.Qs[s, a] = sq
 
     def get_learned_action_gibbs_distribution(self, state):
         """

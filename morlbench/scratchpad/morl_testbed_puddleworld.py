@@ -41,26 +41,31 @@ if __name__ == '__main__':
 
     for i in xrange(runs):
 
-        problem = MOPuddleworldProblem()
+        problem = MOPuddleworldProblem(16)
         scalarization_weights = np.array([1.0, 0.0])
+        max_episode_l = 200
 
-        eps = 0.2
         alfa = 0.1
-        tau = 2.0
+        tau = 0.1
 
-        interactions = 1000
+        interactions = 10
+
+        def eps():
+            for i in xrange(interactions*max_episode_l/1.5):
+                yield 0.99
+            yield 0.6
 
         # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-        agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.9,
+        agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=1.0,
                                   ref_point=[-1.0, -1.0])
         # agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0], scal_weights=[1.0, 10.0])
 
 
         # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
-        payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=300)
+        payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=max_episode_l)
 
         log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
@@ -85,7 +90,8 @@ if __name__ == '__main__':
         fName2 = expName + str(i) + '_retrieved'
 
         policy_plot2(problem, learned_policy)
-        policy_heat_plot(problem, learned_policy, states, filename=fName1)
+        #
+        # policy_heat_plot(problem, learned_policy, states, filename=fName1)
         plot_hypervolume([agent], problem)
 
 

@@ -26,10 +26,13 @@ from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation
 from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_interact_multiple_average_episodic
 from morlbench.plotting_stuff import plot_hypervolume
 
+
 import pickle
 import time
-
+from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
 
 
 if __name__ == '__main__':
@@ -41,12 +44,12 @@ if __name__ == '__main__':
 
     for i in xrange(runs):
 
-        problem = MOPuddleworldProblem(16)
+        problem = MOPuddleworldProblem(size=20)
         scalarization_weights = np.array([1.0, 0.0])
         max_episode_l = 200
 
         alfa = 0.1
-        tau = 0.1
+        tau = 1.0
 
         interactions = 10
 
@@ -66,7 +69,18 @@ if __name__ == '__main__':
 
         # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
         payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=max_episode_l)
+        agent.create_scalar_Q_table()
+        x = [w for w in xrange(problem._size)]
+        y = [d for d in xrange(problem._size)]
+        x, y = np.meshgrid(x, y)
+        z = np.array([max([agent.Qs[s, a] for a in xrange(problem.n_actions)]) for s in xrange(problem.n_states)])
+        z = z.reshape(problem._size, problem._size)
 
+        fig, ax = plt.subplots()
+        ax.imshow(z, interpolation='nearest')
+        # plt.colorbar()
+        plt.grid()
+        plt.show()
         log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
         # show_exploration(states, problem.n_states)

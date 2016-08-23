@@ -43,7 +43,7 @@ def interact_multiple(agent, problem, interactions):
     return actions, payouts
 
 
-def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_length=150):
+def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_length=150, discounted_eps=False):
     """
     Interact multiple times with the multi objective RL
     problem and then return arrays of actions chosen and
@@ -61,6 +61,11 @@ def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_le
     # play for %interactions times
     for i in xrange(interactions):
         # storage for episodes
+        if discounted_eps:
+            if agent._epsilon > 0.5:
+                agent._epsilon *= 0.99
+            else:
+                agent._epsilon = 0.5
         rewards = []
         actions = []
         tmp_states = []
@@ -71,6 +76,7 @@ def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_le
         last_state = state
         # go as long as the problem isn't in a final state or the max number of episode steps is reached
         for t in xrange(max_episode_length):
+
             # decide which action to take next
             action = agent.decide(t, problem.state)
             # take that action and recieve reward
@@ -92,7 +98,7 @@ def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_le
                 problem.reset()
                 moves.append(actions)
                 states.append(tmp_states)
-                final_rewards.append(np.mean(rewards))
+                final_rewards.append(np.mean(rewards, axis=0))
                 break
         pbar.update(i)
     # newline to fix output of pgbar
@@ -132,7 +138,6 @@ def morl_interact_multiple(agent, problem, interactions, max_steps):
             action = agent.decide(t, problem.state)
             # take that action and recieve reward
             reward = problem.play(action)
-
             if my_debug:
                 log.debug('  step %04i: state before %i - action %i - payout %s - state %i' %
                           (t, problem.last_state, action, str(reward), problem.state))
@@ -250,8 +255,4 @@ def interact_multiple_twoplayer(agent1, agent2, problem, interactions,
     return (actions1, payouts1), (actions2, payouts2)
 
 
-def create_all_weight_combinations(n):
-
-    for s in xrange(n-1):
-        pass
 

@@ -374,13 +374,17 @@ class DeepseaEnergy(Deepsea):
 
 
 class MountainCar(MORLProblem):
-    def __init__(self, acc_fac=0.00001, cf=0.0002, gamma=0.9):
+    def __init__(self, acc_fac=0.001, cf=0.0025, gamma=0.9):
         """
         Initialize the Mountain car problem.
-
+        reward: [time, left, right]
+        every time step: time=-1
+        every reversal: left=-1
+        every front acceleration: right = -1
+        reaching goal position: time = 100
         Parameters
         ----------
-        state: default state is -0.5
+        state: default state is -0.5, 0.0
         """
 
         super(MountainCar, self).__init__(
@@ -395,27 +399,27 @@ class MountainCar(MORLProblem):
         self.gamma = gamma
 
         self._nb_actions = 0  # counter for acceration actions
-        self._minPosition = -1.5  # Minimum car position
-        self._maxPosition = 0.55  # Maximum car position (past goal)
+        self._minPosition = -1.2  # Minimum car position
+        self._maxPosition = 0.7  # Maximum car position (past goal)
         self._maxVelocity = 0.07  # Maximum velocity of car
-        self._goalPosition = 0.5  # Goal position - how to tell we are done
+        self._goalPosition = 0.6  # Goal position - how to tell we are done
         self._accelerationFactor = acc_fac  # discount for accelerations
-        self._maxGoalVelocity = 0.07
-        self.n_vstates = 10.0  # for state discretization
+        self._maxGoalVelocity = 0.1
+        self.n_vstates = 24.0  # for state discretization
         # continouus step for one discrete
         self.v_state_solution = (self._maxVelocity - (-self._maxVelocity))/self.n_vstates
         self.n_xstates = 22.0
         # continouus step for one discrete
         self.x_state_solution = (self._maxPosition - self._minPosition)/self.n_xstates
-        self._xstates = np.arange(self._minPosition, self._maxPosition+self.x_state_solution,
+        self._xstates = np.arange(self._minPosition, self._maxPosition,
                                   self.x_state_solution)
-        self._vstates = np.arange(-self._maxVelocity, self._maxVelocity+self.v_state_solution,
+        self._vstates = np.arange(-self._maxVelocity, self._maxVelocity,
                                   self.v_state_solution)
         self.states = []
         for x in self._xstates:
             for v in self._vstates:
                 self.states.append([x, v])
-        self.n_states = (self.n_xstates+1)*(self.n_vstates+1)
+        self.n_states = self.n_xstates*self.n_vstates
         self.init_state = self.get_state([-0.5, 0.0])  # initial position ~= -0.5 ^= 32
         self.state = self.init_state      # initialize state variable
         self.last_state = self.state       # at the beginning we have no other state
@@ -431,6 +435,11 @@ class MountainCar(MORLProblem):
         self._time = 0
 
     def create_plottable_states(self, states):
+        """
+        after learning we need the 1 dim states, to plot the way through the map
+        :param states: states in 2 dimensions
+        :return: plottable states
+        """
         plt_states = []
         for moves in states:
             plt_mvs = []
@@ -441,6 +450,10 @@ class MountainCar(MORLProblem):
         return np.array(plt_states)
 
     def reset(self):
+        """
+        reset the agent
+        :return: nothing
+        """
         self.state = self.init_state
         self.last_state = self.init_state
         self._nb_actions = 0
@@ -448,16 +461,31 @@ class MountainCar(MORLProblem):
         self._time = 0
 
     def distance(self, point1, point2):
+        """
+        computes a euclidean distance between point1 and point 2
+        :param point1: point 1
+        :param point2: point 2
+        :return:
+        """
         components = []
         for dim in xrange(len(point1)):
             components.append((point1[dim]-point2[dim])**2)
         return sqrt(sum(components))
 
     def get_state(self, position):
+        """
+        gets the index of a 2 dim state
+        :param position: (x, v)
+        :return: index
+        """
         distances = [self.distance(position, self.states[i]) for i in xrange(len(self.states))]
         return np.argmin(distances)
 
     def name(self):
+        """
+        returns the name of the problem
+        :return: name
+        """
         return "Mountain Car"
 
     def play(self, action):
@@ -497,6 +525,11 @@ class MountainCar(MORLProblem):
         return self._get_reward(self.state)
 
     def _get_reward(self, state):
+        """
+        returns the reward for reaching state
+        :param state: state we're in
+        :return: reward signal of that state
+        """
         reward = np.zeros(self.reward_dimension)
         # check if we reached goal
         if self.terminal_state:
@@ -509,6 +542,10 @@ class MountainCar(MORLProblem):
         return reward
 
     def _construct_p(self):
+        """
+        builds a Probability function, the probability of reaching s' from state s with action a
+        :return:
+        """
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
             xi, yi = self.get_position(i)
@@ -523,11 +560,14 @@ class MountainCar(MORLProblem):
                     self.P[i, a, j] = 1.0
 
     def car_sim(self, factor):
-
+        """
+        drive the car
+        :param factor: right 1, no acc 0 and left -1
+        :return:
+        """
         def minmax(val, lim1, lim2):
             """
             Bounding item between lim1 and lim2
-
             :param val:
             :param lim1:
             :param lim2:
@@ -539,7 +579,7 @@ class MountainCar(MORLProblem):
         # State update
         velocity_change = self._accelerationFactor * factor - self.cosine_factor * cos(3 * x)
         # compute velocity
-        v = minmax(0.99*(v + velocity_change), - self._maxVelocity, self._maxVelocity)
+        v = minmax((v + velocity_change), - self._maxVelocity, self._maxVelocity)
         # add that little progress to position
         x += v
         # look if we've gone too far
@@ -560,13 +600,9 @@ class MountainCar(MORLProblem):
 
 class MountainCarTime(MountainCar):
     """
-    reward: [time, reversal, front]
-    every time step: time=-1
-    every reversal: reversal=-1
-    every front acceleration: front = -1
-    reaching goal position: time = 100
+
     """
-    def __init__(self, acc_fac=0.00001, cf = 0.0002, time_lim=30, state=50, gamma=0.9):
+    def __init__(self, acc_fac=0.00001, cf=0.0002):
         """
         Initialize the Multi Objective Mountain car problem.
 
@@ -1780,6 +1816,7 @@ class MORLResourceGatheringProblem(MORLProblem):
         self._construct_p()
         self.R = np.zeros((self.n_states, self.reward_dimension))
         self._construct_r()
+        self.brought_home = 0
 
     def get_bag_index(self, bag):
         for i in self._bag_mapping.keys():
@@ -1809,15 +1846,18 @@ class MORLResourceGatheringProblem(MORLProblem):
         reward = np.zeros(self.reward_dimension)
 
         # if we're turning back home
-        if position == (4, 2):
+        if position == self.init_position:
             if self.stolen:
-                reward[0] = -1
+                reward[0] = -10
                 self.stolen = False
                 # we need to get back to the homebase
                 return reward
             # we get reward for the bag (0,1,0), (0,1,1), (0,0,1), or (0,0,0)
-            reward[1:] = bag
-        self.state = self._get_index((position[0], position[1], self._bag[0], self._bag[1]))
+            if self.brought_home:
+                reward[1:] = self._bag_mapping[self.brought_home]
+                self.brought_home = 0
+        if (reward > 0).any():
+            self.terminal_state = True
         return reward
 
     def _construct_p(self):
@@ -1876,27 +1916,30 @@ class MORLResourceGatheringProblem(MORLProblem):
             self.last_state = state
             reward = self._get_reward(self.state)
             return reward
-        if self._in_map(position) and self._scene[position] < 0 and random.random() < self.losing_probability:
+        if self._in_map(n_position) and self._scene[n_position[0], n_position[1]] < 0 and random.random() < self.losing_probability:
             # our resources is stolen
             self._bag[:] = [0, ] * len(self._bag)
             self.stolen = True
+            print 'stolen'
             # we need to get back to the homebase
             position = self.init_position
             self.state = self._get_index((position[0], position[1], self._bag[0], self._bag[1]))
             reward = self._get_reward(self.state)
             return reward
         # we are 1. in the map and 2. we found resource:
-        elif self._in_map(position) and self._scene[position] > 0:  # put the resource in our bag
+        elif self._in_map(n_position) and self._scene[n_position[0], n_position[1]] > 0:  # put the resource in our bag
             # check which resource it is
-            if position == self.resource_positions[0]:
+            if (n_position == self.resource_positions[0]).all():
                 self._bag[0] = 1
-            if position == self.resource_positions[1]:
+            if (n_position == self.resource_positions[1]).all():
                 self._bag[1] = 1
             # delete it from the field
-            self._scene[position] = 0
+            self._scene[n_position] = 0
 
-        if position == self.init_position:
-            self._bag[:] = 0
+        if (n_position == self.init_position).all():
+            self.brought_home = self.get_bag_index(self._bag)
+            self._bag[0] = 0
+            self._bag[1] = 0
 
         self.state = self._get_index((n_position[0], n_position[1], self._bag[0], self._bag[1]))
         self.last_state = state

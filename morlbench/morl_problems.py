@@ -400,33 +400,33 @@ class MountainCar(MORLProblem):
 
         self._nb_actions = 0  # counter for acceration actions
         self._minPosition = -1.2  # Minimum car position
-        self._maxPosition = 0.7  # Maximum car position (past goal)
+        self._maxPosition = 0.6  # Maximum car position (past goal)
         self._maxVelocity = 0.07  # Maximum velocity of car
-        self._goalPosition = 0.6  # Goal position - how to tell we are done
+        self._goalPosition = 0.5  # Goal position - how to tell we are done
         self._accelerationFactor = acc_fac  # discount for accelerations
         self._maxGoalVelocity = 0.1
-        self.n_vstates = 24.0  # for state discretization
+        self.n_vstates = 10.0  # for state discretization
         # continouus step for one discrete
         self.v_state_solution = (self._maxVelocity - (-self._maxVelocity))/self.n_vstates
-        self.n_xstates = 22.0
+        self.n_xstates = 30.0
         # continouus step for one discrete
         self.x_state_solution = (self._maxPosition - self._minPosition)/self.n_xstates
-        self._xstates = np.arange(self._minPosition, self._maxPosition,
+        self._xstates = np.arange(self._minPosition, self._maxPosition+self.x_state_solution,
                                   self.x_state_solution)
-        self._vstates = np.arange(-self._maxVelocity, self._maxVelocity,
+        self._vstates = np.arange(-self._maxVelocity, self._maxVelocity+self.v_state_solution,
                                   self.v_state_solution)
         self.states = []
         for x in self._xstates:
             for v in self._vstates:
                 self.states.append([x, v])
-        self.n_states = self.n_xstates*self.n_vstates
+        self.n_states = (self.n_xstates+1)*(self.n_vstates+1)
         self.init_state = self.get_state([-0.5, 0.0])  # initial position ~= -0.5 ^= 32
         self.state = self.init_state      # initialize state variable
         self.last_state = self.state       # at the beginning we have no other state
         self._default_reward = 100      # reward for reaching goal position
         self.terminal_state = False     # variable for reaching terminal state
         self.n_states_print = self.n_xstates
-        self._goalxState = 0.45
+        self._goalxState = 0.5
         self.reward_dimension = 3
         self.time_token = []
         self.cosine_factor = cf
@@ -487,6 +487,16 @@ class MountainCar(MORLProblem):
         :return: name
         """
         return "Mountain Car"
+
+    def get_velocities(self, states):
+        plt_states = []
+        for moves in states:
+            plt_mvs = []
+            for sts in moves:
+                plt_mvs.append(self.states[sts][1])
+            plt_states.append(np.array(plt_mvs))
+
+        return np.array(plt_states)
 
     def play(self, action):
         """
@@ -565,27 +575,28 @@ class MountainCar(MORLProblem):
         :param factor: right 1, no acc 0 and left -1
         :return:
         """
-        def minmax(val, lim1, lim2):
-            """
-            Bounding item between lim1 and lim2
-            :param val:
-            :param lim1:
-            :param lim2:
-            :return:
-            """
-            return max(lim1, min(lim2, val))
 
         x, v = self.states[self.state][0], self.states[self.state][1]
         # State update
+
         velocity_change = self._accelerationFactor * factor - self.cosine_factor * cos(3 * x)
+        v += velocity_change
         # compute velocity
-        v = minmax((v + velocity_change), - self._maxVelocity, self._maxVelocity)
+        if v < - self._maxVelocity:
+            v = -self._maxVelocity
+
+        elif v > self._maxVelocity:
+            v = self._maxVelocity
+
         # add that little progress to position
         x += v
         # look if we've gone too far
-        x = minmax(x, self._minPosition, self._maxPosition)
-        # check in the next discrete state
-
+        if x < self._minPosition:
+            x = self._minPosition
+        elif x > self._maxPosition:
+            x = self._minPosition
+        self.state = self.get_state([x, v])
+        x, v = self.states[self.state]
         # check if we're on the wrong side
         if x <= self._minPosition:  # and (self._velocity < 0)
             # inelastic wall stops the car imediately
@@ -595,7 +606,7 @@ class MountainCar(MORLProblem):
             self.terminal_state = True
             # store time token for this
             self.time_token.append(self._time)
-        self.state = self.get_state([x, v])
+
 
 
 class MountainCarTime(MountainCar):

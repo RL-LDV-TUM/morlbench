@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
 
-
+    random.seed(2)
     comparison_experiment = True
     # create Problem
     problem = MORLGridworld()
@@ -21,7 +21,7 @@ if __name__ == '__main__':
     # ref point is used for Hypervolume calculation
     ref = [-0.1, ]*problem.reward_dimension
     # learning rate
-    alfacheb = 0.1
+    alfacheb = 0.03
     # Propability of epsilon greedy selection
     eps = 0.9
     # create one agent using chebyshev scalarization method
@@ -50,15 +50,15 @@ if __name__ == '__main__':
                                                                     max_episode_length=200)
         learned_policy = PolicyFromAgent(problem, linagent, mode='greedy')
         learned_policy1 = PolicyFromAgent(problem, chebyagent, mode='greedy')
-        # policy_plot2(problem, learned_policy)
-        # policy_heat_plot(problem, learned_policy, states1, title=str(weights[i])+'w/cheb')
-        # policy_plot2(problem, learned_policy1)
-        # policy_heat_plot(problem, learned_policy, states2, title=str(weights[i]) + 'w/lin')
+        policy_plot2(problem, learned_policy)
+        policy_heat_plot(problem, learned_policy, states1, title=str(weights[i])+'w/cheb')
+        policy_plot2(problem, learned_policy1)
+        policy_heat_plot(problem, learned_policy, states2, title=str(weights[i]) + 'w/lin')
         wreward.append(np.dot(weights[i], np.mean(payouts1, axis=0)))
         # print np.mean(payouts1, axis=0)
         wreward2.append(np.dot(weights[i], np.mean(payouts2, axis=0)))
         # print np.mean(payouts2, axis=0)
-        # plot_hypervolume([chebyagent, linagent], problem)
+        plot_hypervolume([chebyagent, linagent], problem)
         hvb_hypervolumes.append(max(linagent.max_volumes))
         cheb_hypervolumes.append(max(chebyagent.max_volumes))
         linagent.reset()

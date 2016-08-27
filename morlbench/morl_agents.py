@@ -4,6 +4,7 @@
 Created on Nov 19, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
+
 """
 
 from helpers import virtualFunction, SaveableObject, HyperVolumeCalculator, remove_duplicates
@@ -785,7 +786,9 @@ class MORLScalarizingAgent(MorlAgent):
         dist = tmp / tsum
         return dist.ravel()
 
-    def name(self):
+    def name(self, short=False):
+        if short:
+            return str(self.function) + str(self._w)
         return "skalar"+self.function+"_Q_agent_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._w)
 
     def _greedy_sel(self, state):
@@ -838,7 +841,7 @@ class MORLHVBAgent(MorlAgent):
     def __init__(self, morl_problem, alpha, epsilon, ref, scal_weights,  **kwargs):
         """
         initializes agent with params used for Q-learning and greedy decision
-        :param morl_problem:
+        :param morl_problem: morl problem the agent acts in
         :param alpha: learning rate for q learning
         :param: epsilon: probability of epsilon greedy algorithm
         :param: ref: reference point for hypervolume calculation
@@ -902,7 +905,7 @@ class MORLHVBAgent(MorlAgent):
     def learn(self, t, last_state, action, reward, state):
         """
         this function is an adaption of the hvb q learning algorithm from van moeffart/drugan/nowé
-        :param t: count of iterations
+        :param t: count of steps
         :param last_state: last state before transition to this state
         :param action: action to chose after this state found by HVBgreedy
         :param reward: reward received from this action for every objective
@@ -1003,7 +1006,18 @@ class MORLHVBAgent(MorlAgent):
 
 
 class MORLHLearningAgent(MorlAgent):
+    """
+    Average reward learning agent. Uses H-function to store model based evaluation function.
+    """
     def __init__(self, morl_problem, epsilon, alpha, weights, **kwargs):
+        """
+        Constructor
+        :param morl_problem: MORL Problem to act in
+        :param epsilon: probability for decision mechanism
+        :param alpha: learning rate
+        :param weights: the training weights
+        :param kwargs: more
+        """
         super(MORLHLearningAgent, self).__init__(morl_problem, **kwargs)
         # probability for epsilon greedy
         self._epsilon = epsilon
@@ -1026,31 +1040,68 @@ class MORLHLearningAgent(MorlAgent):
         self._h = np.zeros((self._morl_problem.n_states, self._morl_problem.reward_dimension))
         # scalar optimal average reward
         self._rho = np.zeros(self._morl_problem.reward_dimension)
+        # learning rate
         self.alpha = alpha
+        # control variable
         self.took_greedy = False
 
     def decide(self, t, state):
+        """
+        decision making using epsilon greedy
+        :param t: steps made so far
+        :param state: state we're in
+        :return: action to chose next
+        """
+        # with probability epsilon chose random action
         if random.random() < self._epsilon:
             return random.randint(0, self._morl_problem.n_actions-1)
         else:
+            # else take the local optimal decision
             return self._greedy_sel(t, state)
 
     def _greedy_sel(self, t, state):
+        """
+        returns local optimal action to chose
+        :param t: steps made so far
+        :param state: state we're being in
+        :return: return action to chose next
+        """
         a_list = []
+        # weighted sum of every actions reward
         for action in xrange(self._morl_problem.n_actions):
-            suma = np.sum([self._probability[state, action, i]*self._h[i] for i in range(self._morl_problem.n_states)])
-
+            # it's model based, so we need the probability
+            suma = np.sum([self._probability[state, action, i]*self._h[i] for i in xrange(self._morl_problem.n_states)])
+            # and dot product
             a_list.append(np.dot((self._reward[state, action] + suma), self.w))
         self.took_greedy = True
+        # return action with max weighted average reward
         return a_list.index(max(a_list))
 
     def learn(self, t, last_state, action, reward, state):
+        """
+        public access for learning function
+        :param t: steps so far
+        :param last_state: last state we were visiting
+        :param action: action we chose
+        :param reward: reward we received
+        :param state: state we're now in
+        :return: nothing
+        """
         # access private function
         self._learn(t, last_state, action, reward, state)
         #  store last action after learning
         self._last_action = action
 
     def _learn(self, t, last_state, action, reward, state):
+        """
+        learning function
+        :param t: episodes so far
+        :param last_state:
+        :param action:
+        :param reward:
+        :param state:
+        :return:
+        """
         # count up action taken from last state
         self.n_action_taken[last_state, action] += 1
         # count up state resulted from this state action
@@ -1066,37 +1117,43 @@ class MORLHLearningAgent(MorlAgent):
         self._get_h_value(last_state, action)
 
     def _get_h_value(self, state, action):
+        """
+        computes the h function at this state and action
+        :param state: state we're in now
+        :param action: action we chose
+        :return:
+        """
         h_list = []
+        # compute the weighted average reward plus the h value of next statte
         h_list.append(self.w*(self._reward[state, action] + np.sum([self._probability[state, action, next_state] *
                                                                     self._h[next_state, :]
                                                                     for next_state
                                                                     in xrange(self._morl_problem.n_states)], axis=0)))
+        # the maximal h value is stored minus the average reward
         self._h[state] = max(h_list) - self._rho
 
     def get_learned_action(self, state):
         """
-        uses epsilon greedy and h action selection
+        uses greedy and h action selection
         :param state: state the agent is
         :return: action to do next
         """
         # get action out of max q value of n_objective-dimensional matrix
-        temp = self._epsilon
-        self._epsilon = 1
-        if random.random() < self._epsilon:
-            self._epsilon = temp
-            return self._greedy_sel(0, state)
-
-        else:
-            return random.randint(0, self._morl_problem.n_actions-1)
+        return self._greedy_sel(0, state)
 
 
 class MORLRLearningAgent(MorlAgent):
+    """
+    This class contains an average Reward optimizing agent.
+    The R Learning agent is the model free version of H-learning
+    """
     def __init__(self, morl_problem, epsilon, alpha, beta, weights, **kwargs):
         super(MORLRLearningAgent, self).__init__(morl_problem, **kwargs)
         # probability for epsilon greedy
         self._epsilon = epsilon
         # weight vector
         self.w = weights
+        # learning rate # 2
         self._beta = beta
         # reward for state-state transition
         self._reward = np.zeros((self._morl_problem.n_states, self._morl_problem.n_states,
@@ -1108,37 +1165,78 @@ class MORLRLearningAgent(MorlAgent):
         self._rho = np.zeros(self._morl_problem.reward_dimension)
         # control for "best action token"
         self.alpha = alpha
+        # control parameter for learning mechanism
         self.took_greedy = False
 
     def decide(self, t, state):
+        """
+        this function is epsilon greedy decision making
+        :param t: time (not needed here)
+        :param state: current state, the agent is in
+        :return: action to choose
+        """
+        # decide for local optimal action:
         if random.random() < self._epsilon:
             return random.randint(0, self._morl_problem.n_actions-1)
+        # else random
         else:
             return self._greedy_sel(t, state)
 
     def _greedy_sel(self, t, state):
+        """
+        local optimal decision
+        :param t: time, not needed
+        :param state: state the agent is in
+        :return: action to chose
+        """
         a_list = []
+        # evaluate weighted reward for every action
         for action in xrange(self._morl_problem.n_actions):
             a_list.append(np.dot(self._R[state, action, :], self.w))
+        # to know we were chosing greedy
         self.took_greedy = True
+        # return maximizing action
         return a_list.index(max(a_list))
 
     def learn(self, t, last_state, action, reward, state):
+        """
+        public access to learning function
+        :param t: steps done so far
+        :param last_state: last state we were in
+        :param action: action we chose
+        :param reward: reward we got
+        :param state: state we resulted in
+        :return: nothing
+        """
         # access private function
         self._learn(t, last_state, action, reward, state)
         #  store last action after learning
         self._last_action = action
 
     def _learn(self, t, last_state, action, reward, state):
+        """
+        private learning function, updating R function
+        :param t: steps done so far
+        :param last_state: last state we were in
+        :param action: action we chose
+        :param reward: reward we received
+        :param state: state we resulted in
+        :return: nothing
+        """
+        # compute weighted Reward for every action
         rew = [np.dot(self._R[state, a, :], self.w) for a in xrange(self._morl_problem.n_actions)]
+        # chose action with max weighted reward
         maxa = rew.index(max(rew))
+        # update rule for R function
         self._R[last_state, action, :] = self._R[last_state, action]*(1-self._beta) +\
             self._beta * (reward - self._rho + self._R[state, maxa, :])
+        # adaptation if we took greedy action
         if self.took_greedy:
             self.took_greedy = False
-
+            # update average reward
             self._rho = self.alpha * (reward - self._R[last_state, action, :] + self._R[state, maxa, :]) +\
                 self._rho * (1-self.alpha)
+            # update learning rate
             self.alpha = (self.alpha / (0.001 + self.alpha))
 
     def get_learned_action(self, state):

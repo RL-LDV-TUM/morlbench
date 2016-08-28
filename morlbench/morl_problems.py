@@ -5,11 +5,12 @@ Created on Nov 19, 2012
 
 @author: Dominik Meyer <meyerd@mytum.de>
 @author: Johannes Feldmaier <johannes.feldmaier@tum.de>
+@author: Simon Wölzmüller   <ga35voz@mytum.de>
 
 """
 
-from helpers import SaveableObject, loadMatrixIfExists, virtualFunction
-from probability_helpers import assureProbabilityMatrix, sampleFromDiscreteDistribution
+from helpers import SaveableObject, virtualFunction
+from probability_helpers import sampleFromDiscreteDistribution
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,8 +18,6 @@ from math import cos, sqrt
 import logging as log
 import random
 import sys
-
-import os
 
 my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
 
@@ -157,7 +156,13 @@ class Deepsea(MORLProblem):
             self.reward_dimension += self.n_states
             # self.reward_dimension = self.n_states
 
-        self.reset()
+        self.state = self._start_state
+        self.terminal_state = False
+        self.treasure_state = False
+        self._time = 0
+        self.last_state = self.state
+        self._position = self._get_position(self.state)
+        self._last_position = self._position
 
         # build state transition matrix P_{ss'} where (i, j) is the transition probability
         # from state i to j
@@ -168,7 +173,8 @@ class Deepsea(MORLProblem):
         if self.R is None:
             self._construct_r()
 
-    def name(self):
+    @staticmethod
+    def name():
         return "Deepsea"
 
     def _construct_p(self):
@@ -374,6 +380,11 @@ class DeepseaEnergy(Deepsea):
 
 
 class MountainCar(MORLProblem):
+    """
+    In this problem, a car tries to escape a valley by timed accelerations
+    Its own force is not enough to escape only by one acceleration
+    This MO version of the problem has three reward components
+    """
     def __init__(self, acc_fac=0.001, cf=0.0025, gamma=0.9):
         """
         Initialize the Mountain car problem.
@@ -384,7 +395,9 @@ class MountainCar(MORLProblem):
         reaching goal position: time = 100
         Parameters
         ----------
-        state: default state is -0.5, 0.0
+        acc_fac:    factor for acceleration function in car_sim
+        cf:         cosine influence for acceleration function in car_sim
+        gamma:      discount factor for this problem
         """
 
         super(MountainCar, self).__init__(
@@ -408,7 +421,7 @@ class MountainCar(MORLProblem):
         self.n_vstates = 10.0  # for state discretization
         # continouus step for one discrete
         self.v_state_solution = (self._maxVelocity - (-self._maxVelocity))/self.n_vstates
-        self.n_xstates = 30.0
+        self.n_xstates = 28.0
         # continouus step for one discrete
         self.x_state_solution = (self._maxPosition - self._minPosition)/self.n_xstates
         self._xstates = np.arange(self._minPosition, self._maxPosition+self.x_state_solution,
@@ -460,7 +473,8 @@ class MountainCar(MORLProblem):
         self.terminal_state = False
         self._time = 0
 
-    def distance(self, point1, point2):
+    @staticmethod
+    def distance(point1, point2):
         """
         computes a euclidean distance between point1 and point 2
         :param point1: point 1
@@ -481,7 +495,8 @@ class MountainCar(MORLProblem):
         distances = [self.distance(position, self.states[i]) for i in xrange(len(self.states))]
         return np.argmin(distances)
 
-    def name(self):
+    @staticmethod
+    def name():
         """
         returns the name of the problem
         :return: name
@@ -489,6 +504,11 @@ class MountainCar(MORLProblem):
         return "Mountain Car"
 
     def get_velocities(self, states):
+        """
+        returns an array that contains the velocities [-0.07, 0.07]
+        :param states: indices
+        :return: real   velocities
+        """
         plt_states = []
         for moves in states:
             plt_mvs = []
@@ -525,7 +545,7 @@ class MountainCar(MORLProblem):
         # Determine acceleration factor
         if action < len(self.actions):
             # factor is a variable +1 for accelerating, -1 one for reversing, 0 for nothing
-            factor = map_actions[self.actions[action]] # map action to thrust factor
+            factor = map_actions[self.actions[action]]  # map action to thrust factor
             self.acceleration = factor
         else:
             print 'Warning: No matching action - Default action was selected!'
@@ -556,18 +576,10 @@ class MountainCar(MORLProblem):
         builds a Probability function, the probability of reaching s' from state s with action a
         :return:
         """
-        self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
-        for i in xrange(self.n_states):
-            xi, yi = self.get_position(i)
-            for a in xrange(self.n_actions):
-                ox, oy = self.actions[a]
-                tx, ty = xi + ox, yi + oy
-
-                if not self._in_map((tx, ty)):
-                    self.P[i, a, i] = 1.0
-                else:
-                    j = self._get_index((tx, ty))
-                    self.P[i, a, j] = 1.0
+        raise NotImplementedError("Probability matrix not implemented yet.")
+        # TODO: Prepare Mountain car environment for Model based algorithms
+        # self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
+        pass
 
     def car_sim(self, factor):
         """
@@ -594,13 +606,15 @@ class MountainCar(MORLProblem):
         if x < self._minPosition:
             x = self._minPosition
         elif x > self._maxPosition:
-            x = self._minPosition
-        self.state = self.get_state([x, v])
-        x, v = self.states[self.state]
+            x = self._maxPosition
+
         # check if we're on the wrong side
         if x <= self._minPosition:  # and (self._velocity < 0)
             # inelastic wall stops the car imediately
             v = 0.0
+        self.state = self.get_state([x, v])
+        x, v = self.states[self.state]
+
         # check if we've reached the goal
         if x >= self._goalxState:
             self.terminal_state = True
@@ -608,10 +622,10 @@ class MountainCar(MORLProblem):
             self.time_token.append(self._time)
 
 
-
 class MountainCarTime(MountainCar):
     """
-
+    same problem as above, just other reward structure. we get -1 every step,
+    -1 for every acceleration, and +1 for reaching goal position
     """
     def __init__(self, acc_fac=0.00001, cf=0.0002):
         """
@@ -619,15 +633,20 @@ class MountainCarTime(MountainCar):
 
         Parameters
         ----------
-        state: default state is -0.5
+        acc_fac: factor for acceleration function in car_sim
+        cf: amplitude of cosine influence on that acceleration function
         """
         self._nb_actions = 0
         super(MountainCarTime, self).__init__(acc_fac=acc_fac, cf=cf)
         self.reward_dimension = 3
 
     def reset(self):
-        self.state = self._start_state
-        self.last_state = self._start_state
+        """
+        prepare environment for next episode
+        :return: nothing
+        """
+        self.state = self.init_state
+        self.last_state = self.init_state
         self._time = 0
         self._nb_actions = 0
         self.terminal_state = False
@@ -674,13 +693,21 @@ class MountainCarTime(MountainCar):
         return self._get_reward(self.state)
 
     def _get_reward(self, state):
+        """
+        rewards special states
+        :param state: state were in
+        :return: reward vector
+        """
         reward = np.zeros(self.reward_dimension)
         if self._nb_actions >= 20:
+            # negative if we're accelerating to much
             reward[2] = -1
 
         if self.terminal_state:
+            # positive reward if we are at the end
             reward[0] = self._default_reward
         else:
+            # negative if we're too long in the environment
             reward[1] = -1
         return reward
 
@@ -689,10 +716,16 @@ class Gridworld(MORLProblem):
     """
     Original Simple-MORL-Gridworld.
     """
-
     def __init__(self, size=10, gamma=0.9):
-        self.gamma = gamma
+        """
+        constructor
+        :param size: size of the grid, it will contain size*size fields
+        :param gamma: discount factor for that problem
+        """
+        super(Gridworld, self).__init__()
 
+        self.gamma = gamma
+        # available actions:        down,           right,              up,                 left.
         self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
         self.n_actions = len(self.actions)
         self.n_actions_print = self.n_actions
@@ -709,6 +742,9 @@ class Gridworld(MORLProblem):
         self._scene[0, size-1] = 1
         self._scene[size-1, 0] = 1
         self._scene[size-1, size-1] = 1
+        self.state = 0
+        self.last_state = 0
+        self.terminal_state = False
 
         if not self.P:
             self._construct_p()
@@ -719,6 +755,10 @@ class Gridworld(MORLProblem):
         self.reset()
 
     def _construct_p(self):
+        """
+        will construct the probability matrix
+        :return: nothing
+        """
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
             xi, yi = self._get_position(i)
@@ -733,19 +773,38 @@ class Gridworld(MORLProblem):
                     self.P[i, a, j] = 1.0
 
     def reset(self):
+        """
+        prepares environment for next episode
+        :return: nothing
+        """
         self.state = 0
         self.last_state = 0
         self.terminal_state = False
 
     def _get_index(self, position):
+        """
+        returns the index of an two dimensional position vector (y,x)
+        :param position: vector (y,x)
+        :return: index
+        """
         # return position[1] * self.scene_x_dim + position[0]
         return position[0] * self.scene_x_dim + position[1]
 
     def _get_position(self, index):
+        """
+        returns the two dimensional position (y,x)
+        :param index: the index of that field we want to have
+        :return: position(y,x)
+        """
         return index // self.scene_x_dim, index % self.scene_x_dim
 
     def _in_map(self, pos):
-        return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
+        """
+        are we still in the field?
+        :param pos: (y,x)
+        :return: True (in field) or False (not in field)
+        """
+        return 0 <= pos[0] < self.scene_x_dim and 0 <= pos[1] < self.scene_y_dim
 
     def _get_reward(self, state):
         r = np.zeros((self.reward_dimension, 1))
@@ -769,9 +828,11 @@ class MORLGridworld(Gridworld):
     Multiobjective gridworld.
     """
     def __init__(self, size=10, gamma=0.9):
+        super(MORLGridworld, self).__init__()
         self.gamma = gamma
 
         # self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
+        # available actions:        right           down        left                    up
         self.actions = (np.array([0, 1]), np.array([1, 0]), np.array([0, -1]), np.array([-1, 0]))
         self.n_actions = len(self.actions)
         self.n_actions_print = self.n_actions
@@ -779,7 +840,8 @@ class MORLGridworld(Gridworld):
         self.n_states_print = self.n_states
         self._size = size
         self.reward_dimension = 3
-
+        self.last_state = self.init_state
+        self.state = self.init_state
         self.P = None
         self.R = None
 
@@ -788,7 +850,7 @@ class MORLGridworld(Gridworld):
         self._scene[0, size-1] = 1
         self._scene[size-1, 0] = 1
         self._scene[size-1, size-1] = 1
-
+        self.terminal_state = False
         if not self.P:
             self._construct_p()
 
@@ -797,10 +859,20 @@ class MORLGridworld(Gridworld):
 
         self.reset()
 
-    def name(self):
+    @staticmethod
+    def name():
+        """
+        short name
+        :return: simple string of name
+        """
         return "MORL_Gridworld"
 
     def _get_reward(self, state):
+        """
+        rewards a specified state
+        :param state: state we're in
+        :return: reward vector for that state
+        """
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
         if self._in_map(position) and self._scene[position] > 0:
@@ -813,12 +885,17 @@ class MORLGridworld(Gridworld):
         return reward
 
     def play(self, action):
+        """
+        simulate action
+        :param action: one of the four specified actions
+        :return: reward for that action
+        """
         actions = self.actions
         state = self.state
 
         position = self._get_position(state)
         n_position = position + actions[action]
-
+        # check if we gone out of boundaries
         if not self._in_map(n_position):
             self.state = state
             self.last_state = state
@@ -838,8 +915,13 @@ class MORLGridworldTime(Gridworld):
     Multiobjective gridworld.
     """
     def __init__(self, size=10, gamma=0.9):
+        """
+        constructor
+        :param size: size of the grid
+        :param gamma: discount factor for this problem
+        """
+        super(MORLGridworldTime, self).__init__()
         self.gamma = gamma
-
         # self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
         self.actions = (np.array([0, 1]), np.array([1, 0]), np.array([0, -1]), np.array([-1, 0]))
         self.n_actions = len(self.actions)
@@ -858,7 +940,9 @@ class MORLGridworldTime(Gridworld):
         self._scene[1, 7] = 1
         self._scene[size-1, 0] = 1
         self._scene[size-1, size-1] = 1
-
+        self.last_state = self.init_state
+        self.state = self.init_state
+        self.terminal_state = False
         if not self.P:
             self._construct_p()
 
@@ -868,6 +952,11 @@ class MORLGridworldTime(Gridworld):
         self.reset()
 
     def _get_reward(self, state):
+        """
+        get reward from current state
+        :param state: current state
+        :return: reward vector
+        """
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
         if self._in_map(position) and self._scene[position] > 0:
@@ -881,6 +970,11 @@ class MORLGridworldTime(Gridworld):
         return reward
 
     def play(self, action):
+        """
+        do that action
+        :param action: action to perform
+        :return: reward of this action
+        """
         actions = self.actions
         state = self.state
 
@@ -906,8 +1000,13 @@ class MORLGridworldStatic(Gridworld):
     Multiobjective gridworld.
     """
     def __init__(self, size=10, gamma=0.9):
+        """
+        Constructor
+        :param size: size of the grid
+        :param gamma: discount rate
+        """
+        super(MORLGridworldStatic, self).__init__()
         self.gamma = gamma
-
         self.actions = (np.array([1, 0]), np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]))
         self.n_actions = len(self.actions)
         self.n_actions_print = self.n_actions
@@ -934,6 +1033,11 @@ class MORLGridworldStatic(Gridworld):
         self.reset()
 
     def _get_reward(self, state):
+        """
+        get reward from current state
+        :param state: current state
+        :return: reward vector
+        """
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
         if self._in_map(position) and self._scene[position] > 0:
@@ -947,6 +1051,11 @@ class MORLGridworldStatic(Gridworld):
         return reward
 
     def play(self, action):
+        """
+        perform defined action
+        :param action: action to perform
+        :return: reward vector for that action
+        """
         actions = self.actions
         state = self.state
 
@@ -963,7 +1072,6 @@ class MORLGridworldStatic(Gridworld):
             reward = self._get_reward(self.state)
             if (reward > 0).any():
                 self.terminal_state = True
-
         return reward
 
 
@@ -983,10 +1091,9 @@ class Financial(MORLProblem):
         super(Financial, self).__init__(['state'])
         # TODO: financial environment not finished
         raise NotImplementedError("Financial environment not implemented yet.")
-
         self.P = None
         self.R = None
-
+        self._gamma = gamma
         self.n_states = 1
         self.n_financial_products = 3
         # buy and sell products or do nothing
@@ -1002,7 +1109,9 @@ class Financial(MORLProblem):
             # CallMoney
             (0.2, 0.0, 0.0)
         ]
-
+        self.state = 0
+        self.last_state = 0
+        self.terminal_state = False
         self.reset()
 
         # build state transition matrix P_{ss'} where (i, j) is the transition probability
@@ -1015,7 +1124,7 @@ class Financial(MORLProblem):
             self._construct_r()
 
     @staticmethod
-    def name(self):
+    def name():
         return "Financial"
 
     def _construct_p(self):
@@ -1086,7 +1195,9 @@ class MORLRobotActionPlanning(MORLProblem):
         # Rewards:
         #   (Information, Utility of Resources, Wear, Energy Consumption)
         self.reward_dimension = 4
-
+        self.state = 0
+        self.last_state = 0
+        self.terminal_state = False
         self.reset()
 
         # build state transition matrix P_{ss'} where (i, j) is the transition probability
@@ -1099,7 +1210,7 @@ class MORLRobotActionPlanning(MORLProblem):
             self._construct_r()
 
     @staticmethod
-    def name(self):
+    def name():
         return "RobotActionPlaning"
 
     def _construct_p(self):
@@ -1175,6 +1286,7 @@ class MORLBuridansAss1DProblem(MORLProblem):
     """
 
     def __init__(self, size=3, p=0.9, n_appear=10, gamma=0.9):
+        super(MORLBuridansAss1DProblem, self).__init__(['state', '_actions', '_scene'])
 
         self.steal_probability = p
         # available actions: stay                right,             up,                 left,            down
@@ -1240,8 +1352,9 @@ class MORLBuridansAss1DProblem(MORLProblem):
         self._scene[self._size-1, self._size-1] = 1
         self._scene[0, 0] = 1
 
-    def name(self):
-        return "BuridansAss"
+    @staticmethod
+    def name():
+        return "BuridansAss1D"
 
     def _get_reward(self, state):
         position = self._get_position(state)
@@ -1298,7 +1411,8 @@ class MORLBuridansAss1DProblem(MORLProblem):
                 self.terminal_state = True
         return reward
 
-    def _get_distance(self, state1, state2):
+    @staticmethod
+    def _get_distance(state1, state2):
         first = np.array([state1[0], state1[1]])
         second = np.array([state2[0], state2[1]])
         return np.linalg.norm(second-first)
@@ -1310,7 +1424,7 @@ class MORLBuridansAss1DProblem(MORLProblem):
         return index // self.scene_y_dim, index % self.scene_x_dim
 
     def _in_map(self, pos):
-        return pos[0] >= 0 and pos[0] < self.scene_x_dim and pos[1] >= 0 and pos[1] < self.scene_y_dim
+        return 0 <= pos[0] < self.scene_x_dim and 0 <= pos[1] < self.scene_y_dim
 
     @property
     def scene_x_dim(self):
@@ -1339,6 +1453,16 @@ class MORLBuridansAssProblem(MORLProblem):
     """
 
     def __init__(self, size=3, p=0.9, n_appear=10, gamma=1.0):
+        """
+        Constructor
+        :param size: size of the cartesian coordinate field (default: 3
+        :param p: probability, that food is stolen
+        :param n_appear: number of steps until new food is generated after stealing
+        :param gamma: discount factor for this problem
+        """
+        super(MORLBuridansAssProblem, self).__init__(
+            ['state', '_actions', '_scene'])
+
         self.steal_probability = p
         # available actions: stay                right,             up,                 left,            down
         self.actions = (np.array([0, 0]),  np.array([0, 1]), np.array([-1, 0]), np.array([0, -1]), np.array([1, 0]))
@@ -1378,7 +1502,7 @@ class MORLBuridansAssProblem(MORLProblem):
                 self.position_map[x, y] = len(self.position_map)
         # map four states of food places in indices:
         self.food_map = {(0, 0): 0, (0, 1): 1, (1, 0): 2, (1, 1): 3}
-        self.rev_food_map = {0: [0, 0], 1: [0, 1], 2: [1,0], 3: [1, 1]}
+        self.rev_food_map = {0: [0, 0], 1: [0, 1], 2: [1, 0], 3: [1, 1]}
         # for all states
         self.state_map = dict()
         # just for 2d Plotting:
@@ -1407,6 +1531,11 @@ class MORLBuridansAssProblem(MORLProblem):
         self._construct_r()
 
     def create_plottable_states(self, states):
+        """
+        after learing we need to map the states to the cartesian coordinates
+        :param states: multidimensional state indices
+        :return: states in 2 dim indices
+        """
         pos = [[self._get_position(s) for s in states[i]] for i in xrange(len(states))]
         plt_states = [[self.position_map[p[0], p[1]] for p in pos[l]] for l in xrange(len(pos))]
         ret_states = [np.array(plt_states[i]) for i in xrange(len(plt_states))]
@@ -1414,6 +1543,10 @@ class MORLBuridansAssProblem(MORLProblem):
         return ret_states
 
     def _construct_p(self):
+        """
+        create Probability matrix
+        :return: nothing
+        """
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
             pos, food, hunger = self._get_position(i, complete=True)
@@ -1422,16 +1555,15 @@ class MORLBuridansAssProblem(MORLProblem):
             for a in xrange(self.n_actions):
                 ax, ay = self.actions[a]
                 nx, ny = x+ax, y+ay
+                if a != 0:
+                    new_hunger = hunger + 1 if (hunger >= self.max_hunger) else self.max_hunger - 1
+                else:
+                    new_hunger = hunger
                 if not self._in_map((ny, nx)):
                     new_state = self.state_map[pos, food, new_hunger]
                     self.P[i, a, new_state] = 1.0
                     continue
                 n_pos_s = self.position_map[ny, nx]
-
-                if a != 0:
-                    new_hunger = hunger+1 if(hunger >= self.max_hunger) else self.max_hunger-1
-                else:
-                    new_hunger = hunger
 
                 # actions away from a food will probably cause a transition in another food state, if it looses fight
                 if (y, x) == (0, 0) or (y, x) == (self._size, 0) or (y, x) == (0, self._size):
@@ -1451,26 +1583,32 @@ class MORLBuridansAssProblem(MORLProblem):
                     if a == 0:
                         new_f_st = self.food_map[0, f2]
                         new_s = self.state_map[pos, new_f_st, 0]
-                        self.P[i, a, new_s]
+                        self.P[i, a, new_s] = 1.0
                 if (y, x) == self.food2:
                     if a == 0:
                         new_f_st = self.food_map[f1, 0]
                         new_s = self.state_map[pos, new_f_st, 0]
-                        self.P[i, a, new_s]
+                        self.P[i, a, new_s] = 1.0
                 else:
                     new_state = self.state_map[n_pos_s, food, new_hunger]
                     self.P[i, a, new_state] = 1.0
 
-    def get_all_states_with_that_pos(self, pos):
-        pass
-
     def get_cartesian_coordinates_from_pos_state(self, state):
+        """
+        multidimensional --> two dimensional state positions
+        :param state: 3D coordinates (pos, hunger, food)
+        :return: position (y, x)
+        """
         for o in self.position_map.keys():
             if self.position_map[o] == state:
                 cart_pos = o
         return cart_pos[0], cart_pos[1]
 
     def reset(self):
+        """
+        prepare environment for next episode
+        :return:
+        """
         self.state = self.init_state
         self.last_state = self.init_state
         self.terminal_state = False
@@ -1479,10 +1617,20 @@ class MORLBuridansAssProblem(MORLProblem):
         self._scene[self._size-1, self._size-1] = 1
         self._scene[0, 0] = 1
 
-    def name(self):
+    @staticmethod
+    def name():
+        """
+        return simple name
+        :return: name
+        """
         return "BuridansAss"
 
     def _get_reward(self, state):
+        """
+        create reward vector on current state
+        :param state: current state
+        :return: reward vector
+        """
         # the reward function should return a reward only by knowing the state
         pos, food, hunger = self._get_position(state, complete=True)
         pos = self._get_position(state, complete=False)
@@ -1504,6 +1652,11 @@ class MORLBuridansAssProblem(MORLProblem):
         return reward
 
     def play(self, action):
+        """
+        perform this action
+        :param action: this action
+        :return: reward for this action
+        """
         # count actions
         self.count += 1
         # after 10 steps eventually stolen food is reproduced
@@ -1555,12 +1708,24 @@ class MORLBuridansAssProblem(MORLProblem):
             self.terminal_state = True
         return reward
 
-    def _get_distance(self, state1, state2):
+    @staticmethod
+    def _get_distance(state1, state2):
+        """
+        compute distance between two points
+        :param state1: first point
+        :param state2: second point
+        :return: double distance
+        """
         first = np.array([state1[0], state1[1]])
         second = np.array([state2[0], state2[1]])
         return np.linalg.norm(second-first)
 
     def _get_index(self, position):
+        """
+        get the index of a cartesian position
+        :param position: position (y, x)
+        :return: index
+        """
         x = sys._getframe(1)
         if x.f_code.co_name == '_policy_plot2':
             return position[0] * self.scene_x_dim + position[1]
@@ -1570,6 +1735,13 @@ class MORLBuridansAssProblem(MORLProblem):
         return self.state_map[pos, f, h]
 
     def _get_position(self, index, complete=False):
+        """
+        get multidimensional position, complete: pos, hunger, food
+        not complete: pos (y,x)
+        :param index: index for which we need the position
+        :param complete: do we need complete(True) state position or not(False)
+        :return: complete or not complete position
+        """
         for k in self.state_map.keys():
             if self.state_map[k] == index:
                 pos = k
@@ -1584,17 +1756,35 @@ class MORLBuridansAssProblem(MORLProblem):
         return cart_pos[1], cart_pos[0]
 
     def _in_map(self, pos):
-        return pos[0] >= 0 and pos[0] < self.scene_y_dim and pos[1] >= 0 and pos[1] < self.scene_x_dim
+        """
+        are we still in boundaries
+        :param pos: coordinates
+        :return: in map (true) or not in map (False)
+        """
+        return 0 <= pos[0] < self.scene_y_dim and 0 <= pos[1] < self.scene_x_dim
 
     @property
     def scene_x_dim(self):
+        """
+        x dimensional states count
+        :return: count
+        """
         return self._size
 
     @property
     def scene_y_dim(self):
+        """
+        y dimensional states count
+        :return: count
+        """
         return self._size
 
     def print_map(self, pos=None):
+        """
+        show a plot of that scene
+        :param pos: if you want to highlight one field, give it.
+        :return: nothing
+        """
         tmp = self._scene
         if pos:
             tmp[tuple(pos)] = tmp.max() * 2.0
@@ -1608,7 +1798,12 @@ class MOPuddleworldProblem(MORLProblem):
     the puddle is an obstacle that the agent has to drive around. The aim is to reach the goal state at the top right
     """
     def __init__(self, size=20, gamma=0.9):
-
+        """
+        Constructor
+        :param size: size of grid
+        :param gamma: discount factor of this problem
+        """
+        super(MOPuddleworldProblem, self).__init__(['state', '_actions', '_scene'])
         # available actions:    right,             down,                 left,            up
         self.actions = (np.array([0, 1]), np.array([1, 0]), np.array([0, -1]), np.array([-1, 0]))
         self.n_actions = len(self.actions)
@@ -1664,33 +1859,49 @@ class MOPuddleworldProblem(MORLProblem):
         self.state = self.init_state
         self.last_state = self.init_state
         self.terminal_state = False
-        # # plot
-        # self.fig, self.ax = plt.subplots()
-        # temp = self._scene
-        # # self.ax.imshow(temp, interpolation='nearest')
-        # step = 1.
-        # min = 0.
-        # rows = temp.shape[0]
-        # columns = temp.shape[1]
-        # row_arr = np.arange(min, rows)
-        # col_arr = np.arange(min, columns)
-        # x, y = np.meshgrid(row_arr, col_arr)
-        # for col_val, row_val in zip(x.flatten(), y.flatten()):
-        #     c = int(temp[row_val, col_val])
-        #     self.ax.text(col_val, row_val, c, va='center', ha='center')
-        # self._flat_map = np.argwhere(self._scene >= 0)  # get all indices greater than zero
-        # # get all elements greater than zero and stack them to the corresponding index
-        # self._flat_map = np.column_stack((self._flat_map,  self._scene[self._scene >= 0]))
-        # # plt.show()
+
         self.P = None
         self._construct_p()
         self.R = None
         self._construct_r()
 
     def _set_new_init(self):
+        """
+        This problem chooses random state every episode
+        :return: nothin
+        """
         self.init_state = random.choice(self.init)
 
+    def plot_map(self):
+        """
+        plot a map of cartesian states
+        :return: a array of the flat map
+        """
+        # plot
+        fig, ax = plt.subplots()
+        temp = self._scene
+        ax.imshow(temp, interpolation='nearest')
+        # step = 1.
+        mino = 0.
+        rows = temp.shape[0]
+        columns = temp.shape[1]
+        row_arr = np.arange(mino, rows)
+        col_arr = np.arange(mino, columns)
+        x, y = np.meshgrid(row_arr, col_arr)
+        for col_val, row_val in zip(x.flatten(), y.flatten()):
+            c = int(temp[row_val, col_val])
+            ax.text(col_val, row_val, c, va='center', ha='center')
+        flat_map = np.argwhere(self._scene >= 0)  # get all indices greater than zero
+        # get all elements greater than zero and stack them to the corresponding index
+        flat_map = np.column_stack((flat_map,  self._scene[self._scene >= 0]))
+        plt.show()
+        return flat_map
+
     def _construct_p(self):
+        """
+        builds the Probabilty matrix
+        :return:
+        """
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
             for a in xrange(self.n_actions):
@@ -1701,12 +1912,21 @@ class MOPuddleworldProblem(MORLProblem):
                         self.P[i, a, j] = 1.0
 
     def reset(self):
+        """
+        prepare environment for new episode
+        :return:
+        """
         self._set_new_init()
         self.state = self.init_state
         self.last_state = self.init_state
         self.terminal_state = False
 
     def _get_reward(self, state):
+        """
+        get the reward vector for this state
+        :param state: this state
+        :return: reward vector
+        """
         position = self._get_position(state)
         reward = np.zeros(self.reward_dimension)
         if self._in_map(position) and self._scene[position] < 0:
@@ -1718,10 +1938,20 @@ class MOPuddleworldProblem(MORLProblem):
 
         return reward
 
-    def name(self):
+    @staticmethod
+    def name():
+        """
+        returns a simple name string
+        :return: name
+        """
         return "Puddleworld"
 
     def play(self, action):
+        """
+        perform an action
+        :param action: action to perform
+        :return: reward for this action
+        """
         actions = self.actions
         state = self.state
 
@@ -1741,24 +1971,52 @@ class MOPuddleworldProblem(MORLProblem):
         return reward
 
     def _get_index(self, position):
+        """
+        converts y,x into index
+        :param position: y, x
+        :return: index
+        """
         y, x = position[0], position[1]
         return self.state_map[y, x]
 
     def _get_position(self, index):
+        """
+        converts index in y x coordinates
+        :param index: input index
+        :return: coordinates
+        """
         return index // self.scene_x_dim, index % self.scene_x_dim
 
     def _in_map(self, pos):
-        return pos[0] >= 0 and pos[0] < self.scene_y_dim and pos[1] >= 0 and pos[1] < self.scene_x_dim
+        """
+        are we still in boundaries
+        :param pos: coordinates
+        :return: in map (true) or not in map (False)
+        """
+        return 0 <= pos[0] < self.scene_y_dim and 0 <= pos[1] < self.scene_x_dim
 
     @property
     def scene_x_dim(self):
+        """
+        x dimensional states count
+        :return: count
+        """
         return self._size
 
     @property
     def scene_y_dim(self):
+        """
+        y dimensional states count
+        :return: count
+        """
         return self._size
 
     def print_map(self, pos=None):
+        """
+        plots a map of states and grid
+        :param pos:
+        :return:
+        """
         tmp = self._scene
         if pos:
             tmp[tuple(pos)] = tmp.max() * 2.0
@@ -1773,6 +2031,13 @@ class MORLResourceGatheringProblem(MORLProblem):
 
     """
     def __init__(self, size=5, gamma=0.9, p=0.1):
+        """
+        Constructor
+        :param size: size of the grid
+        :param gamma: discount rate of the problem
+        :param p: probability of enemy attack
+        """
+        super(MORLResourceGatheringProblem, self).__init__(['state', '_actions', '_scene'])
         self.multidimensional_states = True
         # for each field in the scene we have 4 possible states, each shows the state of the bag in one position
         self._bag_mapping = {
@@ -1830,11 +2095,20 @@ class MORLResourceGatheringProblem(MORLProblem):
         self.brought_home = 0
 
     def get_bag_index(self, bag):
+        """
+        get the index of bag state: 0:00, 1:01, 2:10, 3:11
+        :param bag: bagstate
+        :return: index
+        """
         for i in self._bag_mapping.keys():
             if self._bag_mapping[i] == bag:
                 return i
 
     def reset(self):
+        """
+        prepare environment for next episode
+        :return:
+        """
         self.init = 88
         self.state = self.init
         self.last_state = self.init
@@ -1843,6 +2117,11 @@ class MORLResourceGatheringProblem(MORLProblem):
         self._scene[1, 4] = 1
 
     def create_plottable_states(self, states):
+        """
+        after learning, convert states into 2 dim. map states
+        :param states: the multidimensional states
+        :return: 2 dim states
+        """
         pos = [[self._get_position(s) for s in states[i]] for i in xrange(len(states))]
         plt_states = np.array([np.array([self.position_map[p[0], p[1]] for p in pos[l]]) for l in xrange(len(pos))])
         ret_states = [np.array(plt_states[i]) for i in xrange(len(plt_states))]
@@ -1851,9 +2130,13 @@ class MORLResourceGatheringProblem(MORLProblem):
         return np.array(ret_states)
 
     def _get_reward(self, state):
+        """
+        get the reward of this state
+        :param state: this state
+        :return: reward vector
+        """
         pos = self._get_position(state)
         position = pos[0], pos[1]
-        bag = pos[2:]
         reward = np.zeros(self.reward_dimension)
 
         # if we're turning back home
@@ -1872,6 +2155,10 @@ class MORLResourceGatheringProblem(MORLProblem):
         return reward
 
     def _construct_p(self):
+        """
+        build a probability function
+        :return: nothing
+        """
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
             xi, yi, bag1, bag2 = self._get_position(i)
@@ -1900,10 +2187,19 @@ class MORLResourceGatheringProblem(MORLProblem):
                 else:
                     self.P[i, a, n] = prob
 
-    def name(self):
+    @staticmethod
+    def name():
+        """
+        return simple name string
+        :return: string name
+        """
         return "Resource Gathering"
 
     def _construct_r(self):
+        """
+        construct reward function
+        :return: nothing
+        """
         self.R = np.zeros((self.n_states, self.reward_dimension))
         for s in xrange(self.n_states):
             for a in xrange(len(self.actions)):
@@ -1917,6 +2213,11 @@ class MORLResourceGatheringProblem(MORLProblem):
                         self.R[s, 0] = -1
 
     def play(self, action):
+        """
+        perform one action
+        :param action: index of the action
+        :return: reward vector of that action
+        """
         actions = self.actions
         state = self.state
         position = self._get_position(state)[:2]
@@ -1927,7 +2228,8 @@ class MORLResourceGatheringProblem(MORLProblem):
             self.last_state = state
             reward = self._get_reward(self.state)
             return reward
-        if self._in_map(n_position) and self._scene[n_position[0], n_position[1]] < 0 and random.random() < self.losing_probability:
+        if self._in_map(n_position) and self._scene[n_position[0],
+                                                    n_position[1]] < 0 and random.random() < self.losing_probability:
             # our resources is stolen
             self._bag[:] = [0, ] * len(self._bag)
             self.stolen = True
@@ -1959,6 +2261,11 @@ class MORLResourceGatheringProblem(MORLProblem):
         return reward
 
     def _get_index(self, position):
+        """
+        get the index for a position 3 dim --> 2 dim
+        :param position: y, x, bag1, bag2
+        :return: index
+        """
         x = sys._getframe(1)
         if x.f_code.co_name == '_policy_plot2':
             return position[0] * self.scene_x_dim + position[1]
@@ -1966,26 +2273,48 @@ class MORLResourceGatheringProblem(MORLProblem):
         return (position[0] * self.scene_x_dim + position[1])*len(self._bag_mapping) + bagind
 
     def _get_position(self, index):
+        """
+        get the y, x, bag1, bag2 from the index
+        :param index: input
+        :return: y, x, bag1, bag2
+        """
         bag_state = index % len(self._bag_mapping)
         bag = self._bag_mapping[bag_state]
         index /= len(self._bag_mapping)
         return index // self.scene_x_dim, index % self.scene_y_dim, bag[0], bag[1]
 
     def _in_map(self, pos):
-        return pos[0] >= 0 and pos[0] < self.scene_y_dim and pos[1] >= 0 and pos[1] < self.scene_x_dim
+        """
+        if we're outta bounds, return False
+        :param pos: position
+        :return: True for in map, False for outta map
+        """
+        return 0 <= pos[0] < self.scene_y_dim and 0 <= pos[1] < self.scene_x_dim
 
     @property
     def scene_x_dim(self):
+        """
+        count of x states
+        :return: count
+        """
         return self._size
 
     @property
     def scene_y_dim(self):
+        """
+        count of y states
+        :return: count
+        """
         return self._size
 
     def print_map(self, pos=None):
+        """
+        print a state map
+        :param pos: highlighted field
+        :return: nothing
+        """
         tmp = self._scene
         if pos:
             tmp[tuple(pos)] = tmp.max() * 2.0
         plt.imshow(self._scene, interpolation='nearest')
         plt.show()
-

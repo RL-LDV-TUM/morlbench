@@ -1,32 +1,26 @@
-RL Agents
-=================
-
-.. automodule:: agents
-   :members:
-
-
-RL Problems
-===================
-
-.. automodule:: problems
-   :members:
-
-
 Multiple Objective RL Agents
 ============================
 .. automodule:: morl_problems
-   :members:
+	:members:
+
+Multiple Objective RL Multiple Policy Agents
+============================================
+
+.. automodule:: morl_agents_multi_criteria
+:members:
+   
 
 
 Multiple Objective RL policies
 ==============================
 
 .. automodule:: morl_policies
-   :members:
+ 
+:members:
 
 Multiple Objective RL problems
 ==============================
 
 .. automodule:: morl_problems
    :members:
-   
+

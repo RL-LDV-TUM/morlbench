@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>RL Agents &mdash; MORLBench 1.0.0 documentation</title>
+    <title>Multiple Objective RL Agents &mdash; MORLBENCH 1.0.1 documentation</title>
     
     <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.0.0',
+        VERSION:     '1.0.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -23,9 +23,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="MORLBench 1.0.0 documentation" href="doc.html" />
-    <link rel="prev" title="Welcome to Reinforcment Learning Framework’s documentation!" href="doc.html" />
+    <link rel="top" title="MORLBENCH 1.0.1 documentation" href="index.html" />
    
   
   <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
@@ -38,323 +36,12 @@
         <div class="bodywrapper">
           <div class="body" role="main">
             
-  <div class="section" id="module-agents">
-<span id="rl-agents"></span><h1>RL Agents<a class="headerlink" href="#module-agents" title="Permalink to this headline">¶</a></h1>
-<p>Created on Nov 19, 2012</p>
-<p>&#64;author: Dominik Meyer &lt;<a class="reference external" href="mailto:meyerd&#37;&#52;&#48;mytum&#46;de">meyerd<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
-<dl class="class">
-<dt id="agents.AVGQNewcombAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">AVGQNewcombAgent</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#AVGQNewcombAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.AVGQNewcombAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Newcomb agent, that does not use the SARSA, but instead
-the incremental average Q update rule.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.AVGQPrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">AVGQPrisonerAgent</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#AVGQPrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.AVGQPrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent, that decides according to a AVGQ
-RL learning stragey.</p>
-<dl class="method">
-<dt id="agents.AVGQPrisonerAgent.learn">
-<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>action</em>, <em>payout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#AVGQPrisonerAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.AVGQPrisonerAgent.learn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn from interaction.</p>
-<dl class="docutils">
-<dt>action: int</dt>
-<dd>The action that lead to the payout.</dd>
-<dt>payout: float</dt>
-<dd>Payout from the problem for this agent.</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.CooperatePrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">CooperatePrisonerAgent</code><span class="sig-paren">(</span><em>pd</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#CooperatePrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.CooperatePrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent that always cooperates.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.CooperateProbabilisticPrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">CooperateProbabilisticPrisonerAgent</code><span class="sig-paren">(</span><em>pd</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#CooperateProbabilisticPrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.CooperateProbabilisticPrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent that always cooperates.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.DefectPrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">DefectPrisonerAgent</code><span class="sig-paren">(</span><em>pd</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#DefectPrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.DefectPrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent, that always defects.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.DefectProbabilisticPrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">DefectProbabilisticPrisonerAgent</code><span class="sig-paren">(</span><em>pd</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#DefectProbabilisticPrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.DefectProbabilisticPrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent that always defects.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.EUNewcombAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">EUNewcombAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#EUNewcombAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.EUNewcombAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Newcomb Agent, that decides according to the
-calcuated expected utility. We assume, that the
-agent has access to the prediction accuracy of
-the superhuman intelligence.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.EUPrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">EUPrisonerAgent</code><span class="sig-paren">(</span><em>pd</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#EUPrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.EUPrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent, that decides according to expected utility
-RL learning stragey.</p>
-<dl class="method">
-<dt id="agents.EUPrisonerAgent.decide">
-<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em>, <em>total_payout=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#EUPrisonerAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.EUPrisonerAgent.decide" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alternative interface to interact with multiple
-PD agents. Use in conjunction with <a href="#id1"><span class="problematic" id="id2">`</span></a>learn&#8217;</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="agents.EUPrisonerAgent.learn">
-<code class="descname">learn</code><span class="sig-paren">(</span><em>action</em>, <em>payout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#EUPrisonerAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.EUPrisonerAgent.learn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn from interaction.</p>
-<p>EU does not learn from interaction.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.NewcombAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">NewcombAgent</code><span class="sig-paren">(</span><em>newcomb_problem</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#NewcombAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.NewcombAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A agent that should interface with a Newcomb problem.</p>
-<dl class="method">
-<dt id="agents.NewcombAgent.decide">
-<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#NewcombAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.NewcombAgent.decide" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decide which action to take in interaction
-cycle t.</p>
-<p>t: Interaction cycle we are currently in</p>
-<p>action: The action to do next</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="agents.NewcombAgent.learn">
-<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>action</em>, <em>payout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#NewcombAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.NewcombAgent.learn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn from the last interaction, if we have
-a dynamically learning agent.</p>
-<dl class="docutils">
-<dt>t: int</dt>
-<dd>Interaction cycle.</dd>
-<dt>action: int</dt>
-<dd>Last action</dd>
-<dt>payout: float</dt>
-<dd>Last recevied payout.</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.OneBoxNewcombAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">OneBoxNewcombAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#OneBoxNewcombAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.OneBoxNewcombAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Newcomb Agent, that always chooses one boxing.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.PrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">PrisonerAgent</code><span class="sig-paren">(</span><em>pd</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#PrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.PrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A agent that should interface with a Prisoner&#8217;s dilemma problem.</p>
-<dl class="method">
-<dt id="agents.PrisonerAgent.decide">
-<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#PrisonerAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.PrisonerAgent.decide" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decide which action to take in interaction
-cycle t.</p>
-<p>t: Interaction cycle we are currently in</p>
-<p>action: The action to do next</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="agents.PrisonerAgent.learn">
-<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>action</em>, <em>payout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#PrisonerAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.PrisonerAgent.learn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn from the last interaction, if we have
-a dynamically learning agent.</p>
-<dl class="docutils">
-<dt>t: int</dt>
-<dd>Interaction cycle.</dd>
-<dt>action: int</dt>
-<dd>Last action</dd>
-<dt>payout: float</dt>
-<dd>Last recevied payout.</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.ProbabilisticPrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">ProbabilisticPrisonerAgent</code><span class="sig-paren">(</span><em>pd</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#ProbabilisticPrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.ProbabilisticPrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent, that is able to play the probabilistic
-version of the PD.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.SARSALastActionsPrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">SARSALastActionsPrisonerAgent</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#SARSALastActionsPrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.SARSALastActionsPrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent, that decides according to a SARSA
-RL learning stragey. It knows the last own action
-and the last action of the opponent and takes this
-as the state.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.SARSANewcombAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">SARSANewcombAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>alpha=0.3</em>, <em>gamma=1.0</em>, <em>epsilon=1.0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#SARSANewcombAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.SARSANewcombAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Newcomb agent, that uses RL to decide which
-boxing to do next.</p>
-<dl class="method">
-<dt id="agents.SARSANewcombAgent.learn">
-<code class="descname">learn</code><span class="sig-paren">(</span><em>action</em>, <em>payout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#SARSANewcombAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.SARSANewcombAgent.learn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn on the last interaction specified by the
-action and the payout received.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.SARSAPrisonerAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">SARSAPrisonerAgent</code><span class="sig-paren">(</span><em>pd</em>, <em>alpha=0.3</em>, <em>gamma=1.0</em>, <em>epsilon=1.0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#SARSAPrisonerAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.SARSAPrisonerAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A PD agent, that decides according to a SARSA
-RL learning stragey.</p>
-<dl class="method">
-<dt id="agents.SARSAPrisonerAgent.decide">
-<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#SARSAPrisonerAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.SARSAPrisonerAgent.decide" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alternative interface to interact with multiple
-PD agents. Use in conjunction with <a href="#id3"><span class="problematic" id="id4">`</span></a>learn&#8217;</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="agents.SARSAPrisonerAgent.learn">
-<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>action</em>, <em>payout</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#SARSAPrisonerAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.SARSAPrisonerAgent.learn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Learn from interaction.</p>
-<dl class="docutils">
-<dt>action: int</dt>
-<dd>The action that lead to the payout.</dd>
-<dt>payout: float</dt>
-<dd>Payout from the problem for this agent.</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.TwoBoxNewcombAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">TwoBoxNewcombAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#TwoBoxNewcombAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.TwoBoxNewcombAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Newcomb Agent, that always chooses two boxing.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="agents.UCB1NewcombAgent">
-<em class="property">class </em><code class="descclassname">agents.</code><code class="descname">UCB1NewcombAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/agents.html#UCB1NewcombAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#agents.UCB1NewcombAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>A Newcomb agent, that uses UCB1 to decide which
-boxing to do next, as described in
-<a class="reference external" href="http://www.cs.mcgill.ca/~vkules/bandits.pdf">http://www.cs.mcgill.ca/~vkules/bandits.pdf</a></p>
-</dd></dl>
-
-</div>
-<div class="section" id="module-problems">
-<span id="rl-problems"></span><h1>RL Problems<a class="headerlink" href="#module-problems" title="Permalink to this headline">¶</a></h1>
-<p>Created on Nov 19, 2012</p>
-<p>&#64;author: Dominik Meyer &lt;<a class="reference external" href="mailto:meyerd&#37;&#52;&#48;mytum&#46;de">meyerd<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
-<dl class="class">
-<dt id="problems.Newcomb">
-<em class="property">class </em><code class="descclassname">problems.</code><code class="descname">Newcomb</code><span class="sig-paren">(</span><em>predictor_accuracy=0.99, payouts=array([[1000000,       0],        [1001000,    1000]]), actions=['one box', 'two box']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/problems.html#Newcomb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#problems.Newcomb" title="Permalink to this definition">¶</a></dt>
-<dd><p>This class represents a Newcomb problem.
-All the parameters should be set up on object
-creation. Then the Newcomb problem can be played
-either once or iteratively.</p>
-<dl class="method">
-<dt id="problems.Newcomb.play">
-<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/problems.html#Newcomb.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#problems.Newcomb.play" title="Permalink to this definition">¶</a></dt>
-<dd><p>Play one round of the Newcomb problem. A iterated
-Newcomb problem can be obtained by simply iteratively
-playing the same problem over and over again.</p>
-<dl class="docutils">
-<dt>action: integer, Which action will be chosen</dt>
-<dd>the agent. (0: one box, 1: two box).</dd>
-</dl>
-<p>payout: payout of the current round.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="problems.PrisonersDilemma">
-<em class="property">class </em><code class="descclassname">problems.</code><code class="descname">PrisonersDilemma</code><span class="sig-paren">(</span><em>T=5.0</em>, <em>R=3.0</em>, <em>P=1.0</em>, <em>S=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/problems.html#PrisonersDilemma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#problems.PrisonersDilemma" title="Permalink to this definition">¶</a></dt>
-<dd><p>The classical prisoners dilemma (PD) with a default
-payout matrix of</p>
-<blockquote>
-<div><p>prisoner 2</p>
-<blockquote>
-<div>C     D</div></blockquote>
-</div></blockquote>
-<dl class="docutils">
-<dt>prisoner 1      C   (R,R) (S,T)</dt>
-<dd><blockquote class="first">
-<div>D   (T,S) (P,P)</div></blockquote>
-<p class="last">with T &gt; P &gt; R &gt; S and R &gt; (T + S) / 2.</p>
-</dd>
-</dl>
-<dl class="method">
-<dt id="problems.PrisonersDilemma.play">
-<code class="descname">play</code><span class="sig-paren">(</span><em>action1</em>, <em>action2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/problems.html#PrisonersDilemma.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#problems.PrisonersDilemma.play" title="Permalink to this definition">¶</a></dt>
-<dd><p>Play the PD.</p>
-<dl class="docutils">
-<dt>action1: int</dt>
-<dd>Action for prisoner 1.</dd>
-<dt>action2: int</dt>
-<dd>Action for prisoner 2.</dd>
-</dl>
-<dl class="docutils">
-<dt>(payout1, payout2): float 2-tuple</dt>
-<dd>Containing the payouts for prisoner 1 and 2 respectively.</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="problems.ProbabilisticPrisonersDilemma">
-<em class="property">class </em><code class="descclassname">problems.</code><code class="descname">ProbabilisticPrisonersDilemma</code><span class="sig-paren">(</span><em>T=5.0</em>, <em>R=3.0</em>, <em>P=1.0</em>, <em>S=0.0</em>, <em>coop_p=0.5</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/problems.html#ProbabilisticPrisonersDilemma"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#problems.ProbabilisticPrisonersDilemma" title="Permalink to this definition">¶</a></dt>
-<dd><p>A modification of the Prisoner&#8217;s Dilemma, where the action
-of the second player is not chosen by input, but randomly
-according to some cooperation probability.</p>
-<dl class="method">
-<dt id="problems.ProbabilisticPrisonersDilemma.play">
-<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/problems.html#ProbabilisticPrisonersDilemma.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#problems.ProbabilisticPrisonersDilemma.play" title="Permalink to this definition">¶</a></dt>
-<dd><p>Play the probabilistic PD.</p>
-<dl class="docutils">
-<dt>action: int</dt>
-<dd>Action for prisoner 1.</dd>
-</dl>
-<dl class="docutils">
-<dt>(payout1, payout2): float 2-tuple</dt>
-<dd>Containing the payouts for prisoner 1 and 2 respectively.</dd>
-</dl>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="problems.RandomNewcomb">
-<em class="property">class </em><code class="descclassname">problems.</code><code class="descname">RandomNewcomb</code><span class="sig-paren">(</span><em>predictor_accuracy=0.99, payouts=array([[1000000,       0],        [1001000,    1000]]), actions=['one box', 'two box']</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/problems.html#RandomNewcomb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#problems.RandomNewcomb" title="Permalink to this definition">¶</a></dt>
-<dd><p>A newcomb problem which doesn&#8217;t decide always the
-opposite, but instead a random boxing.</p>
-</dd></dl>
-
-</div>
-<div class="section" id="module-morl_problems">
+  <div class="section" id="module-morl_problems">
 <span id="multiple-objective-rl-agents"></span><h1>Multiple Objective RL Agents<a class="headerlink" href="#module-morl_problems" title="Permalink to this headline">¶</a></h1>
 <p>Created on Nov 19, 2012</p>
 <p>&#64;author: Dominik Meyer &lt;<a class="reference external" href="mailto:meyerd&#37;&#52;&#48;mytum&#46;de">meyerd<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;
-&#64;author: Johannes Feldmaier &lt;<a class="reference external" href="mailto:johannes&#46;feldmaier&#37;&#52;&#48;tum&#46;de">johannes<span>&#46;</span>feldmaier<span>&#64;</span>tum<span>&#46;</span>de</a>&gt;</p>
+&#64;author: Johannes Feldmaier &lt;<a class="reference external" href="mailto:johannes&#46;feldmaier&#37;&#52;&#48;tum&#46;de">johannes<span>&#46;</span>feldmaier<span>&#64;</span>tum<span>&#46;</span>de</a>&gt;
+&#64;author: Simon Wölzmüller   &lt;<a class="reference external" href="mailto:ga35voz&#37;&#52;&#48;mytum&#46;de">ga35voz<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
 <dl class="class">
 <dt id="morl_problems.Deepsea">
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">Deepsea</code><span class="sig-paren">(</span><em>scene=None</em>, <em>actions=None</em>, <em>gamma=0.9</em>, <em>state=0</em>, <em>extended_reward=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Deepsea"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.Deepsea" title="Permalink to this definition">¶</a></dt>
@@ -377,134 +64,448 @@ and receive reward (or not).</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="morl_problems.Financial">
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">Financial</code><span class="sig-paren">(</span><em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Financial"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.Financial" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is a multi-objective financial toy problem.
+The agent can choose to invest into a number of financial products. Each action means to buy
+or to sell one specific financial product. Therefore, if we have f financial products, there
+will be 2*f actions. The problem is formulated in a bandit-style setting. This means, we have
+only one state, in which we remain and can choose to buy or sell assets. The vector-valued
+reward contains the payouts for the current portfolio with respect to</p>
+<p>(payout, risk, flexibility)</p>
+<dl class="method">
+<dt id="morl_problems.Financial.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Financial.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.Financial.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an action (buy or sell an asset)</p>
+<dl class="docutils">
+<dt>action: integer, which asset will be bought/sold by</dt>
+<dd>the agent.</dd>
+</dl>
+<p>reward: reward of the current state.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="morl_problems.Gridworld">
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">Gridworld</code><span class="sig-paren">(</span><em>size=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Gridworld"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.Gridworld" title="Permalink to this definition">¶</a></dt>
-<dd><p>Original Algen-Gridworld.</p>
+<dd><p>Original Simple-MORL-Gridworld.</p>
+<dl class="method">
+<dt id="morl_problems.Gridworld.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Gridworld.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.Gridworld.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>prepares environment for next episode
+:return: nothing</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_problems.MOPuddleworldProblem">
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MOPuddleworldProblem</code><span class="sig-paren">(</span><em>size=20</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MOPuddleworldProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>This problem contains a quadratic map (please use size more than 15, to get a useful puddle)
+the puddle is an obstacle that the agent has to drive around. The aim is to reach the goal state at the top right</p>
+<dl class="staticmethod">
+<dt id="morl_problems.MOPuddleworldProblem.name">
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MOPuddleworldProblem.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns a simple name string
+:return: name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MOPuddleworldProblem.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MOPuddleworldProblem.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>perform an action
+:param action: action to perform
+:return: reward for this action</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MOPuddleworldProblem.plot_map">
+<code class="descname">plot_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.plot_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MOPuddleworldProblem.plot_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>plot a map of cartesian states
+:return: a array of the flat map</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MOPuddleworldProblem.print_map">
+<code class="descname">print_map</code><span class="sig-paren">(</span><em>pos=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.print_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MOPuddleworldProblem.print_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>plots a map of states and grid
+:param pos:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MOPuddleworldProblem.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MOPuddleworldProblem.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>prepare environment for new episode
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="morl_problems.MOPuddleworldProblem.scene_x_dim">
+<code class="descname">scene_x_dim</code><a class="headerlink" href="#morl_problems.MOPuddleworldProblem.scene_x_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>x dimensional states count
+:return: count</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="morl_problems.MOPuddleworldProblem.scene_y_dim">
+<code class="descname">scene_y_dim</code><a class="headerlink" href="#morl_problems.MOPuddleworldProblem.scene_y_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>y dimensional states count
+:return: count</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_problems.MORLBuridansAss1DProblem">
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLBuridansAss1DProblem</code><span class="sig-paren">(</span><em>size=3</em>, <em>p=0.9</em>, <em>n_appear=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAss1DProblem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLBuridansAss1DProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>This problem contains buridans ass domain. An ass starts (usually) in a 3x3 grid in the middle position (1,1)
+in the top left and the bottom right corner there is a pile of food. if the ass moves away from a visible foodstate,
+the food in the bigger distance will be stolen with a probability of p. Eeating the food means choosing action
+&#8220;stay&#8221; at the field of a food
+it will be rewarded with following criteria: hunger, lost food, walking distance
+hunger means</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_problems.MORLBuridansAssProblem">
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLBuridansAssProblem</code><span class="sig-paren">(</span><em>size=3</em>, <em>p=0.9</em>, <em>n_appear=10</em>, <em>gamma=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>This problem contains buridans ass domain. An ass starts (usually) in a 3x3 grid in the middle position (1,1)
+in the top left and the bottom right corner there is a pile of food. if the ass moves away from a visible foodstate,
+the food in the bigger distance will be stolen with a probability of p. Eeating the food means choosing action
+&#8220;stay&#8221; at the field of a food
+it will be rewarded with following criteria: hunger, lost food, walking distance
+hunger means that after 9 steps without eating a food pile the next action(s) will be rewarded with -1</p>
+<dl class="method">
+<dt id="morl_problems.MORLBuridansAssProblem.create_plottable_states">
+<code class="descname">create_plottable_states</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.create_plottable_states"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem.create_plottable_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>after learing we need to map the states to the cartesian coordinates
+:param states: multidimensional state indices
+:return: states in 2 dim indices</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLBuridansAssProblem.get_cartesian_coordinates_from_pos_state">
+<code class="descname">get_cartesian_coordinates_from_pos_state</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.get_cartesian_coordinates_from_pos_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem.get_cartesian_coordinates_from_pos_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>multidimensional &#8211;&gt; two dimensional state positions
+:param state: 3D coordinates (pos, hunger, food)
+:return: position (y, x)</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="morl_problems.MORLBuridansAssProblem.name">
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>return simple name
+:return: name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLBuridansAssProblem.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>perform this action
+:param action: this action
+:return: reward for this action</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLBuridansAssProblem.print_map">
+<code class="descname">print_map</code><span class="sig-paren">(</span><em>pos=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.print_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem.print_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>show a plot of that scene
+:param pos: if you want to highlight one field, give it.
+:return: nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLBuridansAssProblem.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>prepare environment for next episode
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="morl_problems.MORLBuridansAssProblem.scene_x_dim">
+<code class="descname">scene_x_dim</code><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem.scene_x_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>x dimensional states count
+:return: count</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="morl_problems.MORLBuridansAssProblem.scene_y_dim">
+<code class="descname">scene_y_dim</code><a class="headerlink" href="#morl_problems.MORLBuridansAssProblem.scene_y_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>y dimensional states count
+:return: count</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="morl_problems.MORLGridworld">
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLGridworld</code><span class="sig-paren">(</span><em>size=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworld"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLGridworld" title="Permalink to this definition">¶</a></dt>
 <dd><p>Multiobjective gridworld.</p>
+<dl class="staticmethod">
+<dt id="morl_problems.MORLGridworld.name">
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworld.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLGridworld.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>short name
+:return: simple string of name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLGridworld.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworld.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLGridworld.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>simulate action
+:param action: one of the four specified actions
+:return: reward for that action</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="morl_problems.MORLGridworldStatic">
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLGridworldStatic</code><span class="sig-paren">(</span><em>size=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworldStatic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLGridworldStatic" title="Permalink to this definition">¶</a></dt>
 <dd><p>Multiobjective gridworld.</p>
+<dl class="method">
+<dt id="morl_problems.MORLGridworldStatic.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworldStatic.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLGridworldStatic.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>perform defined action
+:param action: action to perform
+:return: reward vector for that action</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="morl_problems.MORLGridworldTime">
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLGridworldTime</code><span class="sig-paren">(</span><em>size=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworldTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLGridworldTime" title="Permalink to this definition">¶</a></dt>
 <dd><p>Multiobjective gridworld.</p>
+<dl class="method">
+<dt id="morl_problems.MORLGridworldTime.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworldTime.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLGridworldTime.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>do that action
+:param action: action to perform
+:return: reward of this action</p>
 </dd></dl>
 
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_problems.MORLResourceGatheringProblem">
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLResourceGatheringProblem</code><span class="sig-paren">(</span><em>size=5</em>, <em>gamma=0.9</em>, <em>p=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem" title="Permalink to this definition">¶</a></dt>
+<dd><p>In this problem the agent has to find the resources and bring them back to the homebase.
+the enemies steal resources with a probability of 0.9</p>
+<dl class="method">
+<dt id="morl_problems.MORLResourceGatheringProblem.create_plottable_states">
+<code class="descname">create_plottable_states</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.create_plottable_states"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem.create_plottable_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>after learning, convert states into 2 dim. map states
+:param states: the multidimensional states
+:return: 2 dim states</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLResourceGatheringProblem.get_bag_index">
+<code class="descname">get_bag_index</code><span class="sig-paren">(</span><em>bag</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.get_bag_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem.get_bag_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>get the index of bag state: 0:00, 1:01, 2:10, 3:11
+:param bag: bagstate
+:return: index</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="morl_problems.MORLResourceGatheringProblem.name">
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>return simple name string
+:return: string name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLResourceGatheringProblem.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>perform one action
+:param action: index of the action
+:return: reward vector of that action</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLResourceGatheringProblem.print_map">
+<code class="descname">print_map</code><span class="sig-paren">(</span><em>pos=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.print_map"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem.print_map" title="Permalink to this definition">¶</a></dt>
+<dd><p>print a state map
+:param pos: highlighted field
+:return: nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MORLResourceGatheringProblem.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>prepare environment for next episode
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="morl_problems.MORLResourceGatheringProblem.scene_x_dim">
+<code class="descname">scene_x_dim</code><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem.scene_x_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>count of x states
+:return: count</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="morl_problems.MORLResourceGatheringProblem.scene_y_dim">
+<code class="descname">scene_y_dim</code><a class="headerlink" href="#morl_problems.MORLResourceGatheringProblem.scene_y_dim" title="Permalink to this definition">¶</a></dt>
+<dd><p>count of y states
+:return: count</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_problems.MORLRobotActionPlanning">
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLRobotActionPlanning</code><span class="sig-paren">(</span><em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLRobotActionPlanning"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLRobotActionPlanning" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is supposed to be a example problem for a high level task selection
+in a robot, which can receive vector valued reward.</p>
+<dl class="method">
+<dt id="morl_problems.MORLRobotActionPlanning.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLRobotActionPlanning.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MORLRobotActionPlanning.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an action</p>
+<p>action: integer, what high-level decision should be taken</p>
+<p>reward: reward of the current state.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_problems.MountainCar">
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MountainCar</code><span class="sig-paren">(</span><em>acc_fac=0.001</em>, <em>cf=0.0025</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar" title="Permalink to this definition">¶</a></dt>
+<dd><p>In this problem, a car tries to escape a valley by timed accelerations
+Its own force is not enough to escape only by one acceleration
+This MO version of the problem has three reward components</p>
+<dl class="method">
+<dt id="morl_problems.MountainCar.car_sim">
+<code class="descname">car_sim</code><span class="sig-paren">(</span><em>factor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.car_sim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar.car_sim" title="Permalink to this definition">¶</a></dt>
+<dd><p>drive the car
+:param factor: right 1, no acc 0 and left -1
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MountainCar.create_plottable_states">
+<code class="descname">create_plottable_states</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.create_plottable_states"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar.create_plottable_states" title="Permalink to this definition">¶</a></dt>
+<dd><p>after learning we need the 1 dim states, to plot the way through the map
+:param states: states in 2 dimensions
+:return: plottable states</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="morl_problems.MountainCar.distance">
+<em class="property">static </em><code class="descname">distance</code><span class="sig-paren">(</span><em>point1</em>, <em>point2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.distance"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar.distance" title="Permalink to this definition">¶</a></dt>
+<dd><p>computes a euclidean distance between point1 and point 2
+:param point1: point 1
+:param point2: point 2
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MountainCar.get_state">
+<code class="descname">get_state</code><span class="sig-paren">(</span><em>position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.get_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar.get_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>gets the index of a 2 dim state
+:param position: (x, v)
+:return: index</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MountainCar.get_velocities">
+<code class="descname">get_velocities</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.get_velocities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar.get_velocities" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns an array that contains the velocities [-0.07, 0.07]
+:param states: indices
+:return: real   velocities</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="morl_problems.MountainCar.name">
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the name of the problem
+:return: name</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MountainCar.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an action with the car in the mountains
+and receive reward (or not).</p>
+<dl class="docutils">
+<dt>action: integer, Which action will be chosen</dt>
+<dd>0: no action -&gt; coasting
+1: forward thrust
+-1: backward thrust</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MountainCar.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCar.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>reset the agent
+:return: nothing</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_problems.MountainCarTime">
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MountainCarTime</code><span class="sig-paren">(</span><em>acc_fac=1e-05</em>, <em>cf=0.0002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCarTime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCarTime" title="Permalink to this definition">¶</a></dt>
+<dd><p>same problem as above, just other reward structure. we get -1 every step,
+-1 for every acceleration, and +1 for reaching goal position</p>
+<dl class="method">
+<dt id="morl_problems.MountainCarTime.play">
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCarTime.play"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCarTime.play" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform an action with the car in the
+multi objective mountains and receive reward (or not).</p>
+<p>Multi objectives: Minimize Time and accelerating Actions.</p>
+<dl class="docutils">
+<dt>action: integer, Which action will be chosen</dt>
+<dd>0: no action -&gt; coasting
+1: forward thrust
+-1: backward thrust</dd>
+</dl>
+<p>reward: reward of the current state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_problems.MountainCarTime.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCarTime.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_problems.MountainCarTime.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>prepare environment for next episode
+:return: nothing</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="multiple-objective-rl-multiple-policy-agents">
+<h1>Multiple Objective RL Multiple Policy Agents<a class="headerlink" href="#multiple-objective-rl-multiple-policy-agents" title="Permalink to this headline">¶</a></h1>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">members:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section" id="module-morl_policies">
 <span id="multiple-objective-rl-policies"></span><h1>Multiple Objective RL policies<a class="headerlink" href="#module-morl_policies" title="Permalink to this headline">¶</a></h1>
 <p>Created on Feb 16, 2016</p>
 <p>&#64;author: Dominik Meyer &lt;<a class="reference external" href="mailto:meyerd&#37;&#52;&#48;mytum&#46;de">meyerd<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
-<dl class="class">
-<dt id="morl_policies.Policy">
-<em class="property">class </em><code class="descclassname">morl_policies.</code><code class="descname">Policy</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#Policy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.Policy" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is the base class for all problem policies.</p>
-<dl class="method">
-<dt id="morl_policies.Policy.decide">
-<code class="descname">decide</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#Policy.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.Policy.decide" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decide which action to take in state.
-:param state: Deepsea state tuple.
-:return: int action.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="morl_policies.Policy.get_optimal_action">
-<code class="descname">get_optimal_action</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#Policy.get_optimal_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.Policy.get_optimal_action" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> &#8211; </td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="morl_policies.Policy.get_pi">
-<code class="descname">get_pi</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#Policy.get_pi"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.Policy.get_pi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the policy matrix <span class="math">\(\Pi\)</span> which consists of
-m rows, where m is the number of states
-of the problem and n columns, where n is the number of actions.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><span class="math">\(\Pi \in \mathbb{R}^{m   imes n}\)</span></td>
+<tr class="field-odd field"><th class="field-name">members:</th><td class="field-body"></td>
 </tr>
 </tbody>
 </table>
-</dd></dl>
-
-<dl class="method">
-<dt id="morl_policies.Policy.get_pi_a">
-<code class="descname">get_pi_a</code><span class="sig-paren">(</span><em>a</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#Policy.get_pi_a"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.Policy.get_pi_a" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return the a-th column of the policy matrix, this means
-the probability distribution for a specific action given a
-specific state. m is the number of states.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>a</strong> &#8211; int action</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><span class="math">\(\Pi^{a} \in \mathbb{R}^{m       imes 1}\)</span></td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="morl_policies.PolicyDeepseaDeterministic">
-<em class="property">class </em><code class="descclassname">morl_policies.</code><code class="descname">PolicyDeepseaDeterministic</code><span class="sig-paren">(</span><em>problem</em>, <em>policy='P1'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#PolicyDeepseaDeterministic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.PolicyDeepseaDeterministic" title="Permalink to this definition">¶</a></dt>
-<dd><p>A deterministic example policy for the deepsea scenario.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="morl_policies.PolicyDeepseaExpert">
-<em class="property">class </em><code class="descclassname">morl_policies.</code><code class="descname">PolicyDeepseaExpert</code><span class="sig-paren">(</span><em>problem</em>, <em>task='T1'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#PolicyDeepseaExpert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.PolicyDeepseaExpert" title="Permalink to this definition">¶</a></dt>
-<dd><p>Human expert policy for the deepsea scenario</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="morl_policies.PolicyDeepseaRandom">
-<em class="property">class </em><code class="descclassname">morl_policies.</code><code class="descname">PolicyDeepseaRandom</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#PolicyDeepseaRandom"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.PolicyDeepseaRandom" title="Permalink to this definition">¶</a></dt>
-<dd><p>A random policy for the Deepsea MORL problem.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="morl_policies.PolicyFromAgent">
-<em class="property">class </em><code class="descclassname">morl_policies.</code><code class="descname">PolicyFromAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>agent</em>, <em>mode='gibbs'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#PolicyFromAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.PolicyFromAgent" title="Permalink to this definition">¶</a></dt>
-<dd><p>Derive a greedy policy from a trained agent.</p>
-</dd></dl>
-
-<dl class="class">
-<dt id="morl_policies.PolicyGridworld">
-<em class="property">class </em><code class="descclassname">morl_policies.</code><code class="descname">PolicyGridworld</code><span class="sig-paren">(</span><em>problem</em>, <em>policy='DIAGONAL'</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_policies.html#PolicyGridworld"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_policies.PolicyGridworld" title="Permalink to this definition">¶</a></dt>
-<dd><p>Optimal policy for the gridworld is to go diagonal from the upper left
-to the lower right.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="module-morl_problems">
 <span id="multiple-objective-rl-problems"></span><h1>Multiple Objective RL problems<a class="headerlink" href="#module-morl_problems" title="Permalink to this headline">¶</a></h1>
 <p>Created on Nov 19, 2012</p>
 <p>&#64;author: Dominik Meyer &lt;<a class="reference external" href="mailto:meyerd&#37;&#52;&#48;mytum&#46;de">meyerd<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;
-&#64;author: Johannes Feldmaier &lt;<a class="reference external" href="mailto:johannes&#46;feldmaier&#37;&#52;&#48;tum&#46;de">johannes<span>&#46;</span>feldmaier<span>&#64;</span>tum<span>&#46;</span>de</a>&gt;</p>
+&#64;author: Johannes Feldmaier &lt;<a class="reference external" href="mailto:johannes&#46;feldmaier&#37;&#52;&#48;tum&#46;de">johannes<span>&#46;</span>feldmaier<span>&#64;</span>tum<span>&#46;</span>de</a>&gt;
+&#64;author: Simon Wölzmüller   &lt;<a class="reference external" href="mailto:ga35voz&#37;&#52;&#48;mytum&#46;de">ga35voz<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
 <dl class="class">
 <dt>
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">Deepsea</code><span class="sig-paren">(</span><em>scene=None</em>, <em>actions=None</em>, <em>gamma=0.9</em>, <em>state=0</em>, <em>extended_reward=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Deepsea"><span class="viewcode-link">[source]</span></a></dt>
@@ -528,26 +529,414 @@ and receive reward (or not).</p>
 
 <dl class="class">
 <dt>
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">Financial</code><span class="sig-paren">(</span><em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Financial"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This is a multi-objective financial toy problem.
+The agent can choose to invest into a number of financial products. Each action means to buy
+or to sell one specific financial product. Therefore, if we have f financial products, there
+will be 2*f actions. The problem is formulated in a bandit-style setting. This means, we have
+only one state, in which we remain and can choose to buy or sell assets. The vector-valued
+reward contains the payouts for the current portfolio with respect to</p>
+<p>(payout, risk, flexibility)</p>
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Financial.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Perform an action (buy or sell an asset)</p>
+<dl class="docutils">
+<dt>action: integer, which asset will be bought/sold by</dt>
+<dd>the agent.</dd>
+</dl>
+<p>reward: reward of the current state.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">Gridworld</code><span class="sig-paren">(</span><em>size=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Gridworld"><span class="viewcode-link">[source]</span></a></dt>
-<dd><p>Original Algen-Gridworld.</p>
+<dd><p>Original Simple-MORL-Gridworld.</p>
+<dl class="method">
+<dt>
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#Gridworld.reset"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>prepares environment for next episode
+:return: nothing</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MOPuddleworldProblem</code><span class="sig-paren">(</span><em>size=20</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This problem contains a quadratic map (please use size more than 15, to get a useful puddle)
+the puddle is an obstacle that the agent has to drive around. The aim is to reach the goal state at the top right</p>
+<dl class="staticmethod">
+<dt>
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.name"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>returns a simple name string
+:return: name</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>perform an action
+:param action: action to perform
+:return: reward for this action</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">plot_map</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.plot_map"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>plot a map of cartesian states
+:return: a array of the flat map</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">print_map</code><span class="sig-paren">(</span><em>pos=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.print_map"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>plots a map of states and grid
+:param pos:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MOPuddleworldProblem.reset"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>prepare environment for new episode
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">scene_x_dim</code></dt>
+<dd><p>x dimensional states count
+:return: count</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">scene_y_dim</code></dt>
+<dd><p>y dimensional states count
+:return: count</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLBuridansAss1DProblem</code><span class="sig-paren">(</span><em>size=3</em>, <em>p=0.9</em>, <em>n_appear=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAss1DProblem"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This problem contains buridans ass domain. An ass starts (usually) in a 3x3 grid in the middle position (1,1)
+in the top left and the bottom right corner there is a pile of food. if the ass moves away from a visible foodstate,
+the food in the bigger distance will be stolen with a probability of p. Eeating the food means choosing action
+&#8220;stay&#8221; at the field of a food
+it will be rewarded with following criteria: hunger, lost food, walking distance
+hunger means</p>
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLBuridansAssProblem</code><span class="sig-paren">(</span><em>size=3</em>, <em>p=0.9</em>, <em>n_appear=10</em>, <em>gamma=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This problem contains buridans ass domain. An ass starts (usually) in a 3x3 grid in the middle position (1,1)
+in the top left and the bottom right corner there is a pile of food. if the ass moves away from a visible foodstate,
+the food in the bigger distance will be stolen with a probability of p. Eeating the food means choosing action
+&#8220;stay&#8221; at the field of a food
+it will be rewarded with following criteria: hunger, lost food, walking distance
+hunger means that after 9 steps without eating a food pile the next action(s) will be rewarded with -1</p>
+<dl class="method">
+<dt>
+<code class="descname">create_plottable_states</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.create_plottable_states"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>after learing we need to map the states to the cartesian coordinates
+:param states: multidimensional state indices
+:return: states in 2 dim indices</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_cartesian_coordinates_from_pos_state</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.get_cartesian_coordinates_from_pos_state"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>multidimensional &#8211;&gt; two dimensional state positions
+:param state: 3D coordinates (pos, hunger, food)
+:return: position (y, x)</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.name"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>return simple name
+:return: name</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>perform this action
+:param action: this action
+:return: reward for this action</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">print_map</code><span class="sig-paren">(</span><em>pos=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.print_map"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>show a plot of that scene
+:param pos: if you want to highlight one field, give it.
+:return: nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLBuridansAssProblem.reset"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>prepare environment for next episode
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">scene_x_dim</code></dt>
+<dd><p>x dimensional states count
+:return: count</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">scene_y_dim</code></dt>
+<dd><p>y dimensional states count
+:return: count</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt>
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLGridworld</code><span class="sig-paren">(</span><em>size=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworld"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Multiobjective gridworld.</p>
+<dl class="staticmethod">
+<dt>
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworld.name"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>short name
+:return: simple string of name</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworld.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>simulate action
+:param action: one of the four specified actions
+:return: reward for that action</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt>
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLGridworldStatic</code><span class="sig-paren">(</span><em>size=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworldStatic"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Multiobjective gridworld.</p>
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworldStatic.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>perform defined action
+:param action: action to perform
+:return: reward vector for that action</p>
+</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt>
 <em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLGridworldTime</code><span class="sig-paren">(</span><em>size=10</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworldTime"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Multiobjective gridworld.</p>
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLGridworldTime.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>do that action
+:param action: action to perform
+:return: reward of this action</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLResourceGatheringProblem</code><span class="sig-paren">(</span><em>size=5</em>, <em>gamma=0.9</em>, <em>p=0.1</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>In this problem the agent has to find the resources and bring them back to the homebase.
+the enemies steal resources with a probability of 0.9</p>
+<dl class="method">
+<dt>
+<code class="descname">create_plottable_states</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.create_plottable_states"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>after learning, convert states into 2 dim. map states
+:param states: the multidimensional states
+:return: 2 dim states</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_bag_index</code><span class="sig-paren">(</span><em>bag</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.get_bag_index"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>get the index of bag state: 0:00, 1:01, 2:10, 3:11
+:param bag: bagstate
+:return: index</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.name"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>return simple name string
+:return: string name</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>perform one action
+:param action: index of the action
+:return: reward vector of that action</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">print_map</code><span class="sig-paren">(</span><em>pos=None</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.print_map"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>print a state map
+:param pos: highlighted field
+:return: nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLResourceGatheringProblem.reset"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>prepare environment for next episode
+:return:</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">scene_x_dim</code></dt>
+<dd><p>count of x states
+:return: count</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">scene_y_dim</code></dt>
+<dd><p>count of y states
+:return: count</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MORLRobotActionPlanning</code><span class="sig-paren">(</span><em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLRobotActionPlanning"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>This is supposed to be a example problem for a high level task selection
+in a robot, which can receive vector valued reward.</p>
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MORLRobotActionPlanning.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Perform an action</p>
+<p>action: integer, what high-level decision should be taken</p>
+<p>reward: reward of the current state.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MountainCar</code><span class="sig-paren">(</span><em>acc_fac=0.001</em>, <em>cf=0.0025</em>, <em>gamma=0.9</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>In this problem, a car tries to escape a valley by timed accelerations
+Its own force is not enough to escape only by one acceleration
+This MO version of the problem has three reward components</p>
+<dl class="method">
+<dt>
+<code class="descname">car_sim</code><span class="sig-paren">(</span><em>factor</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.car_sim"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>drive the car
+:param factor: right 1, no acc 0 and left -1
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">create_plottable_states</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.create_plottable_states"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>after learning we need the 1 dim states, to plot the way through the map
+:param states: states in 2 dimensions
+:return: plottable states</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<em class="property">static </em><code class="descname">distance</code><span class="sig-paren">(</span><em>point1</em>, <em>point2</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.distance"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>computes a euclidean distance between point1 and point 2
+:param point1: point 1
+:param point2: point 2
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_state</code><span class="sig-paren">(</span><em>position</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.get_state"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>gets the index of a 2 dim state
+:param position: (x, v)
+:return: index</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">get_velocities</code><span class="sig-paren">(</span><em>states</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.get_velocities"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>returns an array that contains the velocities [-0.07, 0.07]
+:param states: indices
+:return: real   velocities</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt>
+<em class="property">static </em><code class="descname">name</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.name"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>returns the name of the problem
+:return: name</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Perform an action with the car in the mountains
+and receive reward (or not).</p>
+<dl class="docutils">
+<dt>action: integer, Which action will be chosen</dt>
+<dd>0: no action -&gt; coasting
+1: forward thrust
+-1: backward thrust</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCar.reset"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>reset the agent
+:return: nothing</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt>
+<em class="property">class </em><code class="descclassname">morl_problems.</code><code class="descname">MountainCarTime</code><span class="sig-paren">(</span><em>acc_fac=1e-05</em>, <em>cf=0.0002</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCarTime"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>same problem as above, just other reward structure. we get -1 every step,
+-1 for every acceleration, and +1 for reaching goal position</p>
+<dl class="method">
+<dt>
+<code class="descname">play</code><span class="sig-paren">(</span><em>action</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCarTime.play"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Perform an action with the car in the
+multi objective mountains and receive reward (or not).</p>
+<p>Multi objectives: Minimize Time and accelerating Actions.</p>
+<dl class="docutils">
+<dt>action: integer, Which action will be chosen</dt>
+<dd>0: no action -&gt; coasting
+1: forward thrust
+-1: backward thrust</dd>
+</dl>
+<p>reward: reward of the current state.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_problems.html#MountainCarTime.reset"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>prepare environment for next episode
+:return: nothing</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -558,19 +947,17 @@ and receive reward (or not).</p>
       </div>
       <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
         <div class="sphinxsidebarwrapper">
-  <h3><a href="doc.html">Table Of Contents</a></h3>
+  <h3><a href="index.html">Table Of Contents</a></h3>
   <ul>
-<li><a class="reference internal" href="#">RL Agents</a></li>
-<li><a class="reference internal" href="#module-problems">RL Problems</a></li>
-<li><a class="reference internal" href="#module-morl_problems">Multiple Objective RL Agents</a></li>
+<li><a class="reference internal" href="#">Multiple Objective RL Agents</a></li>
+<li><a class="reference internal" href="#multiple-objective-rl-multiple-policy-agents">Multiple Objective RL Multiple Policy Agents</a></li>
 <li><a class="reference internal" href="#module-morl_policies">Multiple Objective RL policies</a></li>
 <li><a class="reference internal" href="#module-morl_problems">Multiple Objective RL problems</a></li>
 </ul>
 <div class="relations">
 <h3>Related Topics</h3>
 <ul>
-  <li><a href="doc.html">Documentation overview</a><ul>
-      <li>Previous: <a href="doc.html" title="previous chapter">Welcome to Reinforcment Learning Framework&#8217;s documentation!</a></li>
+  <li><a href="index.html">Documentation overview</a><ul>
   </ul></li>
 </ul>
 </div>
@@ -596,7 +983,7 @@ and receive reward (or not).</p>
       <div class="clearer"></div>
     </div>
     <div class="footer">
-      &copy;2016, Dominik Meyer, Johannes Feldmaier, Simon Wölzmüller.
+      &copy;2016, Dominik Meyer, Johannes Feldmaier, Simon Woelzmueller.
       
       |
       Powered by <a href="http://sphinx-doc.org/">Sphinx 1.4.1</a>

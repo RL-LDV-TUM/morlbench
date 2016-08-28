@@ -25,11 +25,23 @@ These agents are used for multiple criteria average reward experiments
 
 class MultipleCriteriaH:
     """
+    For information: 'Multi-Criteria Average Reward RL' S. Natarajan
     This class uses HLearning and a bunch of weight vectors to iterate through. After learning all of them,
     using the agent for a specific weight would cause faster performance and converging average reward
     """
     def __init__(self, problem=None, n_vectors=55, delta=1.0,  epsilon=0.1, alfa=0.01,
                                      interactions=100000, max_per_interaction=150, converging_criterium=60):
+        """
+        Constructor
+        :param problem: morl problem, the Agent acts in
+        :param n_vectors: count of vectors, that should be trained before evaluation
+        :param delta: difference of two policies, to take the better one
+        :param epsilon: probability of epsilon greedy decision mechanism
+        :param alfa: learning rate
+        :param interactions: epoch count
+        :param max_per_interaction: episode max count
+        :param converging_criterium: episodes without change, to stop the epoch
+        """
         if problem is None:
             self.problem = MORLGridworld()
         else:
@@ -57,6 +69,11 @@ class MultipleCriteriaH:
         self.pareto = []
 
     def get_learned_action(self, state):
+        """
+        return the learned action for this state
+        :param state: this state
+        :return: action
+        """
         return self.hlearning.get_learned_action(state)
 
     def weight_training(self):
@@ -83,6 +100,10 @@ class MultipleCriteriaH:
         return True
 
     def plot_interactions_per_weight(self):
+        """
+        plot the learning curve for one curve
+        :return:
+        """
         ###################################################################
         #       PLOT (Curve for Learning Process and Policy Plot)         #
         ###################################################################
@@ -104,6 +125,11 @@ class MultipleCriteriaH:
         plt.show()
 
     def look_for_opt(self, weight):
+        """
+        search in our bag of policies, return the params of the optimal and return its weighted average reward
+        :param weight: weight, we need a policy to
+        :return: the policy and its weighted average reward
+        """
         weighted = [np.dot(weight, self.rhos[u]) for u in self.rhos.iterkeys()]
         max_weighted = max(weighted)
         index_max = weighted.index(max_weighted)
@@ -132,9 +158,15 @@ class MultipleCriteriaH:
             return False
 
     def plot_interaction_rhos(self, weight):
+        """
+        plot the evolution of the weighted average reward in one epoch for one weight
+        :param weight:
+        :return:
+        """
         interaction_rhos_plot = [np.dot(weight, self.interaction_rhos[r]) for r in xrange(len(self.interaction_rhos))]
         plt.figure()
-        plt.axis([0, 1.1*len(interaction_rhos_plot), -1.1*np.abs(min(interaction_rhos_plot)), 1.1*max(interaction_rhos_plot)])
+        plt.axis([0, 1.1*len(interaction_rhos_plot), -1.1*np.abs(min(interaction_rhos_plot)),
+                  1.1*max(interaction_rhos_plot)])
         x = np.arange(len(interaction_rhos_plot))
         plt.plot(x, interaction_rhos_plot, label=str(weight)+' converged: '+str(self.converged))
         plt.xlabel("interactions at this weight")
@@ -144,6 +176,11 @@ class MultipleCriteriaH:
         self.converged = False
 
     def train_one_weight(self, weight):
+        """
+        train one weight, but search best matching policy of our bag and train on it
+        :param weight:
+        :return:
+        """
         if len(weight) != self.problem.reward_dimension:
             log.info("could not train this weight, wrong dimension")
             return
@@ -199,11 +236,25 @@ class MultipleCriteriaH:
 
 class MultipleCriteriaR:
     """
+    For information: 'Multi-Criteria Average Reward RL' S. Natarajan
     This class uses HLearning and a bunch of weight vectors to iterate through. After learning all of them,
     using the agent for a specific weight would cause faster performance and converging average reward
     """
     def __init__(self, problem=None, n_vectors=55, delta=1.0,  epsilon=0.1, alfa=0.01, beta=1.0,
-                 interactions=100000, max_per_interaction=150, converging_criterium=60, weights = None):
+                 interactions=100000, max_per_interaction=150, converging_criterium=60, weights=None):
+        """
+        Constructor
+        :param problem: MORL Problem, the agent should interact with
+        :param n_vectors: the count of vectors the agent trains on bevor evaluation period
+        :param delta: the threshold after which an policy is evaluated as 'better' than befores
+        :param epsilon: probability for epsilon greedy decision making mechanism
+        :param alfa: learning rate I
+        :param beta: learning rate II
+        :param interactions: count of epochs the agent learns
+        :param max_per_interaction: maximum episode length
+        :param converging_criterium: count of episodes without change before the agent stops the learning process
+        :param weights: the weights the agent trains on
+        """
         if problem is None:
             self.problem = MORLGridworld()
         else:
@@ -234,6 +285,11 @@ class MultipleCriteriaR:
         self.pareto = []
 
     def get_learned_action(self, state):
+        """
+        return learned action for given state
+        :param state: current state
+        :return: action
+        """
         return self.r_learning.get_learned_action(state)
 
     def weight_training(self):
@@ -260,6 +316,10 @@ class MultipleCriteriaR:
         return True
 
     def plot_interactions_per_weight(self):
+        """
+        plot the count of interactions the agent needed for each weight
+        :return:
+        """
         ###################################################################
         #       PLOT (Curve for Learning Process and Policy Plot)         #
         ###################################################################
@@ -272,7 +332,8 @@ class MultipleCriteriaR:
             if self.stored[i]:
                 plt.axvline(i, color='b', linestyle='--')
         plt.axis([0, 1.1*len(self.interactions_per_weight), 0, 1.1*max(self.interactions_per_weight)])
-        weights = [[round(self.weights[q][u], 2) for u in xrange(len(self.weights[q]))] for q in xrange(len(self.weights))]
+        weights = [[round(self.weights[q][u], 2) for u in xrange(len(self.weights[q]))]
+                   for q in xrange(len(self.weights))]
         ax.set_xticks(x)
         ax.set_xticklabels(weights, rotation=40)
         plt.xlabel("weight count")
@@ -283,6 +344,11 @@ class MultipleCriteriaR:
         plt.draw()
 
     def look_for_opt(self, weight):
+        """
+        look in our policy bag and take the optimal to train on it
+        :param weight: weight we search an yet trained policy to
+        :return: the policy and its weighted average reward vector
+        """
         weighted = [np.dot(weight, self.rhos[u]) for u in self.rhos.iterkeys()]
         max_weighted = max(weighted)
         index_max = weighted.index(max_weighted)
@@ -311,9 +377,15 @@ class MultipleCriteriaR:
             return False
 
     def plot_interaction_rhos(self, weight):
+        """
+        plot the weighted average reward evolution for one weight and show if we converged
+        :param weight: given weight
+        :return: nothing
+        """
         interaction_rhos_plot = [np.dot(weight, self.interaction_rhos[r]) for r in xrange(len(self.interaction_rhos))]
         plt.figure()
-        plt.axis([0, 1.1*len(interaction_rhos_plot), -1.1*np.abs(min(interaction_rhos_plot)), 1.1*max(interaction_rhos_plot)])
+        plt.axis([0, 1.1*len(interaction_rhos_plot), -1.1*np.abs(min(interaction_rhos_plot)),
+                  1.1*max(interaction_rhos_plot)])
         x = np.arange(len(interaction_rhos_plot))
         plt.plot(x, interaction_rhos_plot, label=str(weight)+' converged: '+str(self.converged))
         plt.xlabel("interactions at this weight")
@@ -323,6 +395,11 @@ class MultipleCriteriaR:
         self.converged = False
 
     def train_one_weight(self, weight):
+        """
+        train agent on one weight
+        :param weight: the one weight
+        :return: nothing
+        """
         if len(weight) != self.problem.reward_dimension:
             log.info("could not train this weight, wrong dimension")
             return
@@ -377,7 +454,16 @@ class MultipleCriteriaR:
 
 
 class MORLConvexHullValueIteration:
+    """
+    This class contains wrapper for Convex Hull Value Iteration
+    for more information: 'Learning all optimal policies with multiple Criteria', L. Barett, S. Narayanan
+    """
     def __init__(self, morl_problem, gamma=0.9):
+        """
+        Constructor
+        :param morl_problem: problem we train on
+        :param gamma: discount factor
+        """
         self._problem = morl_problem
         self._gamma = gamma
         self._q_shape = (morl_problem.n_states, morl_problem.n_actions, morl_problem.reward_dimension)
@@ -393,6 +479,13 @@ class MORLConvexHullValueIteration:
         self._Q = np.zeros((morl_problem.n_states, morl_problem.n_actions))
 
     def hull_add(self, hull1, hull2):
+        """
+        adds two hulls
+        by adding all vectors in hull1 to every vector in hull2 and extract the convex hull of it
+        :param hull1:
+        :param hull2:
+        :return: the resulting hull
+        """
         new_set = []
         for vector1 in hull1:
             for vector2 in hull2:
@@ -402,18 +495,25 @@ class MORLConvexHullValueIteration:
         return hull
 
     def get_hull(self, pset):
+        """
+        extract a convex Hull of a given point set
+        :param pset:
+        :return:
+        """
         dim = len(pset[0])
-        pset = remove_duplicates(pset)
-        # if len(pset) > 2:
-        #     hull = ConvexHull(pset).vertices
-        #     if hull == []:
-        #         hull = pset
-        # else:
-        #     return pset
+        # pset = remove_duplicates(pset)
+        hull = ConvexHull(pset)
+        hull = [pset[s] for s in hull.simplices]
         hull = self.hv_calculator.extract_front(pset)
         return hull
 
     def vector_add(self, hull, vector):
+        """
+        add a vector on a hull
+        :param hull: the hull
+        :param vector: the vector we want to add to the hull
+        :return: the hull with the vector added
+        """
         new_set = []
         for vector1 in hull:
             new_set.append(np.add(vector1, vector))
@@ -421,6 +521,12 @@ class MORLConvexHullValueIteration:
         return hull
 
     def scalar_multiplication(self, hull, scalar):
+        """
+        multiply every component of every vector in a hulll by a scalar and get the hull of the resulting point set
+        :param hull: original hull
+        :param scalar: scalar value
+        :return: resulting hull
+        """
         new_set = []
         for vector in hull:
             new_set.append([scalar*vec for vec in vector])
@@ -428,15 +534,25 @@ class MORLConvexHullValueIteration:
         return hull
 
     def get_learned_action(self, state):
+        """
+        extract the action we learned, that should be the best
+        :param state: current state
+        :return: action with highest q value
+        """
         return self._Q[state, :].argmax()
 
     def extract_policy(self, weight_vector):
+        """
+        extract the Q-Table out of the hulls
+        :param weight_vector: the vector we search the maximizing dot product with the q vectors in the hulls
+        :return: nothing
+        """
         new_Q = np.zeros((self._problem.n_states, self._problem.n_actions))
         for s in xrange(self._problem.n_states):
             for a in xrange(self._problem.n_actions):
                 weighted = []
                 for q in self._Q_sets[self.s_a_mapping[s, a]]:
                     weighted.append(np.dot(weight_vector, q))
-                Q = max(weighted)
-                new_Q[s, a] = Q
+                q = max(weighted)
+                new_Q[s, a] = q
         self._Q = new_Q

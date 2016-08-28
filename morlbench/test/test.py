@@ -370,6 +370,12 @@ class TestResourceGathering(TestProblems):
             ax.text(col_val, row_val, c, va='center', ha='center')
         plt.show()
 
+    def testPosition(self):
+        for i in xrange(10):
+            ind = random.choice(np.arange(self.resourcegatheringproblem.n_states))
+            print str(ind) + ': ' + str(self.resourcegatheringproblem._get_position(ind))
+        self.resourcegatheringproblem.state = 99
+        self.resourcegatheringproblem.play(3)
     def testResources(self):
         self.resourcegatheringproblem.reset()
         # run to first resource

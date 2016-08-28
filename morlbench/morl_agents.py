@@ -18,6 +18,7 @@ try:
     import neurolab as nl
 except ImportError, e:
     log.warn("Neurolab not installed: %s" % (str(e)))
+    nl = None
 
 # log.basicConfig(level=if my_debug: log.debug)
 my_debug = log.getLogger().getEffectiveLevel() == log.DEBUG
@@ -187,11 +188,11 @@ class SARSAMorlAgent(MorlAgent):
             action = random.choice(np.where(self._Q[state, :] == max(self._Q[state, :]))[0])
             # action = self._Q[state, :].argmax()
             if my_debug:
-                log.debug('  took greedy action %i' % (action))
+                log.debug('  took greedy action %i' % action)
             return action
         action = random.randint(0, self._morl_problem.n_actions - 1)
         if my_debug:
-            log.debug('   took random action %i' % (action))
+            log.debug('   took random action %i' % action)
         return action
 
     def get_learned_action(self, state):
@@ -326,7 +327,7 @@ class QMorlAgent(MorlAgent):
         objectives
         :return:
         """
-
+        episode = t
         # scalar_reward = np.dot(self._scalarization_weights.T, reward)
 
         self._Q[last_state, action] += self._alpha *\
@@ -645,6 +646,7 @@ class MORLScalarizingAgent(MorlAgent):
     """
     This class is an Agent that uses chebyshev scalarization method in Q-iteration
     Contains a Q-Value table with additional parameter o <-- (Objective)
+    according to: 'scalarized MORL: Novel design techniques'
     @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
     def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, ref_point, function='chebishev',
@@ -689,8 +691,14 @@ class MORLScalarizingAgent(MorlAgent):
         # storage for the volumes optained in ONE interaction
         self.temp_vol = []
         self._Q_save = []
+        # scalar Q-Table:
+        self.Qs = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
 
     def reset(self):
+        """
+        prepare Agent for next use
+        :return: nothing
+        """
         self._z = np.zeros(self._morl_problem.reward_dimension)
         self._Q = np.zeros(self.q_shape)
         self.max_volumes = []
@@ -698,9 +706,17 @@ class MORLScalarizingAgent(MorlAgent):
         self.temp_vol = []
 
     def save(self):
+        """
+        store q function for multiple runs
+        :return:
+        """
         self._Q_save.append(self._Q)
 
     def restore(self):
+        """
+        restore that q function for reuse
+        :return:
+        """
         tmp = np.zeros_like(self._Q)
         for i in self._Q_save:
             tmp += i
@@ -726,6 +742,15 @@ class MORLScalarizingAgent(MorlAgent):
         return action
 
     def learn(self, t, last_state, action, reward, state):
+        """
+        public access to learning function
+        :param t:
+        :param last_state:
+        :param action:
+        :param reward:
+        :param state:
+        :return:
+        """
         # access private function
         self._learn(t, last_state, action, reward, state)
         #  store last action after learning
@@ -744,7 +769,7 @@ class MORLScalarizingAgent(MorlAgent):
                 (reward[objective] + self._gamma * self._Q[state, new_action, objective] -
                  self._Q[last_state, action, objective])
             # store z value
-            if self.function =='chebishev':
+            if self.function == 'chebishev':
                 self._z[objective] = self._Q[:, :, objective].max() + self._tau
 
     def get_learned_action(self, state):
@@ -767,6 +792,10 @@ class MORLScalarizingAgent(MorlAgent):
         return new_action
 
     def create_scalar_Q_table(self):
+        """
+        after learnig we can extract a qfunction.
+        :return: nothing
+        """
         self.Qs = np.zeros((self._morl_problem.n_states, self._morl_problem.n_actions))
         for s in xrange(self._morl_problem.n_states):
             for a in xrange(self._morl_problem.n_actions):
@@ -787,11 +816,23 @@ class MORLScalarizingAgent(MorlAgent):
         return dist.ravel()
 
     def name(self, short=False):
+        """
+        builds a name string, short or long version
+        :param short:
+        :return:
+        """
         if short:
             return str(self.function) + str(self._w)
-        return "skalar"+self.function+"_Q_agent_e" + str(self._epsilon) + "a" + str(self._alpha) + "W=" + str(self._w)
+        return self.function+", e=" + str(self._epsilon) + ", a=" + str(self._alpha) + ", W=" + str(self._w)
 
     def _greedy_sel(self, state):
+        """
+        local optimal decision
+        depending on scalarization function
+        also we store the q vector for hypervolume calculation
+        :param state: current state
+        :return: action to choose
+        """
         # state -> quality list
         sq_list = []
         # explore all actions
@@ -836,6 +877,7 @@ class MORLHVBAgent(MorlAgent):
     this class is implemenation of hypervolume based MORL agent,
     the reference point (ref) is used for quality evaluation of
     state-action lists depending on problem set.
+    like they do in paper: 'Hypervolume-Based MORL', Van Moffaert, Drugan, Nowé
     @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
     def __init__(self, morl_problem, alpha, epsilon, ref, scal_weights,  **kwargs):
@@ -872,22 +914,40 @@ class MORLHVBAgent(MorlAgent):
         self._Qsave = []
 
     def save(self):
+        """
+        save current q table
+        :return:
+        """
         self._Qsave.append(self._Q)
 
     def restore(self):
+        """
+        restore saved qtable
+        :return:
+        """
         tmp = np.zeros_like(self._Q)
         for i in self._Q_save:
             tmp += i
         self._Q = np.divide(tmp, self._Q_save.__len__())
 
     def reset(self):
+        """
+        reset agent for next use
+        :return:
+        """
         self._Q = np.zeros(self.q_shape)
         self._last_action = random.randint(0, self._morl_problem.n_actions-1)
-        self.max_volumes =[]
+        self.max_volumes = []
         self._l = []
-        self.temp_vol =[]
+        self.temp_vol = []
 
     def decide(self, t, state):
+        """
+        epsilon greedy action selection
+        :param t: episode
+        :param state: state we are in
+        :return: action to choose
+        """
         # epsilon greedy hypervolume based action selection:
         if random.random() > self._epsilon:
             # greedy action selection:
@@ -918,6 +978,16 @@ class MORLHVBAgent(MorlAgent):
         self._last_action = action
 
     def _learn(self, t, last_state, action, reward, state):
+        """
+        private learning function
+        like they do in paper: 'Hypervolume-Based MORL', Van Moffaert, Drugan, Nowé
+        :param t:
+        :param last_state:
+        :param action:
+        :param reward:
+        :param state:
+        :return:
+        """
         # append new q values to list
         self._l.append(np.array([x for x in self._Q[state, action, :]]))
         # if there isnt any value yet in the list, dont calculate...
@@ -991,7 +1061,6 @@ class MORLHVBAgent(MorlAgent):
         """
         return self._greedy_sel(state)
 
-
     def get_learned_action_gibbs_distribution(self, state):
         """
         uses gibbs distribution to decide which action to do next
@@ -1008,6 +1077,7 @@ class MORLHVBAgent(MorlAgent):
 class MORLHLearningAgent(MorlAgent):
     """
     Average reward learning agent. Uses H-function to store model based evaluation function.
+    Also see: 'MultiCriteriaAverageReward RL', S.Natarajan
     """
     def __init__(self, morl_problem, epsilon, alpha, weights, **kwargs):
         """
@@ -1067,6 +1137,7 @@ class MORLHLearningAgent(MorlAgent):
         :return: return action to chose next
         """
         a_list = []
+
         # weighted sum of every actions reward
         for action in xrange(self._morl_problem.n_actions):
             # it's model based, so we need the probability
@@ -1144,10 +1215,20 @@ class MORLHLearningAgent(MorlAgent):
 
 class MORLRLearningAgent(MorlAgent):
     """
+    Also see: 'MultiCriteriaAverageReward RL', S.Natarajan
     This class contains an average Reward optimizing agent.
     The R Learning agent is the model free version of H-learning
     """
     def __init__(self, morl_problem, epsilon, alpha, beta, weights, **kwargs):
+        """
+        Constructor
+        :param morl_problem: MORL Problem, the agent is acting in
+        :param epsilon: probability for epsilon greedy decision making
+        :param alpha: learning rate I
+        :param beta: learning rate II
+        :param weights: weights for objectives
+        :param kwargs: other arguments
+        """
         super(MORLRLearningAgent, self).__init__(morl_problem, **kwargs)
         # probability for epsilon greedy
         self._epsilon = epsilon

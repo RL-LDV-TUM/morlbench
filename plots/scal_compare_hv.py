@@ -1,4 +1,4 @@
-from morlbench.morl_problems import MORLResourceGatheringProblem, MountainCar, MORLGridworld, MORLBuridansAssProblem, Deepsea
+from morlbench.morl_problems import MORLGridworld
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.morl_policies import PolicyFromAgent
@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 if __name__ == '__main__':
 
     random.seed(2)
-    comparison_experiment = True
+    np.random.seed(2)
     # create Problem
     problem = MORLGridworld()
     scalarization_weights = [0.0, ] * problem.reward_dimension
@@ -28,14 +28,14 @@ if __name__ == '__main__':
     chebyagent = MORLScalarizingAgent(problem, epsilon=eps, alpha=alfacheb, scalarization_weights=scalarization_weights,
                                       ref_point=ref, tau=tau)
     # both agents interact (times):
-    interactions = 1000
+    interactions = 2000
     n_vectors = 2
 
     # weights = [np.random.dirichlet(np.ones(problem.reward_dimension), size=1)[0] for i in xrange(n_vectors)]
 
     weights = [[1.0, 0.0, 0.0], [0.0, 0.0, 1.0], [0.0, 1.0, 0.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5], [0.5, 0.0, 0.5],
                [0.33, 0.33, 0.33]]
-    #weights = [[0.0, 1.0, 0.0]]
+    # weights = [[0.0, 1.0, 0.0]]
     linagent = MORLScalarizingAgent(problem, epsilon=eps, alpha=alfacheb, scalarization_weights=scalarization_weights,
                                     ref_point=ref, tau=tau, function='linear')
     hvb_hypervolumes = []
@@ -45,15 +45,16 @@ if __name__ == '__main__':
     for i in xrange(len(weights)):
         linagent._w, chebyagent._w = weights[i], weights[i]
         payouts1, moves1, states1 = morl_interact_multiple_episodic(chebyagent, problem, interactions,
-                                                                    max_episode_length=200)
+                                                                    max_episode_length=150)
         payouts2, moves2, states2 = morl_interact_multiple_episodic(linagent, problem, interactions,
-                                                                    max_episode_length=200)
+                                                                    max_episode_length=150)
+        print weights[i]
         learned_policy = PolicyFromAgent(problem, linagent, mode='greedy')
         learned_policy1 = PolicyFromAgent(problem, chebyagent, mode='greedy')
         policy_plot2(problem, learned_policy)
-        policy_heat_plot(problem, learned_policy, states1, title=str(weights[i])+'w/cheb')
+        policy_heat_plot(problem, learned_policy, states1, title='chebishev')
         policy_plot2(problem, learned_policy1)
-        policy_heat_plot(problem, learned_policy, states2, title=str(weights[i]) + 'w/lin')
+        policy_heat_plot(problem, learned_policy1, states2, title='linear')
         wreward.append(np.dot(weights[i], np.mean(payouts1, axis=0)))
         # print np.mean(payouts1, axis=0)
         wreward2.append(np.dot(weights[i], np.mean(payouts2, axis=0)))
@@ -79,7 +80,7 @@ if __name__ == '__main__':
     ax.set_xticklabels(weights, rotation=20)
     plt.grid(True)
     plt.show()
-    plt.savefig('comparison')
+    # plt.savefig('comparison')
     fig, ax = plt.subplots()
     width = 0.3
     x = np.arange(1, len(weights) + 1)
@@ -94,8 +95,7 @@ if __name__ == '__main__':
     ax.set_xticks(x)
     ax.set_xticklabels(weights, rotation=20)
 
-
     print weights
     plt.grid(True)
     plt.show()
-    plt.savefig('comparison')
+    #plt.savefig('comparison')

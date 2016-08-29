@@ -1931,7 +1931,7 @@ class MOPuddleworldProblem(MORLProblem):
         reward = np.zeros(self.reward_dimension)
         if self._in_map(position) and self._scene[position] < 0:
             reward[1] = self._scene[position]*10
-        if state == self._size:
+        if self._scene[position]>0:
             reward[0] = 1
         else:
             reward[0] = -1
@@ -2027,7 +2027,7 @@ class MOPuddleworldProblem(MORLProblem):
 class MORLResourceGatheringProblem(MORLProblem):
     """
     In this problem the agent has to find the resources and bring them back to the homebase.
-    the enemies steal resources with a probability of 0.9
+    the enemies steal resources with a probability of 0.1
 
     """
     def __init__(self, size=5, gamma=0.9, p=0.1):
@@ -2140,7 +2140,7 @@ class MORLResourceGatheringProblem(MORLProblem):
         reward = np.zeros(self.reward_dimension)
 
         # if we're turning back home
-        if position == self.init_position:
+        if [position[0], position[1]] == self.init_position:
             if self.stolen:
                 reward[0] = -10
                 self.stolen = False
@@ -2228,8 +2228,7 @@ class MORLResourceGatheringProblem(MORLProblem):
             self.last_state = state
             reward = self._get_reward(self.state)
             return reward
-        if self._in_map(n_position) and self._scene[n_position[0],
-                                                    n_position[1]] < 0 and random.random() < self.losing_probability:
+        if self._scene[n_position[0], n_position[1]] < 0 and random.random() < self.losing_probability:
             # our resources is stolen
             self._bag[:] = [0, ] * len(self._bag)
             self.stolen = True
@@ -2240,7 +2239,7 @@ class MORLResourceGatheringProblem(MORLProblem):
             reward = self._get_reward(self.state)
             return reward
         # we are 1. in the map and 2. we found resource:
-        elif self._in_map(n_position) and self._scene[n_position[0], n_position[1]] > 0:  # put the resource in our bag
+        if self._scene[n_position[0], n_position[1]] > 0:  # put the resource in our bag
             # check which resource it is
             if (n_position == self.resource_positions[0]).all():
                 self._bag[0] = 1

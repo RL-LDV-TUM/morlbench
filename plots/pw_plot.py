@@ -53,10 +53,7 @@ if __name__ == '__main__':
 
         interactions = 50
 
-        def eps():
-            for i in xrange(interactions*max_episode_l/1.5):
-                yield 0.99
-            yield 0.6
+        eps=0.9
 
         agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=1.0,
                                   ref_point=[-1.0, -1.0])

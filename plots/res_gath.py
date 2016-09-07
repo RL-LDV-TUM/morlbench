@@ -26,38 +26,40 @@ from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_i
 from morlbench.plotting_stuff import plot_hypervolume
 import pickle
 import time
-
+import random
 import matplotlib.pyplot as plt
-
 
 if __name__ == '__main__':
     problem = MORLResourceGatheringProblem()
-
+    random.seed(3232)
+    np.random.seed(112)
     # scalarization_weights = np.array([0.153, 0.847])
     # scalarization_weights = np.array([0.5, 0.5])
-    scalarization_weights = np.array([1.0, 1.0 , 0.0])
+    scalarization_weights = np.array([1.0, 0.0, 0.0])
     # scalarization_weights = np.array([0.0, 1.0])
     # scalarization_weights = np.array([0.9, 0.1])
 
     eps = 0.9
-    alfa = 0.1
+    alfa = 0.34
     runs = 1
-    interactions = 100
-    max_steps = 200
+    interactions = 1000
+    max_steps = 150
     tau = 1.0
-    ref_point = [-1.0, ]*problem.reward_dimension
-    hvbagent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.1, ref=ref_point, scal_weights=[1.0, 10.0])
+    ref_point = [-3.0, ]*problem.reward_dimension
+    # hvbagent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=ref_point, scal_weights=[1.0, 10.0])
 
-    payouts, moves, states = morl_interact_multiple_episodic(hvbagent, problem, interactions=interactions)
+    agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.95,
+                                 ref_point=ref_point)
+    payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions)
     log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
-    learned_policy = PolicyFromAgent(problem, hvbagent, mode='greedy')
+    learned_policy = PolicyFromAgent(problem, agent, mode='greedy')
 
     states = problem.create_plottable_states(states)
 
     policy_plot2(problem, learned_policy, title=None, filename=None)
     policy_heat_plot(problem, learned_policy, states)
-    plot_hypervolume([hvbagent], problem)
+    plot_hypervolume([agent], problem)
     log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
 

@@ -1,0 +1,490 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Multiple Objective RL Agents &mdash; MORLBENCH 1.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="MORLBENCH 1.0.1 documentation" href="index.html" />
+    <link rel="next" title="Multiple Objective RL Problems" href="Problems.html" />
+    <link rel="prev" title="Welcome to MORLBENCH’s documentation!" href="index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Problems.html" title="Multiple Objective RL Problems"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to MORLBENCH’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">MORLBENCH 1.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="module-morl_agents">
+<span id="multiple-objective-rl-agents"></span><h1>Multiple Objective RL Agents<a class="headerlink" href="#module-morl_agents" title="Permalink to this headline">¶</a></h1>
+<p>Created on Nov 19, 2012</p>
+<p>&#64;author: Dominik Meyer &lt;<a class="reference external" href="mailto:meyerd&#37;&#52;&#48;mytum&#46;de">meyerd<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
+<dl class="class">
+<dt id="morl_agents.FixedPolicyAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">FixedPolicyAgent</code><span class="sig-paren">(</span><em>morl_problem</em>, <em>policy</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#FixedPolicyAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.FixedPolicyAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>An agent, that follows a fixed policy, defined as a morl policy object.
+No learning implemented.</p>
+<dl class="method">
+<dt id="morl_agents.FixedPolicyAgent.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#FixedPolicyAgent.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.FixedPolicyAgent.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>resets the current agent!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.MORLHLearningAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">MORLHLearningAgent</code><span class="sig-paren">(</span><em>morl_problem</em>, <em>epsilon</em>, <em>alpha</em>, <em>weights</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHLearningAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHLearningAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Average reward learning agent. Uses H-function to store model based evaluation function.
+Also see: &#8216;MultiCriteriaAverageReward RL&#8217;, S.Natarajan</p>
+<dl class="method">
+<dt id="morl_agents.MORLHLearningAgent.decide">
+<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHLearningAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHLearningAgent.decide" title="Permalink to this definition">¶</a></dt>
+<dd><p>decision making using epsilon greedy
+:param t: steps made so far
+:param state: state we&#8217;re in
+:return: action to chose next</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHLearningAgent.get_learned_action">
+<code class="descname">get_learned_action</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHLearningAgent.get_learned_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHLearningAgent.get_learned_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>uses greedy and h action selection
+:param state: state the agent is
+:return: action to do next</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHLearningAgent.learn">
+<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>last_state</em>, <em>action</em>, <em>reward</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHLearningAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHLearningAgent.learn" title="Permalink to this definition">¶</a></dt>
+<dd><p>public access for learning function
+:param t: steps so far
+:param last_state: last state we were visiting
+:param action: action we chose
+:param reward: reward we received
+:param state: state we&#8217;re now in
+:return: nothing</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.MORLHVBAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">MORLHVBAgent</code><span class="sig-paren">(</span><em>morl_problem</em>, <em>alpha</em>, <em>epsilon</em>, <em>ref</em>, <em>scal_weights</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>this class is implemenation of hypervolume based MORL agent,
+the reference point (ref) is used for quality evaluation of
+state-action lists depending on problem set.
+like they do in paper: &#8216;Hypervolume-Based MORL&#8217;, Van Moffaert, Drugan, Nowé
+&#64;author: Simon Wölzmüller &lt;<a class="reference external" href="mailto:ga35voz&#37;&#52;&#48;mytum&#46;de">ga35voz<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
+<dl class="method">
+<dt id="morl_agents.MORLHVBAgent.decide">
+<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent.decide" title="Permalink to this definition">¶</a></dt>
+<dd><p>epsilon greedy action selection
+:param t: episode
+:param state: state we are in
+:return: action to choose</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHVBAgent.get_learned_action">
+<code class="descname">get_learned_action</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent.get_learned_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent.get_learned_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>uses epsilon greedy and hvb action selection
+:param state: state the agent is
+:return: action to do next</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHVBAgent.get_learned_action_distribution">
+<code class="descname">get_learned_action_distribution</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent.get_learned_action_distribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent.get_learned_action_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>scalarized greedy action selection
+:param state: state we&#8217;re being in
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHVBAgent.get_learned_action_gibbs_distribution">
+<code class="descname">get_learned_action_gibbs_distribution</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent.get_learned_action_gibbs_distribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent.get_learned_action_gibbs_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>uses gibbs distribution to decide which action to do next
+:param state: given state the agent is atm
+:return: an array of actions to do next, with probability</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHVBAgent.learn">
+<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>last_state</em>, <em>action</em>, <em>reward</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent.learn" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function is an adaption of the hvb q learning algorithm from van moeffart/drugan/nowé
+:param t: count of steps
+:param last_state: last state before transition to this state
+:param action: action to chose after this state found by HVBgreedy
+:param reward: reward received from this action for every objective
+:param state: state we&#8217;re currently being in
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHVBAgent.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>reset agent for next use
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHVBAgent.restore">
+<code class="descname">restore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent.restore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent.restore" title="Permalink to this definition">¶</a></dt>
+<dd><p>restore saved qtable
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLHVBAgent.save">
+<code class="descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLHVBAgent.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLHVBAgent.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>save current q table
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.MORLRLearningAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">MORLRLearningAgent</code><span class="sig-paren">(</span><em>morl_problem</em>, <em>epsilon</em>, <em>alpha</em>, <em>beta</em>, <em>weights</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLRLearningAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLRLearningAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Also see: &#8216;MultiCriteriaAverageReward RL&#8217;, S.Natarajan
+This class contains an average Reward optimizing agent.
+The R Learning agent is the model free version of H-learning</p>
+<dl class="method">
+<dt id="morl_agents.MORLRLearningAgent.decide">
+<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLRLearningAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLRLearningAgent.decide" title="Permalink to this definition">¶</a></dt>
+<dd><p>this function is epsilon greedy decision making
+:param t: time (not needed here)
+:param state: current state, the agent is in
+:return: action to choose</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLRLearningAgent.get_learned_action">
+<code class="descname">get_learned_action</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLRLearningAgent.get_learned_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLRLearningAgent.get_learned_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>uses epsilon greedy and hvb action selection
+:param state: state the agent is
+:return: action to do next</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLRLearningAgent.learn">
+<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>last_state</em>, <em>action</em>, <em>reward</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLRLearningAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLRLearningAgent.learn" title="Permalink to this definition">¶</a></dt>
+<dd><p>public access to learning function
+:param t: steps done so far
+:param last_state: last state we were in
+:param action: action we chose
+:param reward: reward we got
+:param state: state we resulted in
+:return: nothing</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.MORLScalarizingAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">MORLScalarizingAgent</code><span class="sig-paren">(</span><em>morl_problem</em>, <em>scalarization_weights</em>, <em>alpha</em>, <em>epsilon</em>, <em>tau</em>, <em>ref_point</em>, <em>function='chebishev'</em>, <em>gamma=0.9</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is an Agent that uses chebyshev scalarization method in Q-iteration
+Contains a Q-Value table with additional parameter o &lt;&#8211; (Objective)
+according to: &#8216;scalarized MORL: Novel design techniques&#8217;
+&#64;author: Simon Wölzmüller &lt;<a class="reference external" href="mailto:ga35voz&#37;&#52;&#48;mytum&#46;de">ga35voz<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.create_scalar_Q_table">
+<code class="descname">create_scalar_Q_table</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.create_scalar_Q_table"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.create_scalar_Q_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>after learnig we can extract a qfunction.
+:return: nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.decide">
+<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.decide" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function decides using a epsilon greedy algorithm and chebishev scalarizing function.
+:param state: the state the agent is at the moment
+:param t: iteration
+:return: action the agent chose</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.get_learned_action">
+<code class="descname">get_learned_action</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.get_learned_action"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.get_learned_action" title="Permalink to this definition">¶</a></dt>
+<dd><p>uses epsilon greedy and weighted scalarisation for action selection
+:param state: state the agent is
+:return: action to do next</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.get_learned_action_gibbs_distribution">
+<code class="descname">get_learned_action_gibbs_distribution</code><span class="sig-paren">(</span><em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.get_learned_action_gibbs_distribution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.get_learned_action_gibbs_distribution" title="Permalink to this definition">¶</a></dt>
+<dd><p>uses gibbs distribution to decide which action to do next
+:param state: given state the agent is atm
+:return: an array of actions to do next, with probability</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.learn">
+<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>last_state</em>, <em>action</em>, <em>reward</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.learn" title="Permalink to this definition">¶</a></dt>
+<dd><p>public access to learning function
+:param t:
+:param last_state:
+:param action:
+:param reward:
+:param state:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.name">
+<code class="descname">name</code><span class="sig-paren">(</span><em>short=False</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>builds a name string, short or long version
+:param short:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>prepare Agent for next use
+:return: nothing</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.restore">
+<code class="descname">restore</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.restore"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.restore" title="Permalink to this definition">¶</a></dt>
+<dd><p>restore that q function for reuse
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MORLScalarizingAgent.save">
+<code class="descname">save</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MORLScalarizingAgent.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MORLScalarizingAgent.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>store q function for multiple runs
+:return:</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.MorlAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">MorlAgent</code><span class="sig-paren">(</span><em>morl_problem</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MorlAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MorlAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A agent that should interface with a MORL problem.</p>
+<dl class="method">
+<dt id="morl_agents.MorlAgent.decide">
+<code class="descname">decide</code><span class="sig-paren">(</span><em>t</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MorlAgent.decide"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MorlAgent.decide" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decide which action to take in interaction
+cycle t.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>t</strong> &#8211; Interaction cycle we are currently in</li>
+<li><strong>state</strong> &#8211; state we are in</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>action: The action to do next</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="morl_agents.MorlAgent.learn">
+<code class="descname">learn</code><span class="sig-paren">(</span><em>t</em>, <em>last_state</em>, <em>action</em>, <em>reward</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#MorlAgent.learn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.MorlAgent.learn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Learn from the last interaction, if we have
+a dynamically learning agent.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>t</strong> &#8211; int Interaction cycle.</li>
+<li><strong>last_state</strong> &#8211; Last state where we came from</li>
+<li><strong>action</strong> &#8211; last interaction action</li>
+<li><strong>reward</strong> &#8211; received reward vector</li>
+<li><strong>state</strong> &#8211; next state transited to</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.NFQAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">NFQAgent</code><span class="sig-paren">(</span><em>morl_problem</em>, <em>scalarization_weights</em>, <em>gamma</em>, <em>epsilon</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#NFQAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.NFQAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>Implements neural fitted-Q iteration</p>
+<p>Can be used with scenarios where the reward vector contains only
+values between -1 and 1.</p>
+<p>TODO: Currently only morl problems with a cartesian coordinate
+system as state can be used.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.PreScalarizedQMorlAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">PreScalarizedQMorlAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>scalarization_weights</em>, <em>alpha=0.3</em>, <em>epsilon=1.0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#PreScalarizedQMorlAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.PreScalarizedQMorlAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A MORL agent, that uses Q learning with a scalar
+value function, scalarizing on every learning step</p>
+<dl class="method">
+<dt id="morl_agents.PreScalarizedQMorlAgent.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#PreScalarizedQMorlAgent.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.PreScalarizedQMorlAgent.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>resets the current agent! Be careful and save learned Q matrix first!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.QMorlAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">QMorlAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>scalarization_weights</em>, <em>alpha=0.3</em>, <em>epsilon=1.0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#QMorlAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.QMorlAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A MORL agent, that uses Q learning.</p>
+<dl class="method">
+<dt id="morl_agents.QMorlAgent.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#QMorlAgent.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.QMorlAgent.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>resets the current agent! Be careful and save learned Q matrix first!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.SARSALambdaMorlAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">SARSALambdaMorlAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>scalarization_weights</em>, <em>alpha=0.3</em>, <em>epsilon=1.0</em>, <em>lmbda=0.7</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#SARSALambdaMorlAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.SARSALambdaMorlAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>SARSA with eligibility traces.</p>
+<dl class="method">
+<dt id="morl_agents.SARSALambdaMorlAgent.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#SARSALambdaMorlAgent.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.SARSALambdaMorlAgent.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>resets the current agent! Be careful and save learned Q matrix and the eligibility traces first!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.SARSAMorlAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">SARSAMorlAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>scalarization_weights</em>, <em>alpha=0.3</em>, <em>epsilon=1.0</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#SARSAMorlAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.SARSAMorlAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A MORL agent, that uses RL.</p>
+<dl class="method">
+<dt id="morl_agents.SARSAMorlAgent.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#SARSAMorlAgent.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.SARSAMorlAgent.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>resets the current agent! Be careful and save learned Q matrix first!</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="morl_agents.TDMorlAgent">
+<em class="property">class </em><code class="descclassname">morl_agents.</code><code class="descname">TDMorlAgent</code><span class="sig-paren">(</span><em>problem</em>, <em>scalarization_weights</em>, <em>policy</em>, <em>alpha=0.3</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#TDMorlAgent"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.TDMorlAgent" title="Permalink to this definition">¶</a></dt>
+<dd><p>A MORL agent, that uses TD for Policy Evaluation.</p>
+<dl class="method">
+<dt id="morl_agents.TDMorlAgent.reset">
+<code class="descname">reset</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/morl_agents.html#TDMorlAgent.reset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#morl_agents.TDMorlAgent.reset" title="Permalink to this definition">¶</a></dt>
+<dd><p>resets the current agent! Be careful and save value function first!</p>
+</dd></dl>
+
+</dd></dl>
+
+<span class="target" id="module-morl_agents_multiple_criteria"></span><p>Created on Mai 25 2015</p>
+<p>&#64;author: Simon Wölzmüller &lt;<a class="reference external" href="mailto:ga35voz&#37;&#52;&#48;mytum&#46;de">ga35voz<span>&#64;</span>mytum<span>&#46;</span>de</a>&gt;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">members:</th><td class="field-body"></td>
+</tr>
+</tbody>
+</table>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to MORLBENCH&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Problems.html"
+                        title="next chapter">Multiple Objective RL Problems</a></p>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="_sources/Agents.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="Problems.html" title="Multiple Objective RL Problems"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to MORLBENCH’s documentation!"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="index.html">MORLBENCH 1.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2016, Dominik Meyer, Johannes Feldmaier, Simon Woelzmueller.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.4.1.
+    </div>
+  </body>
+</html>

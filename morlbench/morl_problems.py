@@ -432,7 +432,7 @@ class MountainCar(MORLProblem):
         for x in self._xstates:
             for v in self._vstates:
                 self.states.append([x, v])
-        self.n_states = (self.n_xstates+1)*(self.n_vstates+1)
+        self.n_states = int((self.n_xstates+1)*(self.n_vstates+1))
         self.init_state = self.get_state([-0.5, 0.0])  # initial position ~= -0.5 ^= 32
         self.state = self.init_state      # initialize state variable
         self.last_state = self.state       # at the beginning we have no other state
@@ -1281,8 +1281,10 @@ class MORLBuridansAss1DProblem(MORLProblem):
     in the top left and the bottom right corner there is a pile of food. if the ass moves away from a visible foodstate,
     the food in the bigger distance will be stolen with a probability of p. Eeating the food means choosing action
     "stay" at the field of a food
+    @author: Simon Wölzmüller <ga35voz@mytum.de>
     it will be rewarded with following criteria: hunger, lost food, walking distance
     hunger means
+    Caution, this Problem doesn't fit on convex Hull Value iteration
     """
 
     def __init__(self, size=3, p=0.9, n_appear=10, gamma=0.9):
@@ -1333,6 +1335,7 @@ class MORLBuridansAss1DProblem(MORLProblem):
         self._construct_r()
 
     def _construct_p(self):
+
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
             for a in xrange(self.n_actions):
@@ -1378,7 +1381,7 @@ class MORLBuridansAss1DProblem(MORLProblem):
             # negative reward if we're walking to much without food
             self.hunger += 1
             if self.hunger > 9:
-                reward[0] = -1
+                reward[0] = -1.0
         # check if we're walking. if positive, reward: -1
         if self.last_state != self.state:
             reward[2] = -1
@@ -1448,6 +1451,7 @@ class MORLBuridansAssProblem(MORLProblem):
     in the top left and the bottom right corner there is a pile of food. if the ass moves away from a visible foodstate,
     the food in the bigger distance will be stolen with a probability of p. Eeating the food means choosing action
     "stay" at the field of a food
+    @author: Simon Wölzmüller <ga35voz@mytum.de>
     it will be rewarded with following criteria: hunger, lost food, walking distance
     hunger means that after 9 steps without eating a food pile the next action(s) will be rewarded with -1
     """
@@ -1796,6 +1800,7 @@ class MOPuddleworldProblem(MORLProblem):
     """
     This problem contains a quadratic map (please use size more than 15, to get a useful puddle)
     the puddle is an obstacle that the agent has to drive around. The aim is to reach the goal state at the top right
+    @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
     def __init__(self, size=20, gamma=0.9):
         """
@@ -1839,7 +1844,7 @@ class MOPuddleworldProblem(MORLProblem):
 
             self._scene[2, 10] = 0.0
             self._scene[7:, 10] = 0.0
-            self._scene[4:6, 2:10] = -4.0
+            self._scene[4:6, 3:10] = -4.0
             self._scene[3:13, 7:9] = -4.0
             self._scene[0, 19] = 1.0
 
@@ -1905,11 +1910,14 @@ class MOPuddleworldProblem(MORLProblem):
         self.P = np.zeros((self.n_states, self.n_actions, self.n_states))
         for i in xrange(self.n_states):
             for a in xrange(self.n_actions):
-                for j in xrange(self.n_states):
-                    if not self._in_map(self._get_position(j)):
+                sy, sx = self._get_position(i)
+                ay, ax = self.actions[a][0], self.actions[a][1]
+                nsy, nsx = sy+ay, sx +ax
+                if not self._in_map((nsy, nsx)):
                         self.P[i, a, i] = 1.0
-                    else:
-                        self.P[i, a, j] = 1.0
+                else:
+                    j = self._get_index((nsy, nsx))
+                    self.P[i, a, j] = 1.0
 
     def reset(self):
         """
@@ -1931,8 +1939,8 @@ class MOPuddleworldProblem(MORLProblem):
         reward = np.zeros(self.reward_dimension)
         if self._in_map(position) and self._scene[position] < 0:
             reward[1] = self._scene[position]*10
-        if self._scene[position]>0:
-            reward[0] = 1
+        if self._scene[position] > 0:
+            reward[0] = 10
         else:
             reward[0] = -1
 

@@ -502,9 +502,7 @@ class MORLConvexHullValueIteration:
         """
         dim = len(pset[0])
         # pset = remove_duplicates(pset)
-        hull = ConvexHull(pset)
-        hull = [pset[s] for s in hull.simplices]
-        hull = self.hv_calculator.extract_front(pset)
+        hull = compute_hull(pset)
         return hull
 
     def vector_add(self, hull, vector):

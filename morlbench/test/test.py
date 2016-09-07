@@ -19,7 +19,7 @@ from scipy.spatial import ConvexHull
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent, MORLHLearningAgent
 from morlbench.morl_agents_multiple_criteria import MORLConvexHullValueIteration
 from morlbench.morl_problems import MORLGridworld, MORLBuridansAssProblem, MOPuddleworldProblem, \
-    MORLResourceGatheringProblem, Deepsea, MountainCarTime
+    MORLResourceGatheringProblem, Deepsea, MountainCar, MORLBuridansAss1DProblem
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.helpers import HyperVolumeCalculator, compute_hull
 from morlbench.plotting_stuff import plot_hypervolume
@@ -125,20 +125,24 @@ class TestConvexHullValueIt(TestAgents):
 
 
     def runConvexHullIndices(self):
-        # data = np.zeros((70, 2))
-        # for i in range(70):
-        #     for u in range(2):
-        #         data[i, u] = random.random()
-
-        hull = compute_hull(self.data)
+        data = np.zeros((70, 2))
+        for i in range(70):
+            for u in range(2):
+                data[i, u] = random.random()
+        data = [[0.9, 0.0, 0.0], [1.0, 0.0, 0.0], [1.9, 0.0, 0.0], [0.0, 0.0, 0.0]]
+        hull = compute_hull(data)
         plt.figure()
-        plt.plot(self.data[:][0], self.data[:][1], 'ro')
-        plt.plot(hull[:][0], hull[:][1], 'bo')
-        # plt.show()
+        for i in xrange(len(data)):
+            plt.plot(data[i][0], data[i][1], 'ro')
+        for q in xrange(len(hull)):
+            plt.plot(hull[q][0], hull[q][1], 'bo')
+        plt.axis([0, 2, 0, 2])
+        plt.show()
 
     def testGetConvHull(self):
         data = self.data
         self.convHullAgent.get_hull(data)
+
 
 class TestHyperVolumeCalculator(unittest2.TestCase):
     def setUp(self):
@@ -217,9 +221,10 @@ class TestCalculation(TestHyperVolumeCalculator):
 class TestProblems(unittest2.TestCase):
     def setUp(self):
         self.buridansassproblem = MORLBuridansAssProblem()
+        self.buridansass1Dproblem = MORLBuridansAss1DProblem()
         self.puddleworldproblem = MOPuddleworldProblem()
         self.resourcegatheringproblem = MORLResourceGatheringProblem()
-        self.mountaincarproblem = MountainCarTime()
+        self.mountaincarproblem = MountainCar()
 
 
 class TestBuridan(TestProblems):
@@ -266,7 +271,7 @@ class TestBuridan(TestProblems):
         order = [1, 2, 3, 4, 4, 3, 2, 2, 1, 2]
         for i in order:
             r = self.buridansassproblem.play(i)
-        reward = r[2]
+        reward = r[0]
         self.assertEqual(reward, -1.0, 'reward of hunger doesn\'t fit')
 
     def testFoodstolen(self):
@@ -299,6 +304,83 @@ class TestBuridan(TestProblems):
         self.assertEqual(reward, 1.0, 'got wrong food reward')
 
 
+class TestBuridan1D(TestProblems):
+    def runTest(self):
+        self.testDistance()
+        self.testReward()
+        self.testPlay()
+        self.testFoodstolen()
+
+    def testBuridanScene(self):
+        plt.subplot(132)
+        fig, ax = plt.subplots()
+        scene = self.buridansass1Dproblem._scene
+
+        ax.imshow(scene, interpolation='nearest')
+        step = 1.
+        min = 0.
+        rows = scene.shape[0]
+        columns = scene.shape[1]
+        row_arr = np.arange(min, rows)
+        col_arr = np.arange(min, columns)
+        x, y = np.meshgrid(row_arr, col_arr)
+        for col_val, row_val in zip(x.flatten(), y.flatten()):
+            c = int(scene[row_val, col_val])
+            ax.text(col_val, row_val, c, va='center', ha='center')
+
+    def testDistance(self):
+        # tests if the distance is calculated correctly
+        i = 1, 1
+        u = 2, 1
+        dist = self.buridansass1Dproblem._get_distance(i, u)
+        self.assertEqual(dist, 1.0, 'wrong distance')
+
+    def testReward(self):
+        # tests if the reward of staying in the same position gives zero reward
+        self.buridansass1Dproblem.reset()
+        reward = self.buridansass1Dproblem.play(0)
+        reward = tuple([e for e in reward])
+        self.assertTupleEqual(reward, (0, 0, 0), 'wrong reward')
+
+    def testPlay(self):
+        # tests if we get negative hunger reward if we go on 10 steps without eating
+        self.buridansass1Dproblem.reset()
+        order = [1, 2, 3, 4, 4, 3, 2, 2, 1, 2]
+        for i in order:
+            r = self.buridansass1Dproblem.play(i)
+        reward = r[0]
+        self.assertEqual(reward, -1.0, 'reward of hunger doesn\'t fit')
+
+    def testFoodstolen(self):
+        # sets the stealing probability to 100% and tests if the food is stolen
+        # before set the problem to init state (middle)
+        self.buridansass1Dproblem.reset()
+        temp = self.buridansass1Dproblem.steal_probability
+        self.buridansass1Dproblem.steal_probability = 1
+        # go upwards, beacause we get away from bottom right food visible neighborhood
+        reward = self.buridansass1Dproblem.play(2)
+        # reward for stealing is second dimension
+        steal_rew = reward[1]
+        self.assertEqual(steal_rew, -0.5, 'no stealing reward')
+
+    def testPrint(self):
+        self.buridansass1Dproblem.reset()
+        # go down
+        self.buridansass1Dproblem.play(4)
+        # check on map if he's gone down
+        self.buridansass1Dproblem.print_map(self.buridansass1Dproblem._get_position(self.buridansass1Dproblem.state))
+
+    def testFoodEaten(self):
+        self.buridansass1Dproblem.reset()
+        # go upwards
+        self.buridansass1Dproblem.play(2)
+        # and then left
+        self.buridansass1Dproblem.play(3)
+        # and stay there, to get food reward
+        reward = self.buridansass1Dproblem.play(0)[0]
+        self.assertEqual(reward, 1.0, 'got wrong food reward')
+
+
 class TestPuddleworld(TestProblems):
     def runTest(self):
         self.testPuddleScene()
@@ -321,7 +403,7 @@ class TestPuddleworld(TestProblems):
         for col_val, row_val in zip(x.flatten(), y.flatten()):
             c = int(scene[row_val, col_val])
             ax.text(col_val, row_val, c, va='center', ha='center')
-        # plt.show()
+        plt.show()
 
     def testPlay(self):
         self.puddleworldproblem.reset()
@@ -340,7 +422,15 @@ class TestPuddleworld(TestProblems):
         r = self.puddleworldproblem.play(1)
         touched2 = r[1]
         t = touched, touched2
-        self.assertTupleEqual(t, (-10.0, -20.0), 'puddlereward wrong')
+        self.assertTupleEqual(t, (-20.0, -40.0), 'puddlereward wrong')
+
+    def testFinalReward(self):
+        self.puddleworldproblem.reset()
+        self.puddleworldproblem.state = 17
+
+        self.puddleworldproblem.play(0)
+        reward = self.puddleworldproblem.play(0)
+        self.assertEqual(reward[0], 1, 'final reward wrong')
 
 
 class TestResourceGathering(TestProblems):
@@ -376,6 +466,7 @@ class TestResourceGathering(TestProblems):
             print str(ind) + ': ' + str(self.resourcegatheringproblem._get_position(ind))
         self.resourcegatheringproblem.state = 99
         self.resourcegatheringproblem.play(3)
+
     def testResources(self):
         self.resourcegatheringproblem.reset()
         # run to first resource
@@ -439,7 +530,7 @@ class TestResourceGathering(TestProblems):
         bag_size = self.resourcegatheringproblem._bag.count(1)
 
         self.assertEqual(s, self.resourcegatheringproblem.init, 'did not set the player on init position after losing')
-        self.assertEqual(rew, -1, 'did not get negative reward after losing')
+        self.assertEqual(rew, -10.0, 'did not get negative reward after losing')
         self.assertEqual(bag_size, 0, 'bag wasn\'t emptied after losing against enemy')
 
 

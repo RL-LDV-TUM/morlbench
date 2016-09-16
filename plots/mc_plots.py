@@ -6,9 +6,13 @@ from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_i
 import numpy as np
 import random
 import matplotlib.pyplot as plt
+import matplotlib as mpl
 import collections
 
 if __name__ == '__main__':
+    mpl.rc('text', usetex=True)
+    mpl.rcParams['mathtext.fontset'] = 'stix'
+    mpl.rcParams['font.family'] = 'STIXGeneral'
     random.seed(43)
     np.random.seed(43)
     # we need this to show if accelerations have changed
@@ -20,9 +24,9 @@ if __name__ == '__main__':
         return mean_cont
 
     # create Problem
-    problem = MountainCar(acc_fac=0.0087, cf=0.0030)
+    problem = MountainCar(acc_fac=0.007, cf=0.0030)
     # create an initialize randomly a weight vector
-    scalarization_weights = [0.0, 1.0, 0.0]
+    scalarization_weights = [1.0, 0.0, 0.0]
     # tau is for chebyshev agent
     tau = 1.0
     # ref point is used for Hypervolume calculation
@@ -39,7 +43,7 @@ if __name__ == '__main__':
                                       ref_point=ref, tau=tau, gamma=0.9)
     # hvbagent = MORLHVBAgent(problem, alfacheb, eps, ref, [0.0, 0.0])
 
-    # both agents interact (times):
+    # agent interact (times):
     interactions = 200
     #
     payouts, moves, states = morl_interact_multiple_episodic(chebyagent, problem, interactions,
@@ -49,7 +53,7 @@ if __name__ == '__main__':
     #, moves, states = morl_interact_multiple_average_episodic(chebyagent, problem, 10, 500)
 
     # time = problem.time_token
-    chebyagent._epsilon = 0.9
+    chebyagent._epsilon = 1.0
     payouts, moves2, states = morl_interact_multiple_episodic(chebyagent, problem, 1, 300)
     velocity = problem.get_velocities(states)
     states = problem.create_plottable_states(states)
@@ -73,12 +77,15 @@ if __name__ == '__main__':
     plt.xlabel('epoch')
     plt.ylabel('count')
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
-    plt.savefig('count')
-    f, axarr = plt.subplots(2, sharex=True)
+    # plt.savefig('count')
+    size = 0.48 * 5.8091048611149611602
+    fig, axarr = plt.subplots(2, sharex=True, figsize=[size, 0.75 * size])
+    fig.set_size_inches(size, 0.7 * size)
     xv = np.arange(0, len(velocity[-1]))
-    axarr[0].plot(xv, velocity[-1], 'y', label='velocity')
+    axarr[0].plot(xv, velocity[-1], 'r', label='velocity')
     x = np.arange(0, len(states[-1]))
     axarr[1].plot(x, states[-1], 'b', label="states")
+
     y = np.zeros(len(states[-1]))
     goal = np.zeros(len(states[-1]))
     left_front = np.zeros(len(states[-1]))
@@ -89,10 +96,14 @@ if __name__ == '__main__':
     axarr[1].axis([-1, 1.1*len(states[-1]), -1.25, 0.6])
     axarr[1].plot(x, goal, 'g--', label='goal position')
     axarr[1].plot(x, left_front, 'r--', label='left wall')
-    axarr[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
-    axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
-    axarr[1].set_xlabel('step')
-    axarr[1].set_ylabel('x')
-    axarr[0].set_ylabel('v')
-    plt.subplots_adjust(hspace=0.42)
+    # axarr[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
+    # axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
+    axarr[1].set_xlabel('Epoche', size=9)
+    axarr[1].set_ylabel('x', size=9)
+    axarr[0].set_ylabel('v', size=9)
+    plt.setp(axarr[1].get_yticklabels(), size=8)
+    plt.setp(axarr[0].get_yticklabels(), size=8)
+    plt.setp(axarr[1].get_xticklabels(), size=8)
+
+    plt.subplots_adjust(hspace=0.12, bottom=0.19, left=0.22)
     plt.show()

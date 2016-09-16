@@ -7,6 +7,7 @@ Created on Feb 10, 2015
 import numpy as np
 import matplotlib.pyplot as plt
 from helpers import HyperVolumeCalculator
+import matplotlib as mpl
 
 
 def plot_that_pretty_rldm15(xdata=[], ydata=[], labels=[],
@@ -124,6 +125,9 @@ def show_exploration(states, n_states):
 
 
 def plot_hypervolume(agents, problem, name='agent'):
+    mpl.rc('text', usetex=True)
+    mpl.rcParams['mathtext.fontset'] = 'stix'
+    mpl.rcParams['font.family'] = 'STIXGeneral'
     volumes_list = dict()
     for agent in xrange(len(agents)):
         volumes = [0]
@@ -139,17 +143,21 @@ def plot_hypervolume(agents, problem, name='agent'):
     ##################################
     #               PLOT             #
     ##################################
-    plt.figure()
+    fig = plt.figure()
+    size = 0.48 * 5.8091048611149611602
+    fig = plt.figure(figsize=[size, 0.75 * size])
+    fig.set_size_inches(size, 0.7 * size)
+    ax = fig.add_subplot(1,1,1)
     paretofront = [max([max(vol) for vol in volumes_list.values()]), ] * maxlen
-    title = problem.name()
-    if name == 'weights':
-        title += ' '
-        title += agents[0].name()
-    plt.title(title)
-    colours = ['r', 'b', 'g', 'k', 'y', 'm', 'rx-', 'bx-', 'gx-', 'yx-', 'mx-']
+    # title = problem.name()
+    # if name == 'weights':
+    #    title += ' '
+    #    title += agents[0].name()
+    # plt.title(title)
+    colours = ['b', 'r',  'g', 'k', 'y', 'm', 'rx-', 'bx-', 'gx-', 'yx-', 'mx-']
     for i in range(len(volumes_list)):
         if name == 'agent':
-            plt.plot(x, volumes_list[i], colours[i], label=agents[i].name())
+            plt.plot(x, volumes_list[i], colours[i])
         if name == 'weights':
             plt.plot(x, volumes_list[i], colours[i], label=str(agents[i]._w))
         if name == 'epsilon':
@@ -162,13 +170,19 @@ def plot_hypervolume(agents, problem, name='agent'):
             plt.plot(x, volumes_list[i], colours[i], label='tau: '+str(agents[i]._tau))
         if name == 'reference point':
             plt.plot(x, volumes_list[i], colours[i], label='ref-point: '+ str(agents[i].hv_calculator.ref_point))
-    plt.plot(x, paretofront, 'g--', label="estimated paretofront")
+
+
+    # plt.plot(x, paretofront, 'g--', label="estimated paretofront")
     plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
     plt.axis([0-0.01*len(x), len(x), 0, 1.1*max([max(vol) for vol in volumes_list.values()])])
-    plt.xlabel('interactions')
-    plt.ylabel('hypervolume')
+    plt.setp(ax.get_xticklabels(), fontsize=9)
+    plt.setp(ax.get_yticklabels(), fontsize=9)
+    plt.xlabel('interactions', size=9)
+    plt.ylabel('hypervolume', size=9)
     plt.grid(True)
-    plt.savefig('hypv_'+title+'.pdf')
+    plt.savefig('hypv'+str(agents[0]._w)+'.pdf')
+    plt.subplots_adjust(bottom=0.18, left=0.17)
+    plt.show()
 
 def plot_reward_hypervolume(rewards, problem, ref_point):
     hv_calc = HyperVolumeCalculator(ref_point)

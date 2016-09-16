@@ -40,9 +40,9 @@ if __name__ == '__main__':
     # scalarization_weights = np.array([0.9, 0.1])
 
     eps = 0.9
-    alfa = 0.34
+    alfa = 0.3
     runs = 1
-    interactions = 1000
+    interactions = 500
     max_steps = 150
     tau = 1.0
     ref_point = [-3.0, ]*problem.reward_dimension

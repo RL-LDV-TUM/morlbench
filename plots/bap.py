@@ -17,15 +17,11 @@ log.basicConfig(level=log.INFO)
 
 
 from morlbench.morl_problems import MORLBuridansAssProblem, MORLBuridansAss1DProblem
-from morlbench.morl_agents import MORLScalarizingAgent, QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent,\
-    SARSAMorlAgent, MORLHVBAgent
-from morlbench.morl_policies import PolicyFromAgent, PolicyGridworld
-from morlbench.inverse_morl import InverseMORLIRL
-from morlbench.plot_heatmap import policy_plot2, transition_map, heatmap_matplot, policy_heat_plot
-from morlbench.dynamic_programming import MORLDynamicProgrammingPolicyEvaluation, MORLDynamicProgrammingInverse
+from morlbench.morl_agents import MORLScalarizingAgent
 from morlbench.experiment_helpers import morl_interact_multiple_episodic, morl_interact_multiple_average_episodic
 from morlbench.plotting_stuff import plot_hypervolume
 
+import matplotlib as mpl
 import pickle
 import random
 import time
@@ -34,6 +30,9 @@ import matplotlib.pyplot as plt
 
 
 if __name__ == '__main__':
+    mpl.rc('text', usetex=True)
+    mpl.rcParams['mathtext.fontset'] = 'stix'
+    mpl.rcParams['font.family'] = 'STIXGeneral'
     random.seed(218)
     np.random.seed(3)
     saved_weights = []
@@ -59,12 +58,19 @@ if __name__ == '__main__':
     ##################################
     #               PLOT             #
     ##################################
-    plt.figure()
+    size = 0.48 * 5.8091048611149611602
+    fig = plt.figure(figsize=[size, 0.75 * size])
+    ax = fig.add_subplot(1,1,1)
+    fig.set_size_inches(size, 0.7 * size)
     for i in volumes:
-        plt.plot(x, volumes, 'b')
-    plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
+        plt.plot(x, volumes, 'r')
+    # plt.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=3, mode="expand", borderaxespad=0.)
     plt.axis([0 - 0.01 * len(x), len(x), 0, 1.1 * max(volumes)])
-    plt.xlabel('interactions')
-    plt.ylabel('hypervolume')
+    plt.setp(ax.get_xticklabels(), fontsize=9)
+    plt.setp(ax.get_yticklabels(), fontsize=9)
+    plt.xlabel('interactions', size=9)
+    plt.ylabel('hypervolume', size=9)
+    plt.subplots_adjust(bottom=0.19, left=0.17)
+
     plt.grid(True)
     plt.savefig('bap.pdf')

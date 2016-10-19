@@ -286,7 +286,7 @@ class TestBuridan(TestProblems):
         order = [1, 2, 3, 4, 4, 3, 2, 2, 1, 2]
         for i in order:
             r = self.buridansassproblem.play(i)
-        reward = r[0]
+        reward = r[2]
         self.assertEqual(reward, -1.0, 'reward of hunger doesn\'t fit')
 
     def testFoodstolen(self):
@@ -445,7 +445,7 @@ class TestPuddleworld(TestProblems):
 
         self.puddleworldproblem.play(0)
         reward = self.puddleworldproblem.play(0)
-        self.assertEqual(reward[0], 1, 'final reward wrong')
+        self.assertEqual(reward[0], 10.0, 'final reward wrong')
 
 
 class TestResourceGathering(TestProblems):
@@ -548,15 +548,3 @@ class TestResourceGathering(TestProblems):
         self.assertEqual(rew, -10.0, 'did not get negative reward after losing')
         self.assertEqual(bag_size, 0, 'bag wasn\'t emptied after losing against enemy')
 
-
-class TestMountainCarMulti(TestProblems):
-    def runTest(self):
-        self.testPosition()
-
-    def testPosition(self):
-        state = self.mountaincarproblem.n_states/2
-        print state
-        position = self.mountaincarproblem.get_position(state)
-        print position
-        state = self.mountaincarproblem.get_state(position)
-        print state

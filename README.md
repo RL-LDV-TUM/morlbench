@@ -20,7 +20,7 @@ testing in multiple objective Reinforcement Learning.
 
 written in Python 2.7
  
-##Getting Started
+## Getting Started
 =========================
 
 1. After cloning the repository you should run `python setup.py develop` in 

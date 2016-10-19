@@ -8,10 +8,11 @@ Chair of data processing @ Technical University of Munich
 
 # Contributors:
 
-Dominik Meyer <meyerd@mytum.de>
-Johannes Feldmaier <johannes.feldmaier@tum.de>
+Dominik Meyer <meyerd@mytum.de>, 
+Johannes Feldmaier <johannes.feldmaier@tum.de>, 
 Simon Wölzmüller   <ga35voz@mytum.de>
 
+# Description:
 
 This is the MORLBENCH Framework for algorithm and environment performance 
 testing in multiple objective Reinforcement Learning.

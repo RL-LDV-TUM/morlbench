@@ -2,6 +2,8 @@
 
 MORLBENCH Framework
 
+Multiobjective Reinforcement Learning Benchmark Suite
+
 # Institution:
 
 Chair of data processing @ Technical University of Munich
@@ -33,4 +35,5 @@ Information you might want to include is:
 3. For first examples using the framework relate to `morlbench/scratchpad`
 
 # Testing:
+
 To run test type `python -m unittest2 test.py` in `morlbench/test`

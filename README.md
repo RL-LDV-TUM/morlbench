@@ -1,5 +1,3 @@
-### General Information:
-========================
 # Name of the Project: 
 
 MORLBENCH Framework
@@ -20,8 +18,7 @@ testing in multiple objective Reinforcement Learning.
 
 written in Python 2.7
  
-## Getting Started:
-===================
+# Getting Started:
 
 1. After cloning the repository you should run `python setup.py develop` in 
 parent directory of the framework. (provided you have python 2.7 on your system
@@ -34,6 +31,5 @@ Information you might want to include is:
 
 3. For first examples using the framework relate to `morlbench/scratchpad`
 
-## Testing:
-===========
+# Testing:
 To run test type `python -m unittest2 test.py` in `morlbench/test`

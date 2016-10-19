@@ -1,14 +1,14 @@
-###General Information
+### General Information
 ======================
-#Name of the Project: 
+# Name of the Project: 
 
 MORLBENCH Framework
 
-#Institution:
+# Institution:
 
 Chair of data processing @ Technical University of Munich
 
-#Contributors:
+# Contributors:
 
 Dominik Meyer <meyerd@mytum.de>
 Johannes Feldmaier <johannes.feldmaier@tum.de>
@@ -34,6 +34,6 @@ Information you might want to include is:
 
 3. For first examples using the framework relate to `morlbench/scratchpad`
 
-##Testing
+## Testing
 =================
 To run test type `python -m unittest2 test.py` in `morlbench/test`

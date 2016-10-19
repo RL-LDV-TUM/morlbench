@@ -40,7 +40,10 @@ These agents are used for multiple criteria average reward experiments
 
 class MultipleCriteriaH:
     """
-    For information: 'Multi-Criteria Average Reward RL' S. Natarajan
+    from:
+    S. Natarajan. Multi-Criteria Average Reward Reinforcement Learning. Masterarbeit,
+    Oregon State University, 2005.
+
     This class uses HLearning and a bunch of weight vectors to iterate through. After learning all of them,
     using the agent for a specific weight would cause faster performance and converging average reward
     """
@@ -251,7 +254,9 @@ class MultipleCriteriaH:
 
 class MultipleCriteriaR:
     """
-    For information: 'Multi-Criteria Average Reward RL' S. Natarajan
+    FROM:
+    S. Natarajan. Multi-Criteria Average Reward Reinforcement Learning. Masterarbeit,
+    Oregon State University, 2005.
     This class uses HLearning and a bunch of weight vectors to iterate through. After learning all of them,
     using the agent for a specific weight would cause faster performance and converging average reward
     """
@@ -470,8 +475,11 @@ class MultipleCriteriaR:
 
 class MORLConvexHullValueIteration:
     """
+    from:
+
+    L. Barrett und S. Narayanan. Learning all optimal policies with multiple criteria. In
+    Proceedings of the 25 th international conference on machine learning, S. 41–47, 2008.
     This class contains wrapper for Convex Hull Value Iteration
-    for more information: 'Learning all optimal policies with multiple Criteria', L. Barett, S. Narayanan
     """
     def __init__(self, morl_problem, gamma=0.9):
         """

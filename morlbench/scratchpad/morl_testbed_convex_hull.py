@@ -19,6 +19,11 @@ Created on Jun 28, 2016
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+
+from:
+    L. Barrett und S. Narayanan. Learning all optimal policies with multiple criteria. In
+    Proceedings of the 25 th international conference on machine learning, S. 41–47, 2008.
 """
 from morlbench.morl_agents_multiple_criteria import MORLConvexHullValueIteration
 from morlbench.morl_problems import MORLResourceGatheringProblem, MORLGridworld, MORLBuridansAssProblem, Deepsea,\

@@ -661,9 +661,12 @@ class NFQAgent(MorlAgent):
 
 class MORLScalarizingAgent(MorlAgent):
     """
+    from:
+    K.V. Moffaert, M.M. Drugan und A. Nowe. Scalarized multi-objective reinforcement
+    learning: Novel design techniques. In ADPRL, S. 191–199. IEEE, 2013.
+
     This class is an Agent that uses chebyshev scalarization method in Q-iteration
     Contains a Q-Value table with additional parameter o <-- (Objective)
-    according to: 'scalarized MORL: Novel design techniques'
     @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
     def __init__(self, morl_problem, scalarization_weights, alpha, epsilon, tau, ref_point, function='chebishev',
@@ -891,10 +894,14 @@ class MORLScalarizingAgent(MorlAgent):
 
 class MORLHVBAgent(MorlAgent):
     """
+    FROM
+    K.V. Moeffart, M. Drugan, A. Nowé et al.. Hypervolume-Based Multi-Objective
+    Reinforcement Learning. In EMO2013, S. 252–366, 2013.
+
     this class is implemenation of hypervolume based MORL agent,
     the reference point (ref) is used for quality evaluation of
     state-action lists depending on problem set.
-    like they do in paper: 'Hypervolume-Based MORL', Van Moffaert, Drugan, Nowé
+
     @author: Simon Wölzmüller <ga35voz@mytum.de>
     """
     def __init__(self, morl_problem, alpha, epsilon, ref, scal_weights,  **kwargs):
@@ -1093,8 +1100,11 @@ class MORLHVBAgent(MorlAgent):
 
 class MORLHLearningAgent(MorlAgent):
     """
+    from:
+    S. Natarajan. Multi-Criteria Average Reward Reinforcement Learning. Masterarbeit,
+    Oregon State University, 2005.
     Average reward learning agent. Uses H-function to store model based evaluation function.
-    Also see: 'MultiCriteriaAverageReward RL', S.Natarajan
+
     """
     def __init__(self, morl_problem, epsilon, alpha, weights, **kwargs):
         """
@@ -1232,7 +1242,9 @@ class MORLHLearningAgent(MorlAgent):
 
 class MORLRLearningAgent(MorlAgent):
     """
-    Also see: 'MultiCriteriaAverageReward RL', S.Natarajan
+    from:
+    S. Natarajan. Multi-Criteria Average Reward Reinforcement Learning. masters thesis,
+    Oregon State University, 2005.
     This class contains an average Reward optimizing agent.
     The R Learning agent is the model free version of H-learning
     """

@@ -1,4 +1,31 @@
-from morlbench.morl_problems import MORLResourceGatheringProblem, MountainCarTime, MORLGridworld, MORLBuridansAssProblem, Deepsea
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Created on Apr 22, 2016
+
+@author: Dominik Meyer <meyerd@mytum.de>
+@author: Johannes Feldmaier <johannes.feldmaier@tum.de>
+@author: Simon Woelzmueller   <ga35voz@mytum.de>
+
+    Copyright (C) 2016  Dominik Meyer, Johannes Feldmaier, Simon Woelzmueller
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
+
+
+from morlbench.morl_problems import MORLResourceGatheringProblem, MountainCar, MORLGridworld, MORLBuridansAssProblem, Deepsea
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.experiment_helpers import morl_interact_multiple_episodic
 from morlbench.morl_policies import PolicyFromAgent
@@ -13,7 +40,7 @@ if __name__ == '__main__':
     hypervolume_experiment = False
     comparison_experiment = True
     # create Problem
-    problem = MORLBuridansAssProblem()
+    problem = MORLGridworld()
     # create an initialize randomly a weight vector
     scalarization_weights = [1.0, 0.0, 0.0]
     # tau is for chebyshev agent
@@ -23,12 +50,12 @@ if __name__ == '__main__':
     # learning rate
     alfacheb = 0.01
     # Propability of epsilon greedy selection
-    eps = 0.5
+    eps = 0.7
     # create one agent using chebyshev scalarization method
     chebyagent = MORLScalarizingAgent(problem, epsilon=eps, alpha=alfacheb, scalarization_weights=scalarization_weights,
                                       ref_point=ref, tau=tau)
     # both agents interact (times):
-    interactions = 20000
+    interactions = 2000
     n_vectors = 2
 
     if hypervolume_experiment:

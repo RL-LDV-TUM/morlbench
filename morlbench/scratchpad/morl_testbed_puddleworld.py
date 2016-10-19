@@ -3,7 +3,24 @@
 """
 Created on Mar 03, 2016
 
-@author: Johannes Feldmaier <@tum.de>
+@author: Dominik Meyer <meyerd@mytum.de>
+@author: Johannes Feldmaier <johannes.feldmaier@tum.de>
+@author: Simon Woelzmueller   <ga35voz@mytum.de>
+
+    Copyright (C) 2016  Dominik Meyer, Johannes Feldmaier, Simon Woelzmueller
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging as log
@@ -51,7 +68,7 @@ if __name__ == '__main__':
         alfa = 0.1
         tau = 1.0
 
-        interactions = 10
+        interactions = 50
 
         def eps():
             for i in xrange(interactions*max_episode_l/1.5):
@@ -64,34 +81,27 @@ if __name__ == '__main__':
         # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
         agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=1.0,
                                   ref_point=[-1.0, -1.0])
-        # agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0], scal_weights=[1.0, 10.0])
+        # agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0], scal_weights=[1.0, 0.0])
 
 
         # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)
         payouts, moves, states = morl_interact_multiple_episodic(agent, problem, interactions=interactions, max_episode_length=max_episode_l)
-        agent.create_scalar_Q_table()
-        x = [w for w in xrange(problem._size)]
-        y = [d for d in xrange(problem._size)]
-        x, y = np.meshgrid(x, y)
-        z = np.array([max([agent.Qs[s, a] for a in xrange(problem.n_actions)]) for s in xrange(problem.n_states)])
-        z = z.reshape(problem._size, problem._size)
-
-        fig, ax = plt.subplots()
-        ax.imshow(z, interpolation='nearest')
-        # plt.colorbar()
-        plt.grid()
-        plt.show()
+        # agent.create_scalar_Q_table()
+        # x = [w for w in xrange(problem._size)]
+        # y = [d for d in xrange(problem._size)]
+        # x, y = np.meshgrid(x, y)
+        # z = np.array([max([agent.Qs[s, a] for a in xrange(problem.n_actions)]) for s in xrange(problem.n_states)])
+        # z = z.reshape(problem._size, problem._size)
+        #
+        # fig, ax = plt.subplots()
+        # ax.imshow(z, interpolation='nearest')
+        # # plt.colorbar()
+        # plt.grid()
+        # plt.show()
         log.info('Average Payout: %s' % (str(payouts.mean(axis=0))))
 
-        # show_exploration(states, problem.n_states)
-        # learned_policy = PolicyFromAgent(problem, agent, mode='gibbs')
-        # learned_policy = PolicyFromAgent(problem, agent, mode='None')
-        learned_policy = PolicyFromAgent(problem, agent, mode='greedy')
-        # learned_policy = PolicyGridworld(problem, policy='DIAGONAL')
-        # learned_policy = PolicyGridworld(problem, policy='RIGHT')
-        # learned_policy = PolicyGridworld(problem, policy='DOWN')
 
-        # filename = 'figure_' + time.strftime("%Y%m%d-%H%M%S")
+        learned_policy = PolicyFromAgent(problem, agent, mode='greedy')
 
         # pickle.dump((payouts, moves, states, problem, agent), open('test_pickle.p', "wb"))
 

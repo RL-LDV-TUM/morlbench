@@ -3,7 +3,24 @@
 """
 Created on Mar 03, 2016
 
-@author: Johannes Feldmaier <@tum.de>
+@author: Dominik Meyer <meyerd@mytum.de>
+@author: Johannes Feldmaier <johannes.feldmaier@tum.de>
+@author: Simon Woelzmueller   <ga35voz@mytum.de>
+
+    Copyright (C) 2016  Dominik Meyer, Johannes Feldmaier, Simon Woelzmueller
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging as log
@@ -16,7 +33,7 @@ import cPickle as pickle
 log.basicConfig(level=log.INFO)
 
 
-from morlbench.morl_problems import MORLBuridansAssProblem, MORLBuridansAss1DProblem
+from morlbench.morl_problems import MORLBuridansAssProblem, MORLBuridansAss1DProblem, Gridworld
 from morlbench.morl_agents import MORLScalarizingAgent, QMorlAgent, PreScalarizedQMorlAgent, SARSALambdaMorlAgent,\
     SARSAMorlAgent, MORLHVBAgent
 from morlbench.morl_policies import PolicyFromAgent, PolicyGridworld
@@ -41,21 +58,22 @@ if __name__ == '__main__':
 
     for i in xrange(runs):
 
-        problem = MORLBuridansAss1DProblem()
+        problem = Gridworld()
         scalarization_weights = np.array([0.0, 1.0, 0.0])
 
         eps = 0.2
         alfa = 0.1
         tau = 10.0
 
-        interactions = 600
+        interactions = 1000
 
         # agent = QMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = PreScalarizedQMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSAMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps)
         # agent = SARSALambdaMorlAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, lmbda=0.9)
-        agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=0.9,
-                              ref_point=[-1.0, -1.0, -1.0])
+        agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.1, ref=[-0.1, -0.1, -0.1],
+                                scal_weights=scalarization_weights)
+
         # agent = MORLHVBAgent(problem, alpha=alfa, epsilon=0.9, ref=[-1.0, -1.0, -1.0], scal_weights=[1.0, 10.0])
 
         # payouts, moves, states = morl_interact_multiple_average_episodic(agent, problem, runs=runs, interactions=interactions, max_episode_length=150)

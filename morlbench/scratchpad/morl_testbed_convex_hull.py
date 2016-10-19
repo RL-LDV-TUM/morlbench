@@ -4,6 +4,21 @@
 Created on Jun 28, 2016
 
 @author: Simon Wölzmüller <ga35voz@mytum.de>
+
+    Copyright (C) 2016  Simon Woelzmueller
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from morlbench.morl_agents_multiple_criteria import MORLConvexHullValueIteration
 from morlbench.morl_problems import MORLResourceGatheringProblem, MORLGridworld, MORLBuridansAssProblem, Deepsea,\
@@ -21,7 +36,7 @@ from morlbench.helpers import remove_duplicates, compute_hull
 if __name__ == '__main__':
 
     max_interactions = 40
-    problem = MORLGridworld()
+    problem = MORLResourceGatheringProblem()
     agent = MORLConvexHullValueIteration(problem, gamma=0.9)
     log.info('Playing maximum %i interactions each... ' % max_interactions)
     pbar = pgbar.ProgressBar(widgets=['Interactions: ', pgbar.SimpleProgress('/'), ' (', pgbar.Percentage(), ') ',

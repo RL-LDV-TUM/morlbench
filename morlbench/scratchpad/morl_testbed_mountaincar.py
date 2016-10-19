@@ -1,3 +1,27 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+"""
+Created on Jun 11, 2016
+
+@author: Dominik Meyer <meyerd@mytum.de>
+@author: Johannes Feldmaier <johannes.feldmaier@tum.de>
+@author: Simon Woelzmueller   <ga35voz@mytum.de>
+
+    Copyright (C) 2016  Dominik Meyer, Johannes Feldmaier, Simon Woelzmueller
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
 from morlbench.morl_problems import MountainCarTime, Deepsea, MORLGridworld, MountainCar
 from morlbench.morl_agents import MORLScalarizingAgent, MORLHVBAgent
 from morlbench.plotting_stuff import plot_hypervolume
@@ -17,7 +41,7 @@ if __name__ == '__main__':
         return mean_cont
 
     # create Problem
-    problem = MountainCar(acc_fac=0.01, cf=0.0025)
+    problem = MountainCar(acc_fac=0.0088, cf=0.0029)
     # create an initialize randomly a weight vector
     scalarization_weights = [1.0, 0.0, 0.0]
     # tau is for chebyshev agent
@@ -25,7 +49,7 @@ if __name__ == '__main__':
     # ref point is used for Hypervolume calculation
     ref = [-10.0, ]*problem.reward_dimension
     # learning rate
-    alfacheb = 0.1
+    alfacheb = 0.4
     # Propability of epsilon greedy selection
     eps = 0.9
     # should we show total acceleration count or just trend:
@@ -37,15 +61,17 @@ if __name__ == '__main__':
     # hvbagent = MORLHVBAgent(problem, alfacheb, eps, ref, [0.0, 0.0])
 
     # both agents interact (times):
-    interactions = 20
+    interactions = 300
     #
     payouts, moves, states = morl_interact_multiple_episodic(chebyagent, problem, interactions,
-                                                                 max_episode_length=300, discounted_eps=True)
+                                                                 max_episode_length=300, discounted_eps=False)
     # print("TEST(cheby): interactions made: \nP: "+str(payouts[:])+",\n M: " + str(moves[:]) + ",\n S: " +
     #       str(states[:]) + '\n')
     #, moves, states = morl_interact_multiple_average_episodic(chebyagent, problem, 10, 500)
 
     # time = problem.time_token
+    chebyagent._epsilon = 0.9
+    payouts, moves2, states = morl_interact_multiple_episodic(chebyagent, problem, 1, 300)
     velocity = problem.get_velocities(states)
     states = problem.create_plottable_states(states)
     plot_hypervolume([chebyagent], problem)
@@ -84,11 +110,12 @@ if __name__ == '__main__':
     y[:] = -0.5
     goal[:] = problem._goalxState
     left_front[:] = -1.2
-    plt.plot(x, y, 'm--', label='Minimum')
-    plt.axis([-1, 1.1*len(states[-1]), -1.25, 0.6])
-    plt.plot(x, goal, 'g--', label='goal')
-    plt.plot(x, left_front, 'r--', label='left_front')
+    axarr[1].plot(x, y, 'm--', label='Minimum')
+    axarr[1].axis([-1, 1.1*len(states[-1]), -1.25, 0.6])
+    axarr[1].plot(x, goal, 'g--', label='goal')
+    axarr[1].plot(x, left_front, 'r--', label='left_front')
     axarr[0].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
+    axarr[1].legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
 
     # plt.xlabel('time')
     # plt.ylabel('states visited')

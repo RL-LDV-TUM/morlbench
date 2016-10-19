@@ -3,7 +3,24 @@
 """
 Created on Jun 11, 2016
 
-@author: Simon Wölzmüller <ga35voz@mytum.de>
+@author: Dominik Meyer <meyerd@mytum.de>
+@author: Johannes Feldmaier <johannes.feldmaier@tum.de>
+@author: Simon Woelzmueller   <ga35voz@mytum.de>
+
+    Copyright (C) 2016  Dominik Meyer, Johannes Feldmaier, Simon Woelzmueller
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 from morlbench.morl_problems import  Deepsea, MountainCarTime, MOPuddleworldProblem, MORLBuridansAssProblem, \
     MORLGridworld, MORLResourceGatheringProblem, MORLBuridansAss1DProblem
@@ -38,8 +55,8 @@ Attention:
 """
 if __name__ == '__main__':
     # create Problem
-    experiment_1 = False
-    experiment_2 = True
+    experiment_1 = True
+    experiment_2 = False
     problem = MORLBuridansAss1DProblem()
     # create an initialize randomly a weight vector
     scalarization_weights = np.zeros(problem.reward_dimension)
@@ -62,7 +79,7 @@ if __name__ == '__main__':
     # create one agent using Hypervolume based Algorithm
     hvbagent = MORLHVBAgent(problem, alpha=alfahvb, epsilon=0.1, ref=ref, scal_weights=[1.0, 10.0])
     # both agents interact (times):
-    interactions = 100
+    interactions = 1000
     if experiment_1:
         # make the interactions
         log.info('Playing %i interactions on chebyagent' % interactions)
@@ -96,8 +113,8 @@ if __name__ == '__main__':
         # list of volumes
         vollist = []
         # 6 agents with each different weights
-        # weights = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5],
-        #           [0.5, 0.0, 0.5], [0.33, 0.33, 0.33]]
+        weights = [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0], [0.5, 0.5, 0.0], [0.0, 0.5, 0.5],
+                   [0.5, 0.0, 0.5], [0.33, 0.33, 0.33]]
         weights = [np.random.dirichlet(np.ones(problem.reward_dimension), size=1)[0] for i in xrange(n_vectors)]
         for weight in weights:
             agent_group.append(MORLScalarizingAgent(problem, weight, alpha=alfacheb, epsilon=eps,

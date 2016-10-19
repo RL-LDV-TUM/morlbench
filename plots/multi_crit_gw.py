@@ -26,21 +26,21 @@ if __name__ == '__main__':
     # np.random.seed(2)
     # random.seed(3)
     # which problem do you want to experiment on?
-    problem = MOPuddleworldProblem(16)
+    problem = MORLResourceGatheringProblem()
     # this is the threshold that the difference of the weighted average reward of the untrained and trained policy
     # should top, to let the new trained policy be a 'better policy'
-    deltah = 0.6
+    deltah = 0.4
     # epsilon = propability that the agent choses a greedy action instead of a random action
-    epsilon = 0.2
+    epsilon = 0.9
     # learning rate
     alfah = 0.65
     # how many interactions should the action train per weight?
     interactions = 1000
     # how many episodes in one interactions should be taken? (if the problem gets in a terminal state, it will be
     # interrupted anyway (episodes = steps in the environment = actions)
-    max_per_interaction = 300
+    max_per_interaction = 100
     # count of final weighted average reward that don't differ from the last ones to interrupt and signify converge
-    converging_criterium = 25
+    converging_criterium = 20
     ref = [-0.001, ]*problem.reward_dimension
     # we want to evaluate both policy set with hypervolume indicator
     hv_calculator = HyperVolumeCalculator(ref)

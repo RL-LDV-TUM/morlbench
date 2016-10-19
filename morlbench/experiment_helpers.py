@@ -4,6 +4,21 @@
 Created on Apr 23, 2015
 
 @author: Dominik Meyer <meyerd@mytum.de>
+
+    Copyright (C) 2016 Dominik Meyer
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import numpy as np
@@ -21,6 +36,8 @@ def interact_multiple(agent, problem, interactions):
     in each stage.
     """
     # storage
+    log.info('This program comes with ABSOLUTELY NO WARRANTY This is free software, and you are welcome to '
+             'redistribute it under certain conditions. See GPL')
     payouts = []
     actions = []
     log.info('Playing %i interactions ... ' % (interactions))
@@ -49,6 +66,8 @@ def morl_interact_multiple_episodic(agent, problem, interactions, max_episode_le
     problem and then return arrays of actions chosen and
     payouts received in each stage.
     """
+    log.info('This program comes with ABSOLUTELY NO WARRANTY This is free software, and you are welcome to '
+             'redistribute it under certain conditions. See GPL')
     # storage for interactions
     final_rewards = []
     moves = []
@@ -112,6 +131,8 @@ def morl_interact_multiple(agent, problem, interactions, max_steps):
     problem and then return arrays of actions chosen and
     payouts received in each stage.
     """
+    log.info('This program comes with ABSOLUTELY NO WARRANTY This is free software, and you are welcome to '
+             'redistribute it under certain conditions. See GPL')
     # storage for interactions
     average_rewards_per_run = []
     moves = []
@@ -166,6 +187,8 @@ def morl_interact_multiple_average_episodic(agent, problem, runs=50, interaction
     multi objective RL problem and then return arrays of actions chosen and
     payouts received in each stage.
     """
+    log.info('This program comes with ABSOLUTELY NO WARRANTY This is free software, and you are welcome to '
+             'redistribute it under certain conditions. See GPL')
 
     final_rewards = []
     moves = []
@@ -225,6 +248,8 @@ def interact_multiple_twoplayer(agent1, agent2, problem, interactions,
     return arrays of actions chosen and payouts received
     in each stage.
     """
+    log.info('This program comes with ABSOLUTELY NO WARRANTY This is free software, and you are welcome to '
+             'redistribute it under certain conditions. See GPL')
     # TODO: Make this more flexible instead of tedious code duplication.
     payouts1 = []
     actions1 = []

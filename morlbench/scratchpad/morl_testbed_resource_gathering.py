@@ -3,7 +3,24 @@
 """
 Created on Mar 03, 2016
 
-@author: Johannes Feldmaier <@tum.de>
+@author: Dominik Meyer <meyerd@mytum.de>
+@author: Johannes Feldmaier <johannes.feldmaier@tum.de>
+@author: Simon Woelzmueller   <ga35voz@mytum.de>
+
+    Copyright (C) 2016  Dominik Meyer, Johannes Feldmaier, Simon Woelzmueller
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 import logging as log
@@ -39,14 +56,14 @@ if __name__ == '__main__':
     # scalarization_weights = np.array([0.0, 1.0])
     # scalarization_weights = np.array([0.9, 0.1])
 
-    eps = 0.9
+    eps = 0.4
     alfa = 0.4
     runs = 1
     interactions = 100
     max_steps = 100
-    tau = 3.0
+    tau = 1.0
 
-    agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, lmbda=1.0,
+    agent = MORLScalarizingAgent(problem, scalarization_weights, alpha=alfa, epsilon=eps, tau=tau, gamma=1.0,
                                  ref_point=[-1.0, -1.0, -1.0])
 
 

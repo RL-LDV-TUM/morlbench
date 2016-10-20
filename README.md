@@ -30,7 +30,6 @@ installed. Otherwise download it([Python Website](https://www.python.org/)))
 2. You can use every class in `morlbench/morl_agents.py` and 
 `morlbench/morl_problems.py` where agents stands for algorithms and problems
 for the scenarios you want to test in.
-Information you might want to include is:
 
 3. For first examples using the framework relate to `morlbench/scratchpad`
 

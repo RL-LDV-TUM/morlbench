@@ -14,7 +14,6 @@ setup(name='MORL Framework',
           'neurolab',
           'cvxopt',
           'unittest2',
-          'pyhull',
           'scipy'
       ]
       )

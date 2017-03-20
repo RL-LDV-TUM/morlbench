@@ -3,7 +3,7 @@
 """
 Created on Mar 03, 2016
 
-@author: Johannes Feldmaier <@tum.de>
+@author: Simon Wölzmüller <ga35voz@mytum.de>
 """
 
 import logging as log
